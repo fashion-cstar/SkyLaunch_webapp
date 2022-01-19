@@ -54,6 +54,22 @@ export function extractContractUserInfo(userInfo:any):any {
   return userinfo               
 }
 
+// returns the claim for the given address, or null if not valid
+export function fetchKYClist(): Promise<any | null> {
+  return (fetch(`https://raw.githubusercontent.com/SkyLaunchFinance/kyc-merkle/master/kyc-addresses.json`)
+      .then(res => {
+        if (res.status === 200) {
+          return res.json()
+        } else {
+          console.debug(`Failed to get kyc-addresses`)
+          return null
+        }
+      })
+      .catch(error => {
+        console.error('Failed to get kyc-addresses', error)
+      }))
+}
+
 // export function useFetchPoolInfo(fundRaisingContract: Contract | null, pid: number) {
 //     const dispatch = useDispatch<AppDispatch>()
 //     const { account } = useActiveWeb3React()

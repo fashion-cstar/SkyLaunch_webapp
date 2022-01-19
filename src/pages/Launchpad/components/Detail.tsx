@@ -26,7 +26,7 @@ import { Token } from '@skylaunch/sdk'
 import { getContract } from '../../../utils'
 import toEtherAmount from 'utils/toEtherAmount'
 import { useFundRaisingContract, useTokenContract } from '../../../hooks/useContract'
-import kycMerkleRoot from '../../../constants/abis/kycMerkleRoot.json';
+// import kyc_addresses from '../../../constants/abis/kycMerkleRoot.json';
 import CheckedIcon from './checkedIcon'
 import NoteTextBar from './NoteTextBar'
 import RemainingTimePanel from './RemainingTimePanel'
@@ -34,7 +34,7 @@ import FundedAmountPanel from './FundedAmountPanel'
 import Circle from '../../../assets/images/blue-loader.svg'
 import { CustomLightSpinner } from '../../../theme'
 import { setPoolInfo, setUserInfo, setIsKYCed, setIsSubscribed, setIsFunded, setProgressPhase, setPoolID, setMaxAlloc } from 'state/fundraising/actions'
-import { usePoolInfoData, useUserInfoData, useUserKYCed, useUserSubscribed, useUserFunded, useProgressPhase, useMaxAlloc, getProgressPhase, extractContractPoolInfo, extractContractUserInfo } from 'state/fundraising/hooks'
+import { usePoolInfoData, useUserInfoData, useUserKYCed, useUserSubscribed, useUserFunded, useProgressPhase, useMaxAlloc, getProgressPhase, extractContractPoolInfo, extractContractUserInfo, fetchKYClist } from 'state/fundraising/hooks'
 import ERC20_ABI from 'constants/abis/erc20.json'
 import toCurrencyAmount from 'utils/toCurrencyAmount'
 
@@ -250,6 +250,7 @@ export default function DetailComponent() {
   const [readyFundRaising, setReadyFundRaising] = useState(false)
   const [fundToken, setFundToken] = useState<Token | undefined>()
   const blockTimestamp = useCurrentBlockTimestamp()  
+  const [kyc_addresses, setKYCaddresses] = useState<any>()
   const IdoListComplete = IDO_LIST // fetch this list from the server  
   const poolInfoData=usePoolInfoData()
   const userInfoData=useUserInfoData()
@@ -290,14 +291,14 @@ export default function DetailComponent() {
     }
     return null
   }
-  
+
   const fetchUserInfo = async () => {
     if (fundRaisingContract){                  
       let numsOfPools=await fundRaisingContract.numberOfPools()
       if (!numsOfPools || pid>=numsOfPools) return null
       let userInfo=await fundRaisingContract.userInfo(pid, account)      
       dispatch(setUserInfo({userInfo:extractContractUserInfo(userInfo)}))      
-      const claim = kycMerkleRoot.kycRecords[account?account:ZERO_ADDRESS]
+      const claim = kyc_addresses.kycRecords[account?account:ZERO_ADDRESS]
       if (claim) dispatch(setIsKYCed({isKYCed:true}))      
       else dispatch(setIsKYCed({isKYCed:false}))           
       if (userInfo){
@@ -314,7 +315,7 @@ export default function DetailComponent() {
     if (fundRaisingContract){              
       let useExact = false
       try{        
-        const claim = kycMerkleRoot.kycRecords[account?account:ZERO_ADDRESS];
+        const claim = kyc_addresses.kycRecords[account?account:ZERO_ADDRESS];
         const estimatedGas = await fundRaisingContract.estimateGas.subscribe(pid, claim.index, claim.proof).catch(() => {        
           useExact = true
           return fundRaisingContract.estimateGas.subscribe(pid, claim.index, claim.proof)
@@ -341,8 +342,7 @@ export default function DetailComponent() {
 
   const updateProgressAndRemainTime= (blockTime:BigNumber, realBlockTime:boolean) => {
     if (blockTime && poolInfoData){
-      const res=getProgressPhase(poolInfoData, blockTime)
-      console.log(realBlockTime)
+      const res=getProgressPhase(poolInfoData, blockTime)      
       if ((Number(res.progressPhase)!=progressPhase || remainSecs===0) && realBlockTime) setRemainSecs(Number(res.remainSecs))       
       dispatch(setProgressPhase({progressPhase:Number(res.progressPhase)})) 
       if (res.loaded) setReadyFundRaising(true)
@@ -351,14 +351,21 @@ export default function DetailComponent() {
       setActiveStep(step)
     }
   }
+
+  useEffect(() => {
+    fetchKYClist().then(res => {
+      if (res) setKYCaddresses(res)
+    })    
+  },[])
+
   useEffect(() => {    
-    if (account && pid>=0){         
+    if (account && pid>=0 && kyc_addresses){         
       dispatch(setPoolInfo({poolInfo:null}))
       dispatch(setUserInfo({userInfo:null}))
       fetchPoolInfo()
       fetchUserInfo()                 
     }
-  }, [account, pid])
+  }, [account, pid, kyc_addresses])
   
   useEffect(() => {
     const fetch=async () => {
@@ -411,7 +418,7 @@ export default function DetailComponent() {
     return []
   }, [idoData])
 
-  const openFundModal = () => {     
+  const openFundModal = () => {         
     setShowFundModal(!showFundModal)
   }
 
@@ -427,7 +434,7 @@ export default function DetailComponent() {
                 {idoData?.description ?? ''}
               </Summary>
             </Header>
-            {poolInfoData && userInfoData && isSubscribed && !isFunded && progressPhase==2 && (<FundModal            
+            {poolInfoData && userInfoData && isSubscribed && progressPhase==2 && maxAlloc && fundToken && toEtherAmount(userInfoData.fundingAmount, fundToken, 4)<maxAlloc && (<FundModal            
             isOpen={showFundModal} onDismiss={() => setShowFundModal(false)}
             fundRaisingContract={fundRaisingContract} pid={pid} poolInfoData={poolInfoData}
             userInfoData={userInfoData} maxAlloc={maxAlloc} fundToken={fundToken}/>)}
@@ -435,13 +442,14 @@ export default function DetailComponent() {
             <>
               {!isKYCed && progressPhase<=1 && (<NoteTextBar notetext="You are not KYCed! Click KYC button to register!" type="warning" />)}
               {isSubscribed && progressPhase<=1 && (<NoteTextBar notetext="You already subscribed!" type="success" />)}
-              {isSubscribed && isFunded && progressPhase===2 && (<NoteTextBar notetext="You already funded!" type="success" />)}
+              {isSubscribed && isFunded && progressPhase===2 && fundToken && toEtherAmount(userInfoData.fundingAmount, fundToken, 4)<maxAlloc && (<NoteTextBar notetext="You funded. To fund more, click FundIt button!" type="success" />)}
+              {isSubscribed && isFunded && progressPhase===2 && fundToken && toEtherAmount(userInfoData.fundingAmount, fundToken, 4)>=maxAlloc && (<NoteTextBar notetext="You have already reached your maximum allocation!" type="success" />)}
               {isSubscribed && !isFunded && progressPhase===2 && (<NoteTextBar notetext="You already subscribed! Click FundIt button to stake!" type="warning" />)}
               {isKYCed && !isSubscribed && progressPhase<=1 && (<NoteTextBar notetext="You already KYCed! Click Subscribe button to subscribe!" type="warning" />)}
               {!isSubscribed && progressPhase>=2 && progressPhase<=4 && (<NoteTextBar notetext="You are not a subscriber!" type="warning" />)} 
             </>             
               :<></>}
-            {account && (
+            {account && kyc_addresses && (
             <ComponentBoxContainer>
               {!(readyFundRaising && poolInfoData && userInfoData) ? (
               <CenterWrap>
@@ -455,14 +463,23 @@ export default function DetailComponent() {
                         {idoData?.whiteListUrl && (
                           <ButtonPrimary width="120px" padding="5px 20px" onClick={() => goToSite(idoData.whiteListUrl)}>WHITEPAPER</ButtonPrimary>
                         )}         
-                        {poolInfoData && userInfoData && isKYCed && progressPhase===1 && (<ButtonSecondary width="120px" padding="5px 5px" marginLeft="40px" onClick={onSubscribe} disabled={isSubscribed?true:false}>SUBSCRIBE</ButtonSecondary>)}
-                        {poolInfoData && userInfoData && isKYCed && isSubscribed && progressPhase===1 && (<CheckedIcon color="#dddddd" />)}
-                        {poolInfoData && userInfoData && !isKYCed && progressPhase<=1 && (<StyledNavLink id={`${idoURL}-nav-link`} to={`/launchpad/${idoURL}/kyc`}>
-                          <ButtonPrimary width="120px" padding="5px 5px" marginLeft="40px" >KYC</ButtonPrimary>
-                        </StyledNavLink>)}    
-                        {poolInfoData && userInfoData && isSubscribed && progressPhase==2 && (
-                          <ButtonPrimary width="120px" padding="5px 5px" marginLeft="40px" onClick={openFundModal} disabled={isFunded?true:false}>Fund it!</ButtonPrimary>)}                   
-                        {poolInfoData && userInfoData && isSubscribed && isFunded && progressPhase===2 && (<CheckedIcon color="#dddddd" />)}
+                        {(poolInfoData && userInfoData)?
+                        <>
+                          {isKYCed && progressPhase===1 && (<ButtonSecondary width="120px" padding="5px 5px" marginLeft="40px" onClick={onSubscribe} disabled={isSubscribed?true:false}>SUBSCRIBE</ButtonSecondary>)}
+                          {isKYCed && isSubscribed && progressPhase===1 && (<CheckedIcon color="#dddddd" />)}
+                          {!isKYCed && progressPhase<=1 && (<StyledNavLink id={`${idoURL}-nav-link`} to={`/launchpad/${idoURL}/kyc`}>
+                            <ButtonPrimary width="120px" padding="5px 5px" marginLeft="40px" >KYC</ButtonPrimary>
+                          </StyledNavLink>)}    
+                          {(isSubscribed && progressPhase==2  && fundToken && maxAlloc)?
+                          <>
+                            {toEtherAmount(userInfoData.fundingAmount, fundToken, 4)<maxAlloc && (
+                              <ButtonPrimary width="120px" padding="5px 5px" marginLeft="40px" onClick={openFundModal} >Fund it!</ButtonPrimary>)}                   
+
+                            {toEtherAmount(userInfoData.fundingAmount, fundToken, 4)>=maxAlloc && (
+                              <ButtonPrimary width="120px" padding="5px 5px" marginLeft="40px" disabled={true}>Fund it!</ButtonPrimary>)}                   
+                            {toEtherAmount(userInfoData.fundingAmount, fundToken, 4)>=maxAlloc && (<CheckedIcon color="#dddddd" />)}
+                          </>:<></>}
+                        </>:<></>}
                       </ButtonsGroup>                      
                       <SocialLinks>
                         {socialMediaLinks.map(iconDetails => (

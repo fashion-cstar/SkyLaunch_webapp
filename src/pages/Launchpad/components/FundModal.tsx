@@ -13,6 +13,7 @@ import { ZERO_ADDRESS } from '../../../constants'
 import Modal from '../../../components/Modal'
 import { calculateGasMargin } from '../../../utils'
 import toCurrencyAmount from 'utils/toCurrencyAmount'
+import toEtherAmount from 'utils/toEtherAmount'
 import { ChainId } from '@skylaunch/sdk'
 import { BigNumber } from '@ethersproject/bignumber'
 import { utils } from 'ethers'
@@ -68,7 +69,7 @@ export default function FundModal({ isOpen, fundRaisingContract, pid, userInfoDa
   const userEthBalance=useETHBalances(account ? [account] : [], chainId)?.[account ?? '']
   const ethBalance=userEthBalance?.toSignificant(returnBalanceNum(userEthBalance, 4), { groupSeparator: ',' }) || 0
   const [typedValue, setTypedValue] = useState('')
-
+  const [maxFunding, setMaxFunding] = useState(0)
   const wrappedOnDismiss = useCallback(() => {
     onDismiss()
   }, [onDismiss])
@@ -77,8 +78,16 @@ export default function FundModal({ isOpen, fundRaisingContract, pid, userInfoDa
     fundStatus()
   }, [fundToken])
 
+  useEffect(() => {
+    if (userInfoData && fundToken){
+      let _amount=toEtherAmount(userInfoData.fundingAmount, fundToken, 4)      
+      _amount=maxAlloc-_amount      
+      if (_amount>accountBalance) _amount=accountBalance      
+      setMaxFunding(_amount)
+    }
+  }, [userInfoData, maxAlloc, fundToken, accountBalance])
   async function onApprove() {
-    if (fundRaisingContract && amount<accountBalance){
+    if (fundRaisingContract && amount<=maxFunding){
       if (fundToken!==undefined){        
         if (fundToken.address===ZERO_ADDRESS){          
           setIsApproved(true)
@@ -115,9 +124,19 @@ export default function FundModal({ isOpen, fundRaisingContract, pid, userInfoDa
     }
     return null;
   }
+
+  const successFunding=() => {
+    if (fundToken){
+      let _amount=toEtherAmount(userInfoData.fundingAmount, fundToken, 4)         
+      setFunded(true)
+      dispatch(setIsFunded({isFunded:true}))
+      if (userInfoData) dispatch(setUserInfo({userInfo:{...userInfoData, fundingAmount:toCurrencyAmount(amount+_amount, fundToken?.decimals)}}))
+    }
+  }
+
   async function onFundIt() {    
-    if (fundRaisingContract && amount<accountBalance){
-      if (fundToken!==undefined){        
+    if (fundRaisingContract && amount<=maxFunding){
+      if (fundToken){        
         if (fundToken.address===ZERO_ADDRESS){          
           let useExact = false
           try{        
@@ -133,8 +152,9 @@ export default function FundModal({ isOpen, fundRaisingContract, pid, userInfoDa
             fundRaisingContract.fundSubscription(pid, toCurrencyAmount(amount, fundToken?.decimals), {
               gasLimit: calculateGasMargin(gas), value:toCurrencyAmount(amount, fundToken?.decimals)
             })
-            .then((response: TransactionResponse) => {          
+            .then((response: TransactionResponse) => {                        
               console.log(response)
+              successFunding()
             })
             .catch((error: Error) => {
               console.debug('Failed to subscribe token', error)
@@ -146,7 +166,7 @@ export default function FundModal({ isOpen, fundRaisingContract, pid, userInfoDa
           }
         }else{
           if (!library) return null
-          if (amount<1) return null   
+          if (amount<1) return null             
           try{       
             let useExact = false
             let estimatedGas = await fundRaisingContract.estimateGas.fundSubscription(pid, toCurrencyAmount(amount, fundToken?.decimals)).catch(() => {        
@@ -157,11 +177,9 @@ export default function FundModal({ isOpen, fundRaisingContract, pid, userInfoDa
             fundRaisingContract.fundSubscription(pid, toCurrencyAmount(amount, fundToken?.decimals), {
               gasLimit: calculateGasMargin(gas)
             })
-            .then((response: TransactionResponse) => {          
+            .then((response: TransactionResponse) => {                        
               console.log(response)
-              setFunded(true)
-              dispatch(setIsFunded({isFunded:true}))
-              if (userInfoData) dispatch(setUserInfo({userInfo:{...userInfoData, fundingAmount:toCurrencyAmount(amount, fundToken?.decimals)}}))
+              successFunding()
             })
             .catch((error: Error) => {
               console.debug('Failed to fundSubscribe token', error)
@@ -187,8 +205,8 @@ export default function FundModal({ isOpen, fundRaisingContract, pid, userInfoDa
           if (!library) return null
           let tokenContract:Contract=getContract(fundToken?.address, ERC20_ABI, library, account ? account : ZERO_ADDRESS)
           let tokenBalance:BigNumber=await tokenContract.balanceOf(account ? account : ZERO_ADDRESS)     
-          let bal=tokenBalance.mul(100000).div(BigNumber.from(10).pow(fundToken.decimals))                    
-          setAccountBalance((bal.toNumber())/100000)  
+          let bal=toEtherAmount(tokenBalance, fundToken, 4)                 
+          setAccountBalance(bal)  
         }
       }         
     }
@@ -203,10 +221,11 @@ export default function FundModal({ isOpen, fundRaisingContract, pid, userInfoDa
   }, [])
 
   const handleMax = useCallback(() => {
-    let maxAmountInput = maxAlloc
-    if (accountBalance<maxAmountInput) maxAmountInput=accountBalance
-    maxAmountInput && onUserInput(maxAmountInput.toString())
-  }, [onUserInput, maxAlloc, accountBalance])
+    // let maxAmountInput = maxAlloc
+    // if (accountBalance<maxAmountInput) maxAmountInput=accountBalance
+    // maxAmountInput && onUserInput(maxAmountInput.toString())
+    onUserInput(maxFunding.toString())
+  }, [onUserInput, maxFunding, accountBalance])
 
   return (
     <Modal isOpen={isOpen} onDismiss={wrappedOnDismiss} maxHeight={90}>      
@@ -222,7 +241,25 @@ export default function FundModal({ isOpen, fundRaisingContract, pid, userInfoDa
           <p style={{color: "#808080", fontSize: "15px", marginBottom:'0px'}}>Balance:
             <span style={{color: '#eeeeee', fontSize: '18px', margin: '0px 10px'}}>{accountBalance.toLocaleString()}</span>{fundToken?fundToken.symbol:''}</p>
         </div>  */}
-        <FundingInputPanel value={typedValue} onUserInput={onUserInput} onMax={handleMax} />    
+        <FundingInputPanel value={typedValue} onUserInput={onUserInput} onMax={handleMax} /> 
+        <HypotheticalRewardRate dim={maxAlloc?false:true}>
+          <div>
+            <TYPE.black fontWeight={600}>{fundToken?fundToken.symbol:''}{' '}Balance</TYPE.black>
+          </div>
+
+          <TYPE.black>
+            {accountBalance?accountBalance:0}{' '}{fundToken?fundToken.symbol:''}
+          </TYPE.black>
+        </HypotheticalRewardRate>    
+        {userInfoData && fundToken && toEtherAmount(userInfoData.fundingAmount, fundToken, 4)>0 && (<HypotheticalRewardRate dim={maxAlloc?false:true}>
+          <div>
+            <TYPE.black fontWeight={600}>Funded Amount</TYPE.black>
+          </div>
+
+          <TYPE.black>
+            {userInfoData?toEtherAmount(userInfoData.fundingAmount, fundToken, 4):0}{' '}{fundToken?fundToken.symbol:''}
+          </TYPE.black>
+        </HypotheticalRewardRate>)}    
         <HypotheticalRewardRate dim={userInfoData?false:true}>
           <div>
             <TYPE.black fontWeight={600}>Multiplier</TYPE.black>
