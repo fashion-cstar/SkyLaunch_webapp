@@ -66,17 +66,27 @@ export default function FundModal({ isOpen, fundRaisingContract, pid, userInfoDa
   const [accountBalance, setAccountBalance] = useState(0)  
   const [isApproved, setIsApproved] = useState(false)
   const [isFunded, setFunded] = useState(false)  
-  const userEthBalance=useETHBalances(account ? [account] : [], chainId)?.[account ?? '']
-  const ethBalance=userEthBalance?.toSignificant(returnBalanceNum(userEthBalance, 4), { groupSeparator: ',' }) || 0
+  const userEthBalance=useETHBalances(account ? [account] : [], chainId)?.[account ?? '']  
+  const [ethBalance, setEthBalance] = useState(0)
   const [typedValue, setTypedValue] = useState('')
   const [maxFunding, setMaxFunding] = useState(0)
   const wrappedOnDismiss = useCallback(() => {
     onDismiss()
+    setIsApproved(false)
+    setFunded(false)
   }, [onDismiss])
 
+  useEffect(() => {
+    
+  }, [])
   useEffect(() => {    
     fundStatus()
-  }, [fundToken])
+  }, [fundToken, ethBalance, isFunded])
+
+  useEffect(() => {
+    const bal=userEthBalance?.toSignificant(returnBalanceNum(userEthBalance, 4), { groupSeparator: ',' }) || 0    
+    setEthBalance(Number(bal))
+  }, [userEthBalance])
 
   useEffect(() => {
     if (userInfoData && fundToken){
@@ -86,6 +96,7 @@ export default function FundModal({ isOpen, fundRaisingContract, pid, userInfoDa
       setMaxFunding(_amount)
     }
   }, [userInfoData, maxAlloc, fundToken, accountBalance])
+
   async function onApprove() {
     if (fundRaisingContract && amount<=maxFunding){
       if (fundToken!==undefined){        
@@ -119,8 +130,7 @@ export default function FundModal({ isOpen, fundRaisingContract, pid, userInfoDa
             
           }
         }
-      }
-      fundStatus()
+      }      
     }
     return null;
   }
@@ -137,9 +147,9 @@ export default function FundModal({ isOpen, fundRaisingContract, pid, userInfoDa
   async function onFundIt() {    
     if (fundRaisingContract && amount<=maxFunding){
       if (fundToken){        
-        if (fundToken.address===ZERO_ADDRESS){          
+        if (fundToken.address===ZERO_ADDRESS){             
           let useExact = false
-          try{        
+          try{                    
             const estimatedGas = await fundRaisingContract.estimateGas.fundSubscription(pid, toCurrencyAmount(amount, fundToken?.decimals), {
               value:toCurrencyAmount(amount, fundToken?.decimals)
             }).catch(() => {        
@@ -148,7 +158,7 @@ export default function FundModal({ isOpen, fundRaisingContract, pid, userInfoDa
                 value:toCurrencyAmount(amount, fundToken?.decimals)
               })
             })        
-            const gas = chainId === ChainId.AVALANCHE || chainId === ChainId.SMART_CHAIN ? BigNumber.from(350000) : estimatedGas        
+            const gas = chainId === ChainId.AVALANCHE || chainId === ChainId.SMART_CHAIN ? BigNumber.from(350000) : estimatedGas                    
             fundRaisingContract.fundSubscription(pid, toCurrencyAmount(amount, fundToken?.decimals), {
               gasLimit: calculateGasMargin(gas), value:toCurrencyAmount(amount, fundToken?.decimals)
             })
@@ -189,8 +199,7 @@ export default function FundModal({ isOpen, fundRaisingContract, pid, userInfoDa
             console.debug('Failed to fundSubscribe', error)            
           }
         }
-      }
-      fundStatus()
+      }      
     }
     return null;
   }
@@ -199,8 +208,9 @@ export default function FundModal({ isOpen, fundRaisingContract, pid, userInfoDa
     if (!account) return null
     if (fundRaisingContract){    
       if (fundToken!==undefined){                  
-        if (fundToken.address===ZERO_ADDRESS){
+        if (fundToken.address===ZERO_ADDRESS){          
           setAccountBalance(Number(ethBalance))  
+          setIsApproved(true)
         }else{
           if (!library) return null
           let tokenContract:Contract=getContract(fundToken?.address, ERC20_ABI, library, account ? account : ZERO_ADDRESS)
@@ -212,8 +222,6 @@ export default function FundModal({ isOpen, fundRaisingContract, pid, userInfoDa
     }
     return null
   }
-
-  fundStatus()
 
   const onUserInput = useCallback((typedValue: string) => {
     setFundAmount(Number(typedValue))    

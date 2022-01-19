@@ -278,7 +278,7 @@ export default function DetailComponent() {
       if (poolInfo && chainId && library){
         if (poolInfo?.fundRaisingToken===ZERO_ADDRESS){
           let token=NATIVE_TOKEN[chainId]
-          setFundToken(token)
+          setFundToken(token)          
         }else{          
           let tokenContract:Contract=getContract(poolInfo?.fundRaisingToken, ERC20_ABI, library, account ? account : undefined)
           let name=await tokenContract.name()
@@ -302,9 +302,9 @@ export default function DetailComponent() {
       if (claim) dispatch(setIsKYCed({isKYCed:true}))      
       else dispatch(setIsKYCed({isKYCed:false}))           
       if (userInfo){
-        if (userInfo['multiplier']>0) dispatch(setIsSubscribed({isSubscribed:true}))
-        else dispatch(setIsSubscribed({isSubscribed:false}))
-        if (userInfo['fundingAmount']>0) dispatch(setIsFunded({isFunded:true}))
+        if (userInfo['multiplier'].gt(BigNumber.from(0))) dispatch(setIsSubscribed({isSubscribed:true}))
+        else dispatch(setIsSubscribed({isSubscribed:false}))               
+        if (userInfo['fundingAmount'].gt(BigNumber.from(0))) dispatch(setIsFunded({isFunded:true}))
         else dispatch(setIsFunded({isFunded:false}))                
       }
     }
@@ -434,7 +434,7 @@ export default function DetailComponent() {
                 {idoData?.description ?? ''}
               </Summary>
             </Header>
-            {poolInfoData && userInfoData && isSubscribed && progressPhase==2 && maxAlloc && fundToken && toEtherAmount(userInfoData.fundingAmount, fundToken, 4)<maxAlloc && (<FundModal            
+            {poolInfoData && userInfoData && isSubscribed && progressPhase==2 && fundToken && toEtherAmount(userInfoData.fundingAmount, fundToken, 4)<maxAlloc && (<FundModal            
             isOpen={showFundModal} onDismiss={() => setShowFundModal(false)}
             fundRaisingContract={fundRaisingContract} pid={pid} poolInfoData={poolInfoData}
             userInfoData={userInfoData} maxAlloc={maxAlloc} fundToken={fundToken}/>)}
