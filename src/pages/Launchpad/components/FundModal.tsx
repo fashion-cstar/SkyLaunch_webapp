@@ -5,6 +5,8 @@ import styled from 'styled-components'
 import { Token } from '@skylaunch/sdk'
 import { Contract } from '@ethersproject/contracts'
 import { ButtonConfirmed, ButtonError } from 'components/Button'
+import { useTransactionAdder } from 'state/transactions/hooks'
+import { LoadingView, SubmittedView } from 'components/ModalViews'
 import { CloseIcon, TYPE } from '../../../theme'
 import { RowBetween, RowCenter } from '../../../components/Row'
 import { AutoColumn } from '../../../components/Column'
@@ -33,11 +35,16 @@ const ContentWrapper = styled(AutoColumn)`
   padding: 1rem;
 `
 
+const BalanceContainer = styled.div`
+  margin-bottom: 20px;
+`
+
 const HypotheticalRewardRate = styled.div<{ dim: boolean }>`
   display: flex;
   justify-content: space-between;
   padding-right: 20px;
   padding-left: 20px;
+  padding-top: 20px;  
   opacity: ${({ dim }) => (dim ? 0.5 : 1)};
 `
 
@@ -52,14 +59,10 @@ interface FundModalProps {
   onDismiss: () => void
 }
 
-interface valueProps {
-  address: string
-  pid: number
-  decimals: number
-  chainId: number  
-}
-
 export default function FundModal({ isOpen, fundRaisingContract, pid, userInfoData, poolInfoData, maxAlloc, fundToken, onDismiss }: FundModalProps) {  
+  const addTransaction = useTransactionAdder()
+  const [hash, setHash] = useState<string | undefined>()
+  const [attempting, setAttempting] = useState(false)
   const dispatch = useDispatch<AppDispatch>()
   const { library, account, chainId } = useActiveWeb3React()  
   const [amount, setFundAmount] = useState(0)    
@@ -70,10 +73,12 @@ export default function FundModal({ isOpen, fundRaisingContract, pid, userInfoDa
   const [ethBalance, setEthBalance] = useState(0)
   const [typedValue, setTypedValue] = useState('')
   const [maxFunding, setMaxFunding] = useState(0)
-  const wrappedOnDismiss = useCallback(() => {
-    onDismiss()
+  const wrappedOnDismiss = useCallback(() => {    
     setIsApproved(false)
     setFunded(false)
+    setHash(undefined)
+    setAttempting(false)
+    onDismiss()
   }, [onDismiss])
 
   useEffect(() => {
@@ -120,6 +125,10 @@ export default function FundModal({ isOpen, fundRaisingContract, pid, userInfoDa
             })
             .then((response: TransactionResponse) => {        
               setIsApproved(true)
+              addTransaction(response, {
+                summary: 'Approve ' + fundToken?.symbol,
+                approval: { tokenAddress: fundToken?.address, spender: fundRaisingContract.address }
+              })
               console.log(response)
             })
             .catch((error: Error) => {
@@ -146,7 +155,8 @@ export default function FundModal({ isOpen, fundRaisingContract, pid, userInfoDa
 
   async function onFundIt() {    
     if (fundRaisingContract && amount<=maxFunding){
-      if (fundToken){        
+      if (fundToken){       
+        setAttempting(true) 
         if (fundToken.address===ZERO_ADDRESS){             
           let useExact = false
           try{                    
@@ -164,13 +174,19 @@ export default function FundModal({ isOpen, fundRaisingContract, pid, userInfoDa
             })
             .then((response: TransactionResponse) => {                        
               console.log(response)
+              addTransaction(response, {
+                summary: `Funding ${amount} ${fundToken?.symbol}`
+              })
+              setHash(response.hash)
               successFunding()
             })
             .catch((error: Error) => {
+              setAttempting(false)
               console.debug('Failed to subscribe token', error)
               //throw error
             }) 
           }catch(error){
+            setAttempting(false)
             console.debug('Failed to subscribe', error)
             //throw error
           }
@@ -189,13 +205,19 @@ export default function FundModal({ isOpen, fundRaisingContract, pid, userInfoDa
             })
             .then((response: TransactionResponse) => {                        
               console.log(response)
+              addTransaction(response, {
+                summary: `Funding ${amount} ${fundToken?.symbol}`
+              })
+              setHash(response.hash)
               successFunding()
             })
             .catch((error: Error) => {
+              setAttempting(false)
               console.debug('Failed to fundSubscribe token', error)
               //throw error
             }) 
           }catch(error){
+            setAttempting(false)
             console.debug('Failed to fundSubscribe', error)            
           }
         }
@@ -237,55 +259,53 @@ export default function FundModal({ isOpen, fundRaisingContract, pid, userInfoDa
 
   return (
     <Modal isOpen={isOpen} onDismiss={wrappedOnDismiss} maxHeight={90}>      
-      <ContentWrapper gap="lg">
+      {!attempting && !hash && (<ContentWrapper gap="lg">
         <RowBetween>
           <CurrencyLogo currency={fundToken} size={'32px'} />
           <CloseIcon onClick={wrappedOnDismiss} />
         </RowBetween>
         <RowCenter>
-          <TYPE.mediumHeader>Fund it</TYPE.mediumHeader>
+          <TYPE.mediumHeader>Fund {fundToken?fundToken.symbol:'it'}</TYPE.mediumHeader>
         </RowCenter>
-        {/* <div>                    
-          <p style={{color: "#808080", fontSize: "15px", marginBottom:'0px'}}>Balance:
-            <span style={{color: '#eeeeee', fontSize: '18px', margin: '0px 10px'}}>{accountBalance.toLocaleString()}</span>{fundToken?fundToken.symbol:''}</p>
-        </div>  */}
         <FundingInputPanel value={typedValue} onUserInput={onUserInput} onMax={handleMax} /> 
-        <HypotheticalRewardRate dim={maxAlloc?false:true}>
-          <div>
-            <TYPE.black fontWeight={600}>{fundToken?fundToken.symbol:''}{' '}Balance</TYPE.black>
-          </div>
+        <BalanceContainer>
+          <HypotheticalRewardRate dim={accountBalance?false:true}>
+            <div>
+              <TYPE.black fontWeight={600}>{fundToken?fundToken.name:''}{' '}Balance</TYPE.black>
+            </div>
 
-          <TYPE.black>
-            {accountBalance?accountBalance:0}{' '}{fundToken?fundToken.symbol:''}
-          </TYPE.black>
-        </HypotheticalRewardRate>    
-        {userInfoData && fundToken && toEtherAmount(userInfoData.fundingAmount, fundToken, 4)>0 && (<HypotheticalRewardRate dim={maxAlloc?false:true}>
-          <div>
-            <TYPE.black fontWeight={600}>Funded Amount</TYPE.black>
-          </div>
+            <TYPE.black>
+              {accountBalance?accountBalance:0}{' '}{fundToken?fundToken.symbol:''}
+            </TYPE.black>
+          </HypotheticalRewardRate>    
+          {userInfoData && fundToken && (<HypotheticalRewardRate dim={userInfoData.fundingAmount.gt(0)?false:true}>
+            <div>
+              <TYPE.black fontWeight={600}>Funded Amount</TYPE.black>
+            </div>
 
-          <TYPE.black>
-            {userInfoData?toEtherAmount(userInfoData.fundingAmount, fundToken, 4):0}{' '}{fundToken?fundToken.symbol:''}
-          </TYPE.black>
-        </HypotheticalRewardRate>)}    
-        <HypotheticalRewardRate dim={userInfoData?false:true}>
-          <div>
-            <TYPE.black fontWeight={600}>Multiplier</TYPE.black>
-          </div>
+            <TYPE.black>
+              {userInfoData?toEtherAmount(userInfoData.fundingAmount, fundToken, 4):0}{' '}{fundToken?fundToken.symbol:''}
+            </TYPE.black>
+          </HypotheticalRewardRate>)}    
+          <HypotheticalRewardRate dim={userInfoData?false:true}>
+            <div>
+              <TYPE.black fontWeight={600}>Multiplier</TYPE.black>
+            </div>
 
-          <TYPE.black>
-            {userInfoData?userInfoData.multiplier.toNumber():0}
-          </TYPE.black>
-        </HypotheticalRewardRate>   
-        <HypotheticalRewardRate dim={maxAlloc?false:true}>
-          <div>
-            <TYPE.black fontWeight={600}>Max Allocation</TYPE.black>
-          </div>
+            <TYPE.black>
+              {userInfoData?userInfoData.multiplier.toNumber():0}
+            </TYPE.black>
+          </HypotheticalRewardRate>   
+          <HypotheticalRewardRate dim={maxAlloc?false:true}>
+            <div>
+              <TYPE.black fontWeight={600}>Max Allocation</TYPE.black>
+            </div>
 
-          <TYPE.black>
-            {maxAlloc?maxAlloc:0}{' '}{fundToken?fundToken.symbol:''}
-          </TYPE.black>
-        </HypotheticalRewardRate>           
+            <TYPE.black>
+              {maxAlloc?maxAlloc:0}{' '}{fundToken?fundToken.symbol:''}
+            </TYPE.black>
+          </HypotheticalRewardRate>    
+        </BalanceContainer>       
         <RowBetween>
           <ButtonConfirmed
             mr="0.5rem"
@@ -304,7 +324,23 @@ export default function FundModal({ isOpen, fundRaisingContract, pid, userInfoDa
           </ButtonConfirmed>
         </RowBetween>        
         <ProgressCircles steps={[isApproved]} disabled={true} />
-      </ContentWrapper>
+      </ContentWrapper>)}
+      {attempting && !hash && (
+        <LoadingView onDismiss={wrappedOnDismiss}>
+          <AutoColumn gap="12px" justify={'center'}>            
+            <TYPE.largeHeader>Funding {fundToken?fundToken.name:''}</TYPE.largeHeader>
+            <TYPE.body fontSize={20}>{amount}{' '}{fundToken?fundToken.symbol:''}</TYPE.body>
+          </AutoColumn>
+        </LoadingView>
+      )}
+      {hash && (
+        <SubmittedView onDismiss={wrappedOnDismiss} hash={hash}>
+          <AutoColumn gap="12px" justify={'center'}>            
+            <TYPE.largeHeader>Transaction Submitted</TYPE.largeHeader>
+            <TYPE.body fontSize={20}>Funded {amount}{' '}{fundToken?fundToken.symbol:''}</TYPE.body>
+          </AutoColumn>
+        </SubmittedView>
+      )}
     </Modal>
   )
 }

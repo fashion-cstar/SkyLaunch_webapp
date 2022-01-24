@@ -134,7 +134,7 @@ export const SKYFI: { [chainId in ChainId]: Token } = {
 
 export const SKYFUNDRAISING_ADDRESS: { [chainId in ChainId]?: string } = {
   [ChainId.MAINNET]: ZERO_ADDRESS,
-  [ChainId.RINKEBY]: "0x9A2B0287BdAC13F5C02eAA10B3aC9E623cEAcD08",
+  [ChainId.RINKEBY]: "0xa2C6a0a0571D1F0022308A7dC15823daa2E866fB",
   [ChainId.ROPSTEN]: ZERO_ADDRESS,
   [ChainId.GÖRLI]: ZERO_ADDRESS,
   [ChainId.KOVAN]: ZERO_ADDRESS,

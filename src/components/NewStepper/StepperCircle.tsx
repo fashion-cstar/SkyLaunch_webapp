@@ -2,8 +2,8 @@ import React from 'react'
 import styled from 'styled-components'
 
 const CircleSmall = styled.div`
-  width: 15px;
-  height: 15px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   background-color: #a57da5;
   display: flex;
@@ -11,8 +11,8 @@ const CircleSmall = styled.div`
   align-items: center;
 `
 const CircleMedium = styled.div`
-  width: 25px;
-  height: 25px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   background-color: #c793c794;
   display: flex;
@@ -20,8 +20,8 @@ const CircleMedium = styled.div`
   align-items: center;
 `
 const CircleLarge = styled.div`
-  width: 40px;
-  height: 40px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   background-color: #c17ac12c;
   display: flex;

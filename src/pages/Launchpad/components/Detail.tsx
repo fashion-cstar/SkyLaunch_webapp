@@ -15,10 +15,11 @@ import moment from 'moment'
 import styled from 'styled-components'
 import { useParams } from 'react-router'
 import { IDO_LIST } from 'constants/idos'
-import { NavLink } from 'react-router-dom'
+import { useTransactionAdder } from 'state/transactions/hooks'
 import { ButtonPrimary, ButtonSecondary } from 'components/Button'
 import { ExternalLink } from '../../../theme'
 import FundModal from './FundModal'
+import ClaimModal from './ClaimModal'
 import NewStepper from 'components/NewStepper'
 import useCurrentBlockTimestamp from '../../../hooks/useCurrentBlockTimestamp'
 import { ZERO_ADDRESS, NATIVE_TOKEN } from '../../../constants'
@@ -26,17 +27,18 @@ import { Token } from '@skylaunch/sdk'
 import { getContract } from '../../../utils'
 import toEtherAmount from 'utils/toEtherAmount'
 import { useFundRaisingContract, useTokenContract } from '../../../hooks/useContract'
-// import kyc_addresses from '../../../constants/abis/kycMerkleRoot.json';
-import CheckedIcon from './checkedIcon'
+import kyc_addresses from '../../../constants/abis/kycMerkleRoot.json';
 import NoteTextBar from './NoteTextBar'
+import FundRaisingButtons from './FundRaisingButtons'
 import RemainingTimePanel from './RemainingTimePanel'
-import FundedAmountPanel from './FundedAmountPanel'
+import UserInfoPanel from './UserInfoPanel'
 import Circle from '../../../assets/images/blue-loader.svg'
 import { CustomLightSpinner } from '../../../theme'
 import { setPoolInfo, setUserInfo, setIsKYCed, setIsSubscribed, setIsFunded, setProgressPhase, setPoolID, setMaxAlloc } from 'state/fundraising/actions'
 import { usePoolInfoData, useUserInfoData, useUserKYCed, useUserSubscribed, useUserFunded, useProgressPhase, useMaxAlloc, getProgressPhase, extractContractPoolInfo, extractContractUserInfo, fetchKYClist } from 'state/fundraising/hooks'
 import ERC20_ABI from 'constants/abis/erc20.json'
 import toCurrencyAmount from 'utils/toCurrencyAmount'
+import { MaxUint256 } from '@ethersproject/constants'
 
 const IdoDetails = styled.div`
   display: flex;
@@ -161,7 +163,10 @@ const ButtonsGroup = styled.div`
   display: flex;
 `
 const LinksGroupContainer = styled.div`
-  
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 `
 const LinksGroupContent = styled.div`
   
@@ -175,12 +180,21 @@ const ComponentBoxContainer = styled.div`
     align-items: center;
   `};
 `
+const ProgressContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  ${({ theme }) => theme.mediaWidth.upToLarge`
+    flex-direction: column;    
+    align-items: center;
+  `};
+`
 
 const StepperContainer = styled.div`
   position: relative;
   padding: 15px 20px;
   background: #000000;
-  border-radius: 20px;
+  border-radius: 20px;  
   &:before {
     content:"";
     position:absolute;
@@ -209,7 +223,7 @@ const StepperContainer = styled.div`
   }
 
   ${({ theme }) => theme.mediaWidth.upToLarge`
-      margin-top: 20px;
+      // margin-top: 20px;
   `};
   
   ${({ theme }) => theme.mediaWidth.upToSmall`
@@ -226,9 +240,6 @@ const StepperContainerLabel = styled.span`
   padding-bottom: 15px;
   padding-left: 5px;
 `
-const StyledNavLink = styled(NavLink)`
-  text-decoration: none
-`
 
 const CenterWrap = styled.div`
   display: flex;
@@ -237,20 +248,31 @@ const CenterWrap = styled.div`
   margin: 1rem 0;
 `
 
+const FundButtonContainer = styled.div`
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin: 10px;  
+`
+
 export default function DetailComponent() {
   const dispatch = useDispatch<AppDispatch>()
+  const addTransaction = useTransactionAdder()
   const { idoURL } = useParams<{ idoURL: string }>()
   const [idoData, setIdoData] = useState<any>()
   const { library, account, chainId } = useActiveWeb3React()
   const fundRaisingContract = useFundRaisingContract()
-  const [showFundModal, setShowFundModal] = useState(false)  
+  const [showFundModal, setShowFundModal] = useState(false)
+  const [showClaimModal, setShowClaimModal] = useState(false)
   const [activeStep, setActiveStep] = useState(0)  
   const [pid, setPid] = useState(-1)  
   const [remainSecs, setRemainSecs] = useState(0);  
+  const [pendingAmount, setPendingAmount] = useState(0);  
   const [readyFundRaising, setReadyFundRaising] = useState(false)
   const [fundToken, setFundToken] = useState<Token | undefined>()
+  const [rewardToken, setRewardToken] = useState<Token | undefined>()
   const blockTimestamp = useCurrentBlockTimestamp()  
-  const [kyc_addresses, setKYCaddresses] = useState<any>()
+  // const [kyc_addresses, setKYCaddresses] = useState<any>()
   const IdoListComplete = IDO_LIST // fetch this list from the server  
   const poolInfoData=usePoolInfoData()
   const userInfoData=useUserInfoData()
@@ -260,10 +282,7 @@ export default function DetailComponent() {
   const isFunded=useUserFunded()  
   const progressPhase=useProgressPhase()
   
-  const updateCallback = useCallback(() => {
-    // if (remainSecs===1 && poolInfoData && fundRaisingContract && userInfoData && fundToken){
-    //   updateProgressAndRemainTime(BigNumber.from(Math.floor(Date.now() / 1000)))
-    // }
+  const updateCallback = useCallback(() => {    
     setRemainSecs(remainSecs-1)
   }, [remainSecs])
   useInterval(updateCallback, remainSecs>0?1000:null)
@@ -280,13 +299,19 @@ export default function DetailComponent() {
           let token=NATIVE_TOKEN[chainId]
           setFundToken(token)          
         }else{          
-          let tokenContract:Contract=getContract(poolInfo?.fundRaisingToken, ERC20_ABI, library, account ? account : undefined)
-          let name=await tokenContract.name()
-          let symbol=await tokenContract.symbol()
-          let decimals=await tokenContract.decimals()
+          let fundTokenContract:Contract=getContract(poolInfo?.fundRaisingToken, ERC20_ABI, library, account ? account : undefined)
+          let name=await fundTokenContract.name()
+          let symbol=await fundTokenContract.symbol()
+          let decimals=await fundTokenContract.decimals()
           let token=new Token(chainId, poolInfo?.fundRaisingToken, decimals, symbol, name)
           setFundToken(token)
-        }
+        }        
+        let rewardTokenContract:Contract=getContract(poolInfo?.rewardToken, ERC20_ABI, library, account ? account : undefined)
+        let name=await rewardTokenContract.name()
+        let symbol=await rewardTokenContract.symbol()
+        let decimals=await rewardTokenContract.decimals()
+        let token=new Token(chainId, poolInfo?.rewardToken, decimals, symbol, name)
+        setRewardToken(token)
       }     
     }
     return null
@@ -311,6 +336,53 @@ export default function DetailComponent() {
     return null
   }
 
+  async function setupVestingRewards() {
+    if (fundRaisingContract && library && fundToken){              
+      try{        
+        const claim = kyc_addresses.kycRecords[account?account:ZERO_ADDRESS];
+        let rewardAmount=await fundRaisingContract.getRequiredRewardAmountForAmountRaised(2)        
+        let useExact = false
+          let tokenContract:Contract=getContract("0x1259DC2949DBA66a9A9dE7C5f36341e9D8357Fa0", ERC20_ABI, library, account ? account : undefined)          
+    
+            let estimatedGas = await tokenContract.estimateGas.approve(fundRaisingContract.address, MaxUint256).catch(() => {              
+              useExact = true
+              return tokenContract.estimateGas.approve(fundRaisingContract.address, rewardAmount)
+            })
+                    
+            let gas = chainId === ChainId.AVALANCHE || chainId === ChainId.SMART_CHAIN ? BigNumber.from(350000) : estimatedGas
+        
+            await tokenContract.approve(fundRaisingContract.address, useExact ? rewardAmount : MaxUint256, {
+              gasLimit: calculateGasMargin(gas)
+            })
+            .then((response: TransactionResponse) => {                     
+              console.log(response)
+            })
+            .catch((error: Error) => {
+              console.debug('Failed to approve token', error)              
+            })
+            useExact = false
+        estimatedGas = await fundRaisingContract.estimateGas.setupVestingRewards(2, rewardAmount, BigNumber.from(	Math.floor(Date.now() / 1000)+900),BigNumber.from(	Math.floor(Date.now() / 1000)+900),BigNumber.from(1643548935)).catch(() => {        
+          useExact = true
+          return fundRaisingContract.estimateGas.setupVestingRewards(2, rewardAmount, BigNumber.from(	Math.floor(Date.now() / 1000)+900),BigNumber.from(	Math.floor(Date.now() / 1000)+900),BigNumber.from(1643548935))
+        })        
+        gas = chainId === ChainId.AVALANCHE || chainId === ChainId.SMART_CHAIN ? BigNumber.from(350000) : estimatedGas        
+        fundRaisingContract.setupVestingRewards(2, rewardAmount, BigNumber.from(	Math.floor(Date.now() / 1000)+900),BigNumber.from(	Math.floor(Date.now() / 1000)+900),BigNumber.from(1643548935), {
+          gasLimit: calculateGasMargin(gas)
+        })
+        .then((response: TransactionResponse) => {          
+          console.log(response)          
+        })
+        .catch((error: Error) => {
+          console.debug('Failed to setupVestingRewards', error)          
+          // throw error
+        }) 
+      }catch(error){
+        console.debug('Failed to setupVestingRewards', error)        
+        // throw error
+      }
+    }
+  }
+
   async function onSubscribe() {
     if (fundRaisingContract){              
       let useExact = false
@@ -326,6 +398,9 @@ export default function DetailComponent() {
         })
         .then((response: TransactionResponse) => {          
           console.log(response)
+          addTransaction(response, {
+            summary: `Subscribing`
+          })
           dispatch(setIsSubscribed({isSubscribed:true}))
         })
         .catch((error: Error) => {
@@ -340,10 +415,10 @@ export default function DetailComponent() {
     }
   }
 
-  const updateProgressAndRemainTime= (blockTime:BigNumber, realBlockTime:boolean) => {
+  const updateProgressAndRemainTime= (blockTime:BigNumber, realBlockTime:boolean) => {    
     if (blockTime && poolInfoData){
       const res=getProgressPhase(poolInfoData, blockTime)      
-      if ((Number(res.progressPhase)!=progressPhase || remainSecs===0) && realBlockTime) setRemainSecs(Number(res.remainSecs))       
+      if ((Number(res.progressPhase)!=progressPhase || remainSecs===0) && res.remainSecs>0) setRemainSecs(Number(res.remainSecs))       
       dispatch(setProgressPhase({progressPhase:Number(res.progressPhase)})) 
       if (res.loaded) setReadyFundRaising(true)
       let step=res.progressPhase
@@ -353,9 +428,9 @@ export default function DetailComponent() {
   }
 
   useEffect(() => {
-    fetchKYClist().then(res => {
-      if (res) setKYCaddresses(res)
-    })    
+    // fetchKYClist().then(res => {
+    //   if (res) setKYCaddresses(res)
+    // })    
   },[])
 
   useEffect(() => {    
@@ -385,7 +460,9 @@ export default function DetailComponent() {
   }, [poolInfoData, userInfoData, fundToken])
 
   useEffect(() => {          
-    if (blockTimestamp) updateProgressAndRemainTime(blockTimestamp, true)
+    if (blockTimestamp){
+      updateProgressAndRemainTime(blockTimestamp, true)      
+    }
   }, [blockTimestamp])
   
   useEffect(() => {    
@@ -419,7 +496,15 @@ export default function DetailComponent() {
   }, [idoData])
 
   const openFundModal = () => {         
-    setShowFundModal(!showFundModal)
+    setShowFundModal(!showFundModal)    
+  }
+
+  const openClaimModal = async () => {     
+    if (fundRaisingContract && poolInfoData && account && rewardToken && poolInfoData.rewardsStartTime.gt(0)){
+      let pending=await fundRaisingContract.pendingRewards(pid, account)
+      setPendingAmount(toEtherAmount(pending, rewardToken, 3))
+    }
+    setShowClaimModal(!showClaimModal)
   }
 
   return (
@@ -434,21 +519,16 @@ export default function DetailComponent() {
                 {idoData?.description ?? ''}
               </Summary>
             </Header>
-            {poolInfoData && userInfoData && isSubscribed && progressPhase==2 && fundToken && toEtherAmount(userInfoData.fundingAmount, fundToken, 4)<maxAlloc && (<FundModal            
+            {poolInfoData && userInfoData && isSubscribed && progressPhase==2 && (<FundModal            
             isOpen={showFundModal} onDismiss={() => setShowFundModal(false)}
             fundRaisingContract={fundRaisingContract} pid={pid} poolInfoData={poolInfoData}
             userInfoData={userInfoData} maxAlloc={maxAlloc} fundToken={fundToken}/>)}
-            {(account && readyFundRaising && poolInfoData && userInfoData)?
-            <>
-              {!isKYCed && progressPhase<=1 && (<NoteTextBar notetext="You are not KYCed! Click KYC button to register!" type="warning" />)}
-              {isSubscribed && progressPhase<=1 && (<NoteTextBar notetext="You already subscribed!" type="success" />)}
-              {isSubscribed && isFunded && progressPhase===2 && fundToken && toEtherAmount(userInfoData.fundingAmount, fundToken, 4)<maxAlloc && (<NoteTextBar notetext="You funded. To fund more, click FundIt button!" type="success" />)}
-              {isSubscribed && isFunded && progressPhase===2 && fundToken && toEtherAmount(userInfoData.fundingAmount, fundToken, 4)>=maxAlloc && (<NoteTextBar notetext="You have already reached your maximum allocation!" type="success" />)}
-              {isSubscribed && !isFunded && progressPhase===2 && (<NoteTextBar notetext="You already subscribed! Click FundIt button to stake!" type="warning" />)}
-              {isKYCed && !isSubscribed && progressPhase<=1 && (<NoteTextBar notetext="You already KYCed! Click Subscribe button to subscribe!" type="warning" />)}
-              {!isSubscribed && progressPhase>=2 && progressPhase<=4 && (<NoteTextBar notetext="You are not a subscriber!" type="warning" />)} 
-            </>             
-              :<></>}
+            
+            {poolInfoData && userInfoData && isFunded && (<ClaimModal            
+            isOpen={showClaimModal} account={account} onDismiss={() => setShowClaimModal(false)}
+            fundRaisingContract={fundRaisingContract} pid={pid} poolInfoData={poolInfoData} pendingAmount={pendingAmount}
+            userInfoData={userInfoData} rewardToken={rewardToken} fundToken={fundToken}/>)}
+                        
             {account && kyc_addresses && (
             <ComponentBoxContainer>
               {!(readyFundRaising && poolInfoData && userInfoData) ? (
@@ -462,24 +542,7 @@ export default function DetailComponent() {
                       <ButtonsGroup>
                         {idoData?.whiteListUrl && (
                           <ButtonPrimary width="120px" padding="5px 20px" onClick={() => goToSite(idoData.whiteListUrl)}>WHITEPAPER</ButtonPrimary>
-                        )}         
-                        {(poolInfoData && userInfoData)?
-                        <>
-                          {isKYCed && progressPhase===1 && (<ButtonSecondary width="120px" padding="5px 5px" marginLeft="40px" onClick={onSubscribe} disabled={isSubscribed?true:false}>SUBSCRIBE</ButtonSecondary>)}
-                          {isKYCed && isSubscribed && progressPhase===1 && (<CheckedIcon color="#dddddd" />)}
-                          {!isKYCed && progressPhase<=1 && (<StyledNavLink id={`${idoURL}-nav-link`} to={`/launchpad/${idoURL}/kyc`}>
-                            <ButtonPrimary width="120px" padding="5px 5px" marginLeft="40px" >KYC</ButtonPrimary>
-                          </StyledNavLink>)}    
-                          {(isSubscribed && progressPhase==2  && fundToken && maxAlloc)?
-                          <>
-                            {toEtherAmount(userInfoData.fundingAmount, fundToken, 4)<maxAlloc && (
-                              <ButtonPrimary width="120px" padding="5px 5px" marginLeft="40px" onClick={openFundModal} >Fund it!</ButtonPrimary>)}                   
-
-                            {toEtherAmount(userInfoData.fundingAmount, fundToken, 4)>=maxAlloc && (
-                              <ButtonPrimary width="120px" padding="5px 5px" marginLeft="40px" disabled={true}>Fund it!</ButtonPrimary>)}                   
-                            {toEtherAmount(userInfoData.fundingAmount, fundToken, 4)>=maxAlloc && (<CheckedIcon color="#dddddd" />)}
-                          </>:<></>}
-                        </>:<></>}
+                        )}                                 
                       </ButtonsGroup>                      
                       <SocialLinks>
                         {socialMediaLinks.map(iconDetails => (
@@ -492,14 +555,31 @@ export default function DetailComponent() {
                       <ExternalLink href={idoData?.siteUrl}>{idoData?.siteUrl}</ExternalLink>
                     </LinksGroupContent>
                   </LinksGroupContainer>
-                  <StepperContainer>
-                    <StepperContainerLabel>PROGRESS</StepperContainerLabel>
-                    <NewStepper activeStep={activeStep} />
-                    {!isFunded?<RemainingTimePanel secs={remainSecs} />:
-                    <FundedAmountPanel multiplier={userInfoData?userInfoData.multiplier.toNumber():0}
-                                       fundingAmount={userInfoData && fundToken?toEtherAmount(userInfoData.fundingAmount, fundToken, 3):0}
-                                       symbol={fundToken?fundToken.symbol:''} />}
-                  </StepperContainer>
+                  <ProgressContainer>
+                    {(account && readyFundRaising && poolInfoData && userInfoData)?
+                    <>
+                      <NoteTextBar isKYCed={isKYCed} isSubscribed={isSubscribed} isFunded={isFunded} progressPhase={progressPhase} fundToken={fundToken} userInfoData={userInfoData} maxAlloc={maxAlloc} />
+                    </>             
+                      :<></>}
+                    <StepperContainer>
+                      <StepperContainerLabel>PROGRESS</StepperContainerLabel>
+                      <NewStepper activeStep={activeStep} />
+                      {remainSecs>0 && (<RemainingTimePanel secs={remainSecs} />)}
+                      {isFunded && (<UserInfoPanel multiplier={userInfoData?userInfoData.multiplier.toNumber():0}
+                                        fundingAmount={userInfoData && fundToken?toEtherAmount(userInfoData.fundingAmount, fundToken, 3):0}
+                                        collectedRewards={userInfoData && rewardToken?toEtherAmount(userInfoData.collectedRewards, rewardToken, 3):0}
+                                        fundTokenSymbol={fundToken?fundToken.symbol:''} 
+                                        rewardTokenSymbol={rewardToken?rewardToken.symbol:''} 
+                                        progressPhase={progressPhase} />)}
+                    </StepperContainer>
+                    <FundButtonContainer>
+                    {(poolInfoData && userInfoData)?
+                      <>
+                        <FundRaisingButtons  isKYCed={isKYCed} isSubscribed={isSubscribed} progressPhase={progressPhase} fundToken={fundToken} userInfoData={userInfoData} maxAlloc={maxAlloc} idoURL={idoURL} onSubscribe={onSubscribe} openFundModal={openFundModal} openClaimModal={openClaimModal} />
+                      </>:<></>}
+                    </FundButtonContainer>                      
+                    {/* <ButtonPrimary width="120px" padding="5px 20px" onClick={() => setupVestingRewards()}>setupVestingRewards</ButtonPrimary> */}
+                  </ProgressContainer>
                 </>)}
             </ComponentBoxContainer>)}
             <SeedContent>

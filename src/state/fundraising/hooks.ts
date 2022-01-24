@@ -122,35 +122,55 @@ export function getProgressPhase(poolInfo:any, blockTimestamp:BigNumber | undefi
   let progressPhase=0
   let remainTime=0
   let loadedTimestamp=false
-  if (poolInfo && blockTimestamp){         
-    if (poolInfo['subscriptionStartTimestamp'].toNumber()>0){
-      if (blockTimestamp?.lt(poolInfo['subscriptionStartTimestamp'])){ // subscription not started
+  if (poolInfo && blockTimestamp){    
+    // subscription not started     
+    if (poolInfo['subscriptionStartTimestamp'].gt(0)){
+      if (blockTimestamp?.lt(poolInfo['subscriptionStartTimestamp'])){ 
         progressPhase=0 
         remainTime=poolInfo['subscriptionStartTimestamp'].sub(blockTimestamp).toNumber()
       }
     }
-    if (poolInfo['subscriptionStartTimestamp'].toNumber()>0 && poolInfo['subscriptionEndTimestamp'].toNumber()>0){
+    // subscription started
+    if (poolInfo['subscriptionStartTimestamp'].gt(0) && poolInfo['subscriptionEndTimestamp'].gt(0)){
       if (blockTimestamp?.gte(poolInfo['subscriptionStartTimestamp']) && blockTimestamp?.lt(poolInfo['subscriptionEndTimestamp'])){ // subscription started
         progressPhase=1
         remainTime=poolInfo['subscriptionEndTimestamp'].sub(blockTimestamp).toNumber()
       }
     }
-    if (poolInfo['subscriptionEndTimestamp'].toNumber()>0 && poolInfo['fundingEndTimestamp'].toNumber()>0){
+    // funding started
+    if (poolInfo['subscriptionEndTimestamp'].gt(0) && poolInfo['fundingEndTimestamp'].gt(0)){
       if (blockTimestamp?.gte(poolInfo['subscriptionEndTimestamp']) && blockTimestamp?.lt(poolInfo['fundingEndTimestamp'])){ // fundSubscription started
         progressPhase=2
         remainTime=poolInfo['fundingEndTimestamp'].sub(blockTimestamp).toNumber()
       }
     }
-    if (poolInfo['fundingEndTimestamp'].toNumber()>0 && poolInfo['rewardsStartTime'].toNumber()>0){
+    //funding ended
+    if (poolInfo['fundingEndTimestamp'].gt(0)){
       if (blockTimestamp?.gte(poolInfo['fundingEndTimestamp']) && blockTimestamp?.lt(poolInfo['rewardsStartTime'])){ // Deadline has passed to fund your subscription
+        progressPhase=3    
+        remainTime=poolInfo['rewardsStartTime'].sub(blockTimestamp).toNumber()
+      }
+      if (blockTimestamp?.gte(poolInfo['fundingEndTimestamp']) && poolInfo['rewardsStartTime'].eq(0)){ // Deadline has passed to fund your subscription
         progressPhase=3    
         remainTime=0
       }
     }
-    if (poolInfo['rewardsStartTime'].toNumber()>0){
-      if (blockTimestamp?.gte(poolInfo['rewardsStartTime'])){ // distribution started
+    
+    if (poolInfo['rewardsStartTime'].gt(0) && poolInfo['rewardsCliffEndTime'].gt(0) && poolInfo['rewardsEndTime'].gt(0)){
+      // distribution started but not pass cliff
+      if (blockTimestamp?.gte(poolInfo['rewardsStartTime']) && blockTimestamp?.lt(poolInfo['rewardsCliffEndTime']) &&  blockTimestamp?.lt(poolInfo['rewardsEndTime'])){ 
         progressPhase=4
         remainTime=poolInfo['rewardsEndTime'].sub(blockTimestamp).toNumber()
+      }
+      // distribution started and pass cliff
+      if (blockTimestamp?.gte(poolInfo['rewardsCliffEndTime']) &&  blockTimestamp?.lt(poolInfo['rewardsEndTime'])){ 
+        progressPhase=5
+        remainTime=poolInfo['rewardsEndTime'].sub(blockTimestamp).toNumber()
+      }
+      // distribution ended
+      if (blockTimestamp?.gte(poolInfo['rewardsEndTime'])){ 
+        progressPhase=6
+        remainTime=0
       }
     }
     loadedTimestamp=true
