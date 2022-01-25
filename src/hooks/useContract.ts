@@ -3,7 +3,7 @@ import {
   ARGENT_WALLET_DETECTOR_MAINNET_ADDRESS
 } from '../constants/abis/argent-wallet-detector'
 import { ChainId, WETH } from '@skylaunch/sdk'
-import { GOVERNANCE_ADDRESS, MERKLE_DISTRIBUTOR_ADDRESS, UNI, SKYFUNDRAISING_ADDRESS } from '../constants'
+import { GOVERNANCE_ADDRESS, MERKLE_DISTRIBUTOR_ADDRESS, UNI, SKYFUNDRAISING_ADDRESS, SKYNFTTOKEN_ADDRESS } from '../constants'
 import { MIGRATOR_ABI, MIGRATOR_ADDRESS } from '../constants/abis/migrator'
 import { MULTICALL_ABI, MULTICALL_NETWORKS } from '../constants/multicall'
 import { V1_EXCHANGE_ABI, V1_FACTORY_ABI, V1_FACTORY_ADDRESSES } from '../constants/v1'
@@ -21,6 +21,7 @@ import { abi as IUniswapV2PairABI } from '@uniswap/v2-core/build/IUniswapV2Pair.
 import { abi as MERKLE_DISTRIBUTOR_ABI } from '@uniswap/merkle-distributor/build/MerkleDistributor.json'
 import { abi as STAKING_REWARDS_ABI } from '../constants/abis/StakingRewards.json'
 import { abi as SKY_LAUNCH_FUND_RAISING_ABI } from '../constants/abis/SkyLaunchFundRaising.json'
+import { abi as SKY_NFT_TOKEN_ABI } from '../constants/abis/TestNFT.json'
 import UNISOCKS_ABI from '../constants/abis/unisocks.json'
 import { abi as UNI_ABI } from '@uniswap/governance/build/Uni.json'
 import WETH_ABI from '../constants/abis/weth.json'
@@ -139,6 +140,11 @@ export function useMerkleDistributorContract(): Contract | null {
 export function useFundRaisingContract(): Contract | null {
   const { chainId } = useActiveWeb3React()
   return useContract(chainId ? SKYFUNDRAISING_ADDRESS[chainId] : undefined, SKY_LAUNCH_FUND_RAISING_ABI, true)  
+}
+
+export function useSkyNFTContract(): Contract | null {
+  const { chainId } = useActiveWeb3React()
+  return useContract(chainId ? SKYNFTTOKEN_ADDRESS[chainId] : undefined, SKY_NFT_TOKEN_ABI, true)  
 }
 
 export function useGovernanceContract(): Contract | null {

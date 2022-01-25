@@ -47,7 +47,10 @@ export const ButtonPrimary = styled(Base)<{ isPointer?: boolean }>`
   font-size: 15px;
   font-weight: 600;
   background: linear-gradient(to right, #79E295, #349F9C);
-  &:hover,
+  &:hover .tooltip {
+    visibility: visible;
+    opacity: 1;
+  }
   &:focus {
     opacity: 0.8;
   }
@@ -80,7 +83,10 @@ export const ButtonSecondary = styled(Base)`
   font-size: 15px;
   font-weight: 600;
   background: linear-gradient(to right, #FF9F81, #FFCABA);
-
+  &:hover .tooltip {
+    visibility: visible;
+    opacity: 1;
+  }
   &:focus {
     box-shadow: 0 0 0 1pt ${({ theme }) => theme.primary4};
     border: 1px solid ${({ theme }) => theme.primary3};

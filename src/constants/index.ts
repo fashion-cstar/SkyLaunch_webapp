@@ -148,6 +148,22 @@ export const SKYFUNDRAISING_ADDRESS: { [chainId in ChainId]?: string } = {
   [ChainId.HECO]: ZERO_ADDRESS,
 }
 
+export const SKYNFTTOKEN_ADDRESS: { [chainId in ChainId]?: string } = {
+  [ChainId.MAINNET]: ZERO_ADDRESS,
+  [ChainId.RINKEBY]: "0xAc533a3c0017C2afF3f042d09C29E74AD9784Ae5",
+  [ChainId.ROPSTEN]: ZERO_ADDRESS,
+  [ChainId.GÖRLI]: ZERO_ADDRESS,
+  [ChainId.KOVAN]: ZERO_ADDRESS,
+  [ChainId.FUJI]: ZERO_ADDRESS,
+  [ChainId.AVALANCHE]: ZERO_ADDRESS,
+  [ChainId.SMART_CHAIN]: ZERO_ADDRESS,
+  [ChainId.SMART_CHAIN_TEST]: ZERO_ADDRESS,
+  [ChainId.MOONBASE_ALPHA]: ZERO_ADDRESS,
+  [ChainId.MUMBAI]: ZERO_ADDRESS,
+  [ChainId.MATIC]: ZERO_ADDRESS,
+  [ChainId.HECO]: ZERO_ADDRESS,
+}
+
 export const LPTokens: {[chainId in ChainId]: Token } = {
   [ChainId.MAINNET]: new Token(ChainId.MAINNET, ZERO_ADDRESS, 18, 'ETH/SKYFI', 'SkyLaunch'),
   [ChainId.RINKEBY]: new Token(ChainId.RINKEBY, '0x21B97C1641A4c9B69a783a7D581109267e851867', 18, 'SKYFI/ETH', 'SkyLaunch'),

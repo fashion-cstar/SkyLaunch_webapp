@@ -235,6 +235,89 @@ for Grow products and earn loyalty benefits.`,
     siteUrl: 'www.wasder.com',
     tierName: '', // if no tier, leave blank
     tierLogo: null, // if you include this image, it will override the tierName
+    launchDate:  new Date('May 06, 2022 21:00:00'),
+    endDate: new Date('May 06, 2022 21:00:00'),
+    //endDate: new Date(1622457706780),
+    totalRaise: 'TBD',
+    totalAmount: '1M',
+    allocationMin: 'TBD',
+    allocationMax: 'TBD',
+    allocationCurrency: 'BUSD',
+    description: `GROW Token is the portal to enable operation of equitable medicinal cannabis cultivation through decentralized sharing.
+Users will be able to interact with the platform to claim cultivation rewards, access their prescriptions, pay
+for Grow products and earn loyalty benefits.`,
+    distributionDate: new Date('June 01, 2021 13:00:00'),
+    allocationWinningAmount: '$200',
+    buttonSectionEnabled: true,
+    whiteListUrl: 'https://docs.google.com/spreadsheets/d/1v1By-TTQxs-sBHcyOh3LV_u5SqFSm5h3732pAioE_Vo/edit?usp=sharing',
+    kycURL: `https://verify-with.blockpass.org/?clientId=GROW_IDO_KYC&serviceName=IDO%20KYC&env=prod`,
+    seed: {
+      tokenAllocation: '10,000,000',
+      totalTokenPercent: '10%',
+      tokenPrice: '$0.035',
+      totalRaised: '$350,000',
+      lockPeriod: 6,
+      vestingPeriod: 6,
+      tgePercent: '0%',
+      closedDate: new Date('Feb 28, 2021')
+    },
+    tokenAllocation : [
+      {
+        label: 'Investors',
+        value: 300
+      },
+      {
+        label: 'Staking Incentives',
+        value: 300
+      },
+      {
+        label: 'Liquidity Provision',
+        value: 300
+      },
+      {
+        label: 'Treasury',
+        value: 300
+      },
+      {
+        label: 'Patnership & Advisors',
+        value: 300
+      },
+      {
+        label: 'Team',
+        value: 300
+      },
+      {
+        label: 'Marketing',
+        value: 300
+      },
+      {
+        label: 'Ecosystem Fund',
+        value: 300
+      }
+    ],
+    socials: [
+      {
+        type: 'TELEGRAM',
+        url: 'https://t.me/GROWCommunity'
+      },
+      {
+        type: 'WEBSITE',
+        url: 'https://grow.house/'
+      },
+      {
+        type: 'MEDIUM',
+        url: 'https://grow-official.medium.com/'
+      },
+    ]
+  },
+
+
+  {
+    idoURL: 'grow2',
+    logo: '/images/idos/grow-logo.svg',
+    siteUrl: 'www.wasder.com',
+    tierName: '', // if no tier, leave blank
+    tierLogo: null, // if you include this image, it will override the tierName
     launchDate:  new Date('May 06, 2021 21:00:00'),
     endDate: new Date('May 06, 2021 21:00:00'),
     //endDate: new Date(1622457706780),
