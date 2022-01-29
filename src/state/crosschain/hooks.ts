@@ -572,7 +572,10 @@ export function useCrossChain() {
       })
     )
     dispatch(setTransferAmount({ amount: '' }))
-    UpdateOwnTokenBalance().catch(console.error)
+    UpdateOwnTokenBalance().catch((error) => {
+      // console.error
+      // console.log(error)
+    })
     UpdateFee().catch(console.error)
   }
 
@@ -593,7 +596,10 @@ export function useCrossChain() {
   // to address
   useEffect(() => {
     dispatch(setCrosschainRecipient({ address: account || '' }))
-    UpdateOwnTokenBalance().catch(console.error)
+    UpdateOwnTokenBalance().catch((error) => {
+      // console.error
+      // console.log(error)
+    })
     UpdateFee().catch(console.error)
   }, [account, currentToken])
 }

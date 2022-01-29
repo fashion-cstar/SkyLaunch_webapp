@@ -10,24 +10,20 @@ const StyledNavLink = styled(NavLink)`
 `
 
 const RowContainer = styled.div`
-  background: #1c1c1c;
-  padding: 0 16px 16px;
-  margin-bottom: 1rem;
-  overflow: hidden;
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-start;
+  display: flex;  
+  justify-content: start;
   align-items: center;
-  min-height: 120px;
-  position: relative;
-
+  background: #1c1c1c;  
+  overflow: hidden;
+  min-height: 120px;  
+  position: relative;  
   ::after {
     border: 2px solid #9485DA;
     content: '';
-    width: calc(100% - 200px);
+    width: calc(100% - 150px);
     position: absolute;
     bottom: 0;
-    left: 160px;
+    left: 130px;
     right: 0;
   }
 
@@ -45,31 +41,49 @@ const RowContainer = styled.div`
     }
   `};
 `
+
 const LogoWrapper = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  max-width: 160px;
-  margin-left: 20px;
-  img {
+  min-width: 160px;  
+  width: 160px;
+  padding: 0px 10px 0px 15px;  
+  img {    
     max-height: 120px;
-    max-width: 100%;
+    width: 100%;
   }
   ${({ theme }) => theme.mediaWidth.upToMedium`
     margin-bottom: 1rem;
     margin-top: 1rem;
   `};
 `
-const InfoSection = styled.div<{ width?: any }>`
-  width: 130px;
-  height: 80px;
-  padding-left: 10px;
-  padding-right: 10px;
+const ButtonSection = styled.div`
+  min-width: 110px; 
+  width: 110px;
+  padding: 5px; 
+  display: flex;  
+  align-items: center;  
+  justify-content: center;  
+  ${({ theme }) => theme.mediaWidth.upToMedium`
+    &.mobile-hidden {
+      display: none;
+    }
+    margin-bottom: 1rem;
+    margin-top: 1rem;
+  `};
+`
+const TableContainer = styled.div`
+  width: 100%;  
   display: flex;
-  flex-direction: column;
-  justify-content: space-around;
-  align-items: center;
-  ${({ width }) => width && `width: ${width}px`};
+  justify-content: space-between;
+`
+const InfoSection = styled.div<{ width?: number }>`
+  width: ${({ width }) => (width ? width + '%' : '16%')};
+  height: 60px;  
+  display: flex;  
+  justify-content: center;
+  align-items: center;    
   ${({ theme }) => theme.mediaWidth.upToMedium`
     &.mobile-hidden {
       display: none;
@@ -81,32 +95,34 @@ const InfoSection = styled.div<{ width?: any }>`
 export default function IdoRow({ idoInfo, idoIndex}: { idoInfo: any, idoIndex: number }) {
   return (
     <RowContainer>
-      <InfoSection>
+      <ButtonSection>
         <StyledNavLink id={`${idoInfo.idoURL}-nav-link`} to={`/launchpad/${idoInfo.idoURL}`}>
-          <ButtonPrimary style={{ width: '120px', padding: '5px 0', textTransform: 'uppercase' }}>Details</ButtonPrimary>
+          <ButtonPrimary style={{ width: '100%', height:'30px', textTransform: 'uppercase' }}>Details</ButtonPrimary>
         </StyledNavLink>
-      </InfoSection>
+      </ButtonSection>      
       <LogoWrapper>
         <img src={idoInfo.logo} />
       </LogoWrapper>
-      <InfoSection className="mobile-hidden">
-        {idoInfo.tierName}
-      </InfoSection>
-      <InfoSection className="mobile-hidden">
-        {moment(idoInfo.launchDate).fromNow()}
-      </InfoSection>
-      <InfoSection className="mobile-hidden">
-        {idoInfo.totalRaise}
-      </InfoSection>
-      <InfoSection className="mobile-hidden">
-        {idoInfo.totalAmount}
-      </InfoSection>
-      <InfoSection className="mobile-hidden">
-        {idoInfo.allocationMin}
-      </InfoSection>
-      <InfoSection className="mobile-hidden">
-        {idoInfo.allocationMax}
-      </InfoSection>
+      <TableContainer>
+        <InfoSection className="mobile-hidden" width={16}>
+          <div style={{textAlign: 'center'}}>{idoInfo.tierName}</div>
+        </InfoSection>
+        <InfoSection className="mobile-hidden" width={17}>
+          <div style={{textAlign: 'center'}}>{moment(idoInfo.launchDate).fromNow()}</div>
+        </InfoSection>
+        <InfoSection className="mobile-hidden" width={17}>
+          <div style={{textAlign: 'center'}}>{idoInfo.totalRaise}</div>
+        </InfoSection>
+        <InfoSection className="mobile-hidden" width={16}>
+          <div style={{textAlign: 'center'}}>{idoInfo.totalAmount}</div>
+        </InfoSection>
+        <InfoSection className="mobile-hidden" width={17}>
+          <div style={{textAlign: 'center'}}>{idoInfo.allocationMin}</div>
+        </InfoSection>
+        <InfoSection className="mobile-hidden" width={17}>
+          <div style={{textAlign: 'center'}}>{idoInfo.allocationMax}</div>
+        </InfoSection>
+      </TableContainer>      
     </RowContainer>
   )
 }

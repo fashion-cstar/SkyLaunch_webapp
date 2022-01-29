@@ -29,6 +29,7 @@ import CurrencyLogo from 'components/CurrencyLogo'
 import FundingInputPanel from 'components/FundingInputPanel'
 import ProgressCircles from 'components/ProgressSteps'
 import { UserInfo, PoolInfo, setUserInfo, setIsFunded } from 'state/fundraising/actions'
+import { useFundItCallback, useFundApproveCallback } from 'state/fundraising/hooks'
 
 const ContentWrapper = styled(AutoColumn)`
   width: 100%;
@@ -49,21 +50,18 @@ const HypotheticalRewardRate = styled.div<{ dim: boolean }>`
 `
 
 interface FundModalProps {
-  isOpen: boolean,
-  fundRaisingContract: Contract | null,
+  isOpen: boolean,  
   pid: number,
-  userInfoData: UserInfo,
-  poolInfoData: PoolInfo,
+  userInfoData: UserInfo,  
   maxAlloc: number,
   fundToken: Token | undefined,
-  onDismiss: () => void
+  onDismiss: () => void,
+  resetFundState: (isfund: boolean, fundamount: BigNumber)=> void
 }
 
-export default function FundModal({ isOpen, fundRaisingContract, pid, userInfoData, poolInfoData, maxAlloc, fundToken, onDismiss }: FundModalProps) {  
-  const addTransaction = useTransactionAdder()
+export default function FundModal({ isOpen, pid, userInfoData, maxAlloc, fundToken, onDismiss, resetFundState }: FundModalProps) {    
   const [hash, setHash] = useState<string | undefined>()
   const [attempting, setAttempting] = useState(false)
-  const dispatch = useDispatch<AppDispatch>()
   const { library, account, chainId } = useActiveWeb3React()  
   const [amount, setFundAmount] = useState(0)    
   const [accountBalance, setAccountBalance] = useState(0)  
@@ -73,6 +71,8 @@ export default function FundModal({ isOpen, fundRaisingContract, pid, userInfoDa
   const [ethBalance, setEthBalance] = useState(0)
   const [typedValue, setTypedValue] = useState('')
   const [maxFunding, setMaxFunding] = useState(0)
+  const { fundItCallback } = useFundItCallback(account)
+  const { fundApproveCallback } = useFundApproveCallback(account)
   const wrappedOnDismiss = useCallback(() => {    
     setIsApproved(false)
     setFunded(false)
@@ -103,40 +103,19 @@ export default function FundModal({ isOpen, fundRaisingContract, pid, userInfoDa
   }, [userInfoData, maxAlloc, fundToken, accountBalance])
 
   async function onApprove() {
-    if (fundRaisingContract && amount<=maxFunding){
+    if (amount<=maxFunding){
       if (fundToken!==undefined){        
         if (fundToken.address===ZERO_ADDRESS){          
           setIsApproved(true)
-        }else{
-          if (!library) return null
-          if (amount<1) return null
-          let useExact = false
-          let tokenContract:Contract=getContract(fundToken?.address, ERC20_ABI, library, account ? account : undefined)          
+        }else{          
           try{        
-            let estimatedGas = await tokenContract.estimateGas.approve(fundRaisingContract.address, MaxUint256).catch(() => {              
-              useExact = true
-              return tokenContract.estimateGas.approve(fundRaisingContract.address, toCurrencyAmount(amount, fundToken?.decimals))
-            })
-                    
-            let gas = chainId === ChainId.AVALANCHE || chainId === ChainId.SMART_CHAIN ? BigNumber.from(350000) : estimatedGas
-        
-            tokenContract.approve(fundRaisingContract.address, useExact ? toCurrencyAmount(amount, fundToken?.decimals) : MaxUint256, {
-              gasLimit: calculateGasMargin(gas)
-            })
-            .then((response: TransactionResponse) => {        
+            fundApproveCallback(pid, fundToken, amount).then((hash:string) => {
               setIsApproved(true)
-              addTransaction(response, {
-                summary: 'Approve ' + fundToken?.symbol,
-                approval: { tokenAddress: fundToken?.address, spender: fundRaisingContract.address }
-              })
-              console.log(response)
-            })
-            .catch((error: Error) => {
-              console.debug('Failed to approve token', error)              
-            })
+            }).catch((error:any) => {              
+              console.log(error)
+            })  
           }catch(error){
-            console.debug('Failed to approve token', error)
-            
+            console.debug('Failed to approve token', error)            
           }
         }
       }      
@@ -146,101 +125,45 @@ export default function FundModal({ isOpen, fundRaisingContract, pid, userInfoDa
 
   const successFunding=() => {
     if (fundToken){
-      let _amount=toEtherAmount(userInfoData.fundingAmount, fundToken, 4)         
-      setFunded(true)
-      dispatch(setIsFunded({isFunded:true}))
-      if (userInfoData) dispatch(setUserInfo({userInfo:{...userInfoData, fundingAmount:toCurrencyAmount(amount+_amount, fundToken?.decimals)}}))
+      let _amount=toEtherAmount(userInfoData.fundingAmount, fundToken, 4)               
+      resetFundState(true, toCurrencyAmount(amount+_amount, fundToken?.decimals))
     }
   }
 
   async function onFundIt() {    
-    if (fundRaisingContract && amount<=maxFunding){
+    if (amount<=maxFunding){
       if (fundToken){       
-        setAttempting(true) 
-        if (fundToken.address===ZERO_ADDRESS){             
-          let useExact = false
-          try{                    
-            const estimatedGas = await fundRaisingContract.estimateGas.fundSubscription(pid, toCurrencyAmount(amount, fundToken?.decimals), {
-              value:toCurrencyAmount(amount, fundToken?.decimals)
-            }).catch(() => {        
-              useExact = true
-              return fundRaisingContract.estimateGas.fundSubscription(pid, toCurrencyAmount(amount, fundToken?.decimals), {
-                value:toCurrencyAmount(amount, fundToken?.decimals)
-              })
-            })        
-            const gas = chainId === ChainId.AVALANCHE || chainId === ChainId.SMART_CHAIN ? BigNumber.from(350000) : estimatedGas                    
-            fundRaisingContract.fundSubscription(pid, toCurrencyAmount(amount, fundToken?.decimals), {
-              gasLimit: calculateGasMargin(gas), value:toCurrencyAmount(amount, fundToken?.decimals)
-            })
-            .then((response: TransactionResponse) => {                        
-              console.log(response)
-              addTransaction(response, {
-                summary: `Funding ${amount} ${fundToken?.symbol}`
-              })
-              setHash(response.hash)
-              successFunding()
-            })
-            .catch((error: Error) => {
-              setAttempting(false)
-              console.debug('Failed to subscribe token', error)
-              //throw error
-            }) 
-          }catch(error){
+        try{      
+          setAttempting(true)                
+          fundItCallback(pid, fundToken, amount).then((hash:string) => {
+            setHash(hash)
+            successFunding()
+          }).catch(error => {
             setAttempting(false)
-            console.debug('Failed to subscribe', error)
-            //throw error
-          }
-        }else{
-          if (!library) return null
-          if (amount<1) return null             
-          try{       
-            let useExact = false
-            let estimatedGas = await fundRaisingContract.estimateGas.fundSubscription(pid, toCurrencyAmount(amount, fundToken?.decimals)).catch(() => {        
-              useExact = true
-              return fundRaisingContract.estimateGas.fundSubscription(pid, toCurrencyAmount(amount, fundToken?.decimals))
-            })        
-            let gas = chainId === ChainId.AVALANCHE || chainId === ChainId.SMART_CHAIN ? BigNumber.from(350000) : estimatedGas        
-            fundRaisingContract.fundSubscription(pid, toCurrencyAmount(amount, fundToken?.decimals), {
-              gasLimit: calculateGasMargin(gas)
-            })
-            .then((response: TransactionResponse) => {                        
-              console.log(response)
-              addTransaction(response, {
-                summary: `Funding ${amount} ${fundToken?.symbol}`
-              })
-              setHash(response.hash)
-              successFunding()
-            })
-            .catch((error: Error) => {
-              setAttempting(false)
-              console.debug('Failed to fundSubscribe token', error)
-              //throw error
-            }) 
-          }catch(error){
-            setAttempting(false)
-            console.debug('Failed to fundSubscribe', error)            
-          }
-        }
-      }      
+            console.log(error)
+          })      
+        }catch(error){
+          setAttempting(false)
+          console.log(error)
+        }    
+      }
     }
     return null;
   }
 
   async function fundStatus() {    
-    if (!account) return null
-    if (fundRaisingContract){    
-      if (fundToken!==undefined){                  
-        if (fundToken.address===ZERO_ADDRESS){          
-          setAccountBalance(Number(ethBalance))  
-          setIsApproved(true)
-        }else{
-          if (!library) return null
-          let tokenContract:Contract=getContract(fundToken?.address, ERC20_ABI, library, account ? account : ZERO_ADDRESS)
-          let tokenBalance:BigNumber=await tokenContract.balanceOf(account ? account : ZERO_ADDRESS)     
-          let bal=toEtherAmount(tokenBalance, fundToken, 4)                 
-          setAccountBalance(bal)  
-        }
-      }         
+    if (!account) return null    
+    if (fundToken!==undefined){                  
+      if (fundToken.address===ZERO_ADDRESS){          
+        setAccountBalance(Number(ethBalance))  
+        setIsApproved(true)
+      }else{
+        if (!library) return null
+        let tokenContract:Contract=getContract(fundToken?.address, ERC20_ABI, library, account ? account : ZERO_ADDRESS)
+        let tokenBalance:BigNumber=await tokenContract.balanceOf(account ? account : ZERO_ADDRESS)     
+        let bal=toEtherAmount(tokenBalance, fundToken, 4)                 
+        setAccountBalance(bal)  
+      }      
     }
     return null
   }

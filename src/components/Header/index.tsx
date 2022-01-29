@@ -29,11 +29,12 @@ const HeaderFrame = styled.div`
   position: relative;
   z-index: 2;
   ${({ theme }) => theme.mediaWidth.upToMedium`
-    top: 0px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-    grid-template-columns: 1fr;
-    padding: 0;
-    width: calc(100%);
+    // top: 0px;
+    // border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    // grid-template-columns: 1fr;
+    // padding: 0;
+    // width: calc(100%);
+    height: 0;
   `};
 `
 
@@ -45,15 +46,15 @@ const HideSmall = styled.span`
 const HeaderControls = styled.div`
   padding: 0px 19px;
   display: flex;
+  // align-items: end;
   align-items: end;
   justify-self: flex-end;
   justify-content: space-between;
   background: #1c1c1c;
   backdrop-filter: blur(28px);
-  border-radius: 44px;
+  // border-radius: 44px;
   height: 76px;
-  min-width: 465px;
-
+  min-width: 465px;  
   ${({ theme }) => theme.mediaWidth.upToMedium`
     justify-self: center;
     width: 100%;
@@ -66,7 +67,7 @@ const HeaderControls = styled.div`
 `
 const HeaderElement = styled.div`
   display: flex;
-  align-items: center;
+  align-items: start;
   gap: 8px;
 
   ${({ theme }) => theme.mediaWidth.upToMedium`
@@ -80,7 +81,7 @@ const AccountElement = styled.div<{ active: boolean }>`
   justify-content: center;
   width: 100%;
   margin-top: 5px;
-  cursor: pointer;
+  cursor: pointer;  
   :focus {
     border: 1px solid blue;
   }
@@ -274,7 +275,7 @@ const Header = () => {
         </HeaderControls>
       ) : account && !userEthBalance ? (
         <NotConnectedWrap className="no-point">
-          <Loader stroke="#6752F7" style={{ marginRight: '10px' }} />
+          <Loader stroke="#6752F7" style={{ marginRight: '10px', marginTop: '-15px' }} />
           <Web3Status />
         </NotConnectedWrap>
       ) : (

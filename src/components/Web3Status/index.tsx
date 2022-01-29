@@ -29,6 +29,7 @@ import useENSName from '../../hooks/useENSName'
 import { useHasSocks } from '../../hooks/useSocksBalance'
 import { useTranslation } from 'react-i18next'
 import { useWalletModalToggle } from '../../state/application/hooks'
+import { useETHBalances } from '../../state/wallet/hooks'
 
 const IconWrapper = styled.div<{ size?: number }>`
   ${({ theme }) => theme.flexColumnNoWrap};
@@ -88,13 +89,16 @@ const Web3StatusConnected = styled.div`
   color: #fff;
   opacity: 0.8;
   font-weight: 500;
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  column-gap: 30px;
 `
 
-const StatusIconWrap = styled.div`
-  position: absolute;
-  top: 75%;
-  transform: translateY(-50%);
-  right: 30px;
+const StatusIconWrap = styled.div<{isBalance:boolean}>`  
+  // top: 75%;
+  transform: ${({ isBalance }) => (isBalance ? 'translateY(-40%)' : 'translateY(-20%)')};  
+  // right: 30px;  
 `
 
 const Text = styled.p`
@@ -178,7 +182,7 @@ function Web3StatusInner() {
 
   const allTransactions = useAllTransactions()
   const { chainId } = useActiveWeb3React()
-
+  const userEthBalance = useETHBalances(account ? [account] : [], chainId)?.[account ?? '']
   const availableChains = useMemo(() => {
     return allChains.filter(i => i.name !== (chainId ? CHAIN_LABELS[chainId] : 'Ethereum'))
   }, [allChains])
@@ -258,7 +262,7 @@ function Web3StatusInner() {
           </>
         )}
         {!hasPendingTransactions && connector && (
-          <StatusIconWrap>
+          <StatusIconWrap isBalance={userEthBalance?true:false}>
             <StatusIcon connector={connector} />
           </StatusIconWrap>
         )}

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useHistory, useParams } from 'react-router'
 
-import DetailComponent from './components/Detail'
+import DetailComponent from './components/detail'
 import SeedRoundComponent from './components/SeedRound'
 import IdoDetailComponent from './components/IdoDetail'
 import { IDO_LIST } from 'constants/idos'
@@ -46,7 +46,7 @@ const InfoSection = styled.div`
   width: 100%;
   display: flex;
   align-items: center;
-  margin-bottom: 53px;
+  margin-bottom: 1rem;  
   p {
     margin-right: 15px;
   }
@@ -113,7 +113,7 @@ export default function ZeroGravityInfo() {
       <PageHeader>
         <InfoSection>
           <LogoWrapper>
-            <img src={idoData?.logo ?? ''} alt={idoData?.idoURL ?? ''} />
+            <img src={idoData?.logo ?? ''} alt={idoData?.idoURL ?? ''} />            
           </LogoWrapper>
           <p>{launchString}</p>
           <p>{launchDate}</p>

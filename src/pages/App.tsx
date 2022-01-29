@@ -45,6 +45,7 @@ import Web3ReactManager from '../components/Web3ReactManager'
 import ZeroGravityInfo from './Launchpad/Info';
 import SkyLaunchKyc from './Launchpad/Kyc';
 import ZeroGravityList from './Launchpad';
+import UserIdoDetail from './UserIdo';
 import styled from 'styled-components'
 import { QueryClientProvider, QueryClient, Query } from 'react-query';
 
@@ -146,6 +147,7 @@ export default function App() {
                   <Route exact strict path="/vote/:id" component={VotePage} />
                   <Route exact strict path="/transfer" component={Transfer} />
                   <Route exact strict path="/launchpad" component={ZeroGravityList} />
+                  <Route exact strict path="/ido" component={UserIdoDetail} />
                   <Route exact strict path="/launchpad/kyc" component={SkyLaunchKyc} />
                   <Route exact strict path="/launchpad/:idoURL" component={ZeroGravityInfo} />
                   <Route exact strict path="/launchpad/:idoURL/kyc" component={SkyLaunchKyc} />

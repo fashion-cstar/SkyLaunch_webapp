@@ -1,5 +1,5 @@
 import { ButtonLight, ButtonPrimary } from 'components/Button'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
 import { getTVLData, getTVLHistory, getWalletHolderCount } from 'api'
 
 import Bubble from './../../components/Bubble'
@@ -17,6 +17,9 @@ import useWindowDimensions from './../../hooks/useWindowDimensions'
 import zeroDayDatas from '../../graphql/queries/zeroDayDatas'
 import { dateFormatted } from 'utils/getFormattedMonth'
 import { Title } from '../../theme'
+import { IDO_LIST } from '../../constants/idos'
+import moment from 'moment'
+import UpcomingIdoRow from './UpcomingIdoRow'
 
 const BubbleMarginWrap = styled.div`
   display: flex;
@@ -30,11 +33,65 @@ const BubbleMarginWrap = styled.div`
  gap: 0.1rem;
 `};
 `
+
+const HomeContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+  background: #1A1A1A;
+  box-shadow: 0 0 5px 1px #101010;
+  border-radius: 15px;
+`
+
+const HomeWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  padding: 30px 60px;
+  width: 100%;
+`
+
+const Header = styled.div`
+  text-transform: uppercase;
+`
+const Heading = styled.div`
+  margin-top: 25px;
+  font-size: 20px;
+`
+const HowToHeading = styled.div`
+  font-size: 15px;
+`
+const Summary = styled.div`
+  margin-bottom: 1rem;  
+  margin-top: 10px;
+  font-size: 14px;
+  color: #b0b0b0;
+`
+const WelcomeContainer = styled.div`
+`
+const HowToContainer = styled.div`
+`
+const ListSection = styled.ul`
+  font-size: 14px;
+  color: #b0b0b0;
+`
+const UpcomingIdosContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+`
+const IdosWrapper = styled.div`
+  display: flex;
+  justify-content: space-around;
+  align-items: end;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+  margin-bottom: 1rem;  
+`
 const Flex = styled.div<{ isColumn: boolean }>`
   margin: 20px auto 0;
   display: flex;
   justify-content: ${({ isColumn }) => (isColumn ? 'center' : 'space-between')};
-  flex-wrap: wrap;
+  flex-wrap: wrap;  
   gap: 4rem;
   ${({ theme }) => theme.mediaWidth.upToMedium`
   flex-direction: column;
@@ -46,6 +103,7 @@ const Flex = styled.div<{ isColumn: boolean }>`
   gap: 2rem;
 `};
 `
+
 const CenterWrap = styled.div`
   display: flex;
   justify-content: center;
@@ -65,8 +123,12 @@ const FlexButtons = styled.div`
 const Button = styled.div`
   width: 25%;
   ${({ theme }) => theme.mediaWidth.upToSmall`
-width:100%;
-`};
+    width:100%;
+  `};
+`
+const HeroWrapper = styled.img`  
+  width: 100%;    
+  border-radius: 15px;
 `
 
 function fnum(x: number) {
@@ -98,9 +160,18 @@ export default function Home() {
   const [loadingWC, setLoadingWC] = useState(true)
   const [loadingTV, setLoadingTV] = useState(true)
   const [tvlData, setTvlData] = useState<TVLHistoryData[]>([])
-
+  const IdoListComplete = IDO_LIST // fetch this list from the server
+  const [showActive, setShowActive] = useState(true)
   const { width } = useWindowDimensions()
   const zeroData = useQuery(zeroDayDatas)
+
+  const IdoListFiltered = useMemo(() => {
+    if (showActive) {
+      return IdoListComplete.filter(item => moment(item?.endDate ?? '').isAfter(moment.now()))
+    }
+    return IdoListComplete.filter(item => moment(item?.endDate ?? '').isBefore(moment.now()))
+  }, [showActive, IdoListComplete])
+
   const transactionsData = useQuery(transactions, {
     variables: {
       first: 12,
@@ -160,68 +231,108 @@ export default function Home() {
         <Title>Home</Title>
       </PageHeader>
       <PageContainer>
-        <Flex isColumn={isColumn}>
-          {!tvlData.length ? (
-            <CenterWrap>
-              <CustomLightSpinner src={Circle} alt="loader" size={'90px'} />
-            </CenterWrap>
-          ) : (
-            <>
-              <BubbleChart
-                type="line"
-                categoriesX={formattedDate}
-                title="Liquidity"
-                value={lastDataPoint}
-                series={reverseSeries}
-                percentage={perc}
-              />
-              <BubbleMarginWrap>
-                {loadingTV || loadingWC ? (
-                  <CenterWrap>
-                    <CustomLightSpinner src={Circle} alt="loader" size={'90px'} />
-                  </CenterWrap>
-                ) : (
-                  <>
-                    <Bubble variant="pink" color="#A7B1F4" title="Wallet Holders" showMountains={true}>
-                      {new Intl.NumberFormat().format(walletHolderCount)}
-                    </Bubble>
-                    <Bubble
-                      variant="purple"
-                      color="#A7B1F4"
-                      prefix="$"
-                      suffix={fnum(totalValue)?.suffix}
-                      title="Total Value Locked"
-                      showMountains={true}
-                    >
-                      {fnum(totalValue)?.value?.toFixed(3)}
-                    </Bubble>
-                  </>
-                )}
-              </BubbleMarginWrap>
-            </>
-          )}
-        </Flex>
-        {/* {transactionsData.loading || !transactionsData.data?.transactions ? (
-          <CenterWrap>
-            <CustomLightSpinner src={Circle} alt="loader" size={'90px'} />
-          </CenterWrap>
-        ) : (
-          <>
-            <Transactions transactions={transactionsData.data?.transactions} />
-            <FlexButtons>
-              {pagination > 0 && (
-                <Button>
-                  <ButtonLight onClick={onClickPrevPage}>Back</ButtonLight>
-                </Button>
+        <HomeContainer>
+          <HeroWrapper src='/images/home_hero.png' />
+          <HomeWrapper>
+            <WelcomeContainer>              
+              <Header>
+                <Heading>Wolcome to SkyLaunch</Heading>
+                <Summary>
+                  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla semper augue eget auctor pretium. Maecenas in quam sed nibh lobortis cursus. Morbi congue interdum vehicula. Curabitur tempus, dui in dapibus eleifend, nisi dui lacinia arcu, pharetra auctor lorem sapien in nunc. Nam pulvinar vulputate orci nec vulputate.
+                </Summary>
+              </Header>
+            </WelcomeContainer>
+            <UpcomingIdosContainer>
+              <Heading>UPCOMING IDOs</Heading>              
+              <IdosWrapper>
+                {IdoListFiltered?.map((idoInfo: any, index:number) => {
+                  if (moment(idoInfo?.launchDate).isAfter(moment.now())) {
+                    return (
+                      <UpcomingIdoRow key={index} idoInfo={idoInfo} idoIndex={index} />
+                    )
+                  }               
+                  return null
+                })}
+              </IdosWrapper>
+              <HowToContainer>              
+                <Header>
+                  <HowToHeading>How to participate</HowToHeading>
+                  <Summary>
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla semper augue eget auctor pretium. Maecenas in quam sed nibh lobortis cursus. Morbi congue interdum vehicula. Curabitur tempus, dui in dapibus eleifend, nisi dui lacinia arcu, pharetra auctor lorem sapien in nunc. Nam pulvinar vulputate orci nec vulputate.
+                  </Summary>
+                  <ListSection>
+                    <li>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</li>
+                    <li>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</li>
+                    <li>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</li>
+                    <li>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</li>
+                  </ListSection>
+                </Header>
+              </HowToContainer>
+            </UpcomingIdosContainer>
+            {/* <Flex isColumn={isColumn}>
+              {!tvlData.length ? (
+                <CenterWrap>
+                  <CustomLightSpinner src={Circle} alt="loader" size={'90px'} />
+                </CenterWrap>
+              ) : (
+                <>
+                  <BubbleChart
+                    type="line"
+                    categoriesX={formattedDate}
+                    title="Liquidity"
+                    value={lastDataPoint}
+                    series={reverseSeries}
+                    percentage={perc}
+                  />
+                  <BubbleMarginWrap>
+                    {loadingTV || loadingWC ? (
+                      <CenterWrap>
+                        <CustomLightSpinner src={Circle} alt="loader" size={'90px'} />
+                      </CenterWrap>
+                    ) : (
+                      <>
+                        <Bubble variant="pink" color="#A7B1F4" title="Wallet Holders" showMountains={true}>
+                          {new Intl.NumberFormat().format(walletHolderCount)}
+                        </Bubble>
+                        <Bubble
+                          variant="purple"
+                          color="#A7B1F4"
+                          prefix="$"
+                          suffix={fnum(totalValue)?.suffix}
+                          title="Total Value Locked"
+                          showMountains={true}
+                        >
+                          {fnum(totalValue)?.value?.toFixed(3)}
+                        </Bubble>
+                      </>
+                    )}
+                  </BubbleMarginWrap>
+                </>
               )}
-              {transactionsData.data?.transactions.length >= 12 && (
-                <Button>
-                  <ButtonPrimary onClick={onClickNextPage}>Next</ButtonPrimary>
-                </Button>
-              )}
-            </FlexButtons>
-          </>
-        )} */}
+            </Flex> */}
+            {/* {transactionsData.loading || !transactionsData.data?.transactions ? (
+              <CenterWrap>
+                <CustomLightSpinner src={Circle} alt="loader" size={'90px'} />
+              </CenterWrap>
+            ) : (
+              <>
+                <Transactions transactions={transactionsData.data?.transactions} />
+                <FlexButtons>
+                  {pagination > 0 && (
+                    <Button>
+                      <ButtonLight onClick={onClickPrevPage}>Back</ButtonLight>
+                    </Button>
+                  )}
+                  {transactionsData.data?.transactions.length >= 12 && (
+                    <Button>
+                      <ButtonPrimary onClick={onClickNextPage}>Next</ButtonPrimary>
+                    </Button>
+                  )}
+                </FlexButtons>
+              </>
+            )} */}
+          </HomeWrapper>
+        </HomeContainer>
       </PageContainer>
     </>
   )

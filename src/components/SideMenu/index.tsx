@@ -14,6 +14,17 @@ import Telegram from './../../assets/social_icons/telegram.png'
 import Twitter from './../../assets/social_icons/twitter.png'
 import Website from './../../assets/social_icons/website.png'
 
+import { ReactComponent as HomeSvg } from './../../assets/svg/sidebar/home.svg'
+import { ReactComponent as HomeFillSvg } from './../../assets/svg/sidebar/home_fill.svg'
+import { ReactComponent as StakeSvg } from './../../assets/svg/sidebar/stake.svg'
+import { ReactComponent as StakeFillSvg } from './../../assets/svg/sidebar/stake_fill.svg'
+import { ReactComponent as LaunchPadSvg } from './../../assets/svg/sidebar/launchpad.svg'
+import { ReactComponent as LaunchPadFillSvg } from './../../assets/svg/sidebar/launchpad_fill.svg'
+import { ReactComponent as IdoSvg } from './../../assets/svg/sidebar/ido.svg'
+import { ReactComponent as IdoFillSvg } from './../../assets/svg/sidebar/ido_fill.svg'
+import { ReactComponent as MoreSvg } from './../../assets/svg/sidebar/more.svg'
+import { ReactComponent as MoreFillSvg } from './../../assets/svg/sidebar/more_fill.svg'
+
 import { ReactComponent as BuySkyFiSvg } from './../../assets/svg/buyskyfi.svg'
 import { ReactComponent as FacebookSvg } from './../../assets/svg/facebook.svg'
 import { ReactComponent as InstagramSvg } from './../../assets/svg/instagram.svg'
@@ -86,6 +97,31 @@ const StyledNavLink = styled(NavLink).attrs({
     }
   }
 `
+
+const StyledNavSvgLink = styled(NavLink)`  
+  align-items: center;
+  outline: none;  
+  cursor: pointer;
+  text-transform: uppercase;
+  font-size: 16px;
+  text-decoration: none;
+  color: ${({ theme }) => theme.white};  
+  font-weight: 600;  
+  transition: all 0.2s ease-in-out;  
+  font-family: 'Poppins', sans-serif;  
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: row;  
+  span {    
+    &.active {
+      color: ${({ theme }) => theme.skyGreenLight};
+    }
+  }
+  svg {
+    width: 20px;
+  }
+`
+
 const HeaderExternalLink = styled(ExternalLink)`
   color: ${({ theme }) => theme.white};
   transition: all 0.2s ease-in-out;
@@ -232,18 +268,20 @@ export default function SideMenu() {
           <img width={'100%'} src={Logo} alt="logo" />
         </Title>
         <HeaderLinks>
-          <StyledNavLink id={`swap-nav-link`} to={'/home'} onClick={handleSideMenuOpen}>
+          <StyledNavSvgLink id={`swap-nav-link`} to={'/home'} onClick={handleSideMenuOpen}>
             <IconLink>
-              <Icon icon="home" active={pathname === '/home'} />
+              {pathname.includes('home')?<HomeFillSvg />:<HomeSvg />}
+              {/* <Icon icon="home" active={pathname === '/home'} /> */}
             </IconLink>
             <span className={pathname === '/home' ? 'active' : ''}>{t('Home')}</span>
-          </StyledNavLink>
-          <StyledNavLink id={`staking-nav-link`} to={'/stake'} onClick={handleSideMenuOpen}>
+          </StyledNavSvgLink>
+          <StyledNavSvgLink id={`staking-nav-link`} to={'/stake'} onClick={handleSideMenuOpen}>
             <IconLink>
-              <Icon icon="market" active={pathname === '/stake'} />
+              {pathname.includes('stake')?<StakeFillSvg />:<StakeSvg />}
+              {/* <Icon icon="market" active={pathname === '/stake'} /> */}
             </IconLink>
             <span className={pathname === '/stake' ? 'active' : ''}>{t('Stake')}</span>
-          </StyledNavLink>
+          </StyledNavSvgLink>
           {/* <StyledNavLink id={`swap-nav-link`} to={'/swap'} onClick={handleSideMenuOpen}>
             <IconLink>
               <Icon icon="swap" active={pathname === '/swap'} />
@@ -268,15 +306,23 @@ export default function SideMenu() {
             </IconLink>
             {t('Charts')}
           </HeaderExternalLink> */}
-          <StyledNavLink id={`pools-nav-link`} to={'/launchpad'} onClick={handleSideMenuOpen}>
-            <IconLink>
-              <Icon icon="planet" active={pathname.includes('launchpad')} />
+          <StyledNavSvgLink id={`pools-nav-link`} to={'/launchpad'} onClick={handleSideMenuOpen}>
+            <IconLink>              
+              {pathname.includes('launchpad')?<LaunchPadFillSvg />:<LaunchPadSvg />}
+              {/* <Icon icon="planet" active={pathname.includes('launchpad')} /> */}
             </IconLink>
             <span className={pathname.includes('launchpad') ? 'active' : ''}>{t('Launchpad')}</span>
-          </StyledNavLink>
+          </StyledNavSvgLink>
+          <StyledNavSvgLink id={`pools-nav-link`} to={'/ido'} onClick={handleSideMenuOpen}>
+            <IconLink>
+              {pathname.includes('ido')?<IdoFillSvg />:<IdoSvg />}
+              {/* <Icon icon="ido" active={pathname.includes('ido')} /> */}
+            </IconLink>
+            <span className={pathname.includes('ido') ? 'active' : ''}>{t('User Ido Tokens')}</span>
+          </StyledNavSvgLink>
           { chainId && (
             <HeaderExternalLink href={'https://app.uniswap.org/#/swap?use=V2&inputCurrency=ETH&outputCurrency=' + SKYFI[chainId].address}>
-              <IconLink>
+              <IconLink>              
                 <BuySkyFiSvg />
               </IconLink>
               Buy SKYFI

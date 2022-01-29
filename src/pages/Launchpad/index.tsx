@@ -10,8 +10,7 @@ import styled from 'styled-components'
 import moment from 'moment'
 import { useHistory } from 'react-router'
 
-const HeaderContainer = styled.div`
-  position: relative;
+const HeaderContainer = styled.div`  
   width: 100%;
   margin-top: 20px;
 
@@ -32,23 +31,18 @@ const HeaderButton = styled.div`
 
 const StyledExternalLink = styled(ExternalLink)`
   text-decoration: none !important;
-  margin-left: auto;
+  // margin-left: auto;
   ${({ theme }) => theme.mediaWidth.upToMedium`
-    margin-right: auto;
+    // margin-right: auto;
   `};
 `
 
-const StyledButtonsWrap = styled.div`
-  position: absolute;
-  top: -30px;
-  right: 0;
+const StyledButtonsWrap = styled.div`  
   display: flex;
-  align-items: center;
-  margin-left: auto;
+  justify-content: end;  
   column-gap: 30px;
-  ${({ theme }) => theme.mediaWidth.upToMedium`
-    width: 100%;
-    flex-direction: column;
+  ${({ theme }) => theme.mediaWidth.upToMedium`    
+    justify-content: center;  
   `};
 `
 
@@ -57,35 +51,40 @@ const ListContainer = styled.div`
   flex-direction: column;
   margin-top: 2rem;
   margin-bottom: 2rem;
+  padding: 30px 20px 0px 20px;  
   background: #1C1C1C;
   box-shadow: 0 0 5px 1px #101010;
   border-radius: 15px;
 `
 const HeadersWrap = styled.div`
   display: flex;
-  flex-direction: row;
-  justify-content: flex-start;
-  align-items: center;
-  padding: 2rem 0;
-
+  flex-direction: row;  
+  justify-content: start;
+  align-items: center;    
   ${({ theme }) => theme.mediaWidth.upToMedium`
     display: none;
   `};
 `
-const HeaderSection = styled.div<{ width?: any }>`
-  width: 130px;
+const HeaderSection = styled.div<{ width?:number }>`
+  width: ${({ width }) => (width ? width + '%' : '16%')}
+  width: 16%;
   padding-left: 10px;
   padding-right: 10px;
-  font-size: 0.8rem;
+  font-size: 0.8rem;  
   text-transform: uppercase;
-  text-align: center;
+  text-align: center;  
+`
+const TableHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  width: 100%;  
 `
 
 export default function ZeroGravityList() {
   const [showActive, setShowActive] = useState(true)
   const [activeTab, setActiveTab] = useState('upcoming')
   const history = useHistory()
-
+  
   const IdoListComplete = IDO_LIST // fetch this list from the server
 
   const IdoListFiltered = useMemo(() => {
@@ -118,35 +117,37 @@ export default function ZeroGravityList() {
     <>
       <PageHeader>
         <Title>Launchpad</Title>
+        <StyledButtonsWrap>
+          <StyledExternalLink href="/#">
+            <HeaderButton className="launch-button green">Launch My Token</HeaderButton>
+          </StyledExternalLink>
+          <StyledInternalLink to="/launchpad/kyc">
+            <HeaderButton className="green">
+              Register
+            </HeaderButton>
+          </StyledInternalLink>
+        </StyledButtonsWrap>
         <HeaderContainer>
           <MenuTabs
             tabs={tabs}
             active={activeTab}
             onChange={onHandleChangeTab}
-          />
-          <StyledButtonsWrap>
-            <StyledExternalLink href="/#">
-              <HeaderButton className="launch-button green">Launch My Token</HeaderButton>
-            </StyledExternalLink>
-            <StyledInternalLink to="/launchpad/kyc">
-              <HeaderButton className="green">
-                Register
-              </HeaderButton>
-            </StyledInternalLink>
-          </StyledButtonsWrap>
-        </HeaderContainer>
+          />          
+        </HeaderContainer>        
       </PageHeader>
       <PageContainer>
         <ListContainer>
           <HeadersWrap>
-            <div style={{ marginLeft: '36px', width: '120px' }}></div>
-            <HeaderSection style={{ width: '160px' }}></HeaderSection>
-            <HeaderSection>Type</HeaderSection>
-            <HeaderSection>Launch Date</HeaderSection>
-            <HeaderSection>Total Raise</HeaderSection>
-            <HeaderSection>Token Amount</HeaderSection>
-            <HeaderSection>Min Alloc.</HeaderSection>
-            <HeaderSection>Max Alloc.</HeaderSection>
+            <div style={{ minWidth: '110px', width: '110px', height: '20px' }}></div>
+            <div style={{ minWidth: '160px', width: '160px' }}></div>
+            <TableHeader>
+              <HeaderSection width={16}>Type</HeaderSection>
+              <HeaderSection width={17}>Launch Date</HeaderSection>
+              <HeaderSection width={17}>Total Raise</HeaderSection>
+              <HeaderSection width={16}>Token Amount</HeaderSection>
+              <HeaderSection width={17}>Min Alloc.</HeaderSection>
+              <HeaderSection width={17}>Max Alloc.</HeaderSection>
+            </TableHeader>
           </HeadersWrap>
           {IdoListFiltered?.map((idoInfo: any, index:number) => {
             if (activeTab === 'upcoming' && moment(idoInfo?.launchDate).isAfter(moment.now())) {

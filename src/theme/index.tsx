@@ -256,7 +256,7 @@ ${({ theme }) => theme.mediaWidth.upToMedium`
 export const PageHeader = styled.div`
   width: 100%;
   padding: 0px 64px;
-  min-height: 165px;
+  // min-height: 165px;
   margin-top: -20px;
   text-transform: uppercase;
   background-color: #1C1C1C;
@@ -264,5 +264,6 @@ export const PageHeader = styled.div`
 
   ${({ theme }) => theme.mediaWidth.upToMedium`
     padding: 0;
+    margin-top: 20px;
   `};
 `

@@ -101,8 +101,8 @@ const Staking = () => {
           <StakingHeader />
           { /*<StakingControls /> */ }
           <WrapStakingCard>
-            {baseStakingInfo.map(stakingInfo => {
-              return <StakingCard stakingInfoTop={stakingInfo} account={account} chainId={chainId} />
+            {baseStakingInfo.map((stakingInfo, index) => {
+              return <StakingCard key={index} stakingInfoTop={stakingInfo} account={account} chainId={chainId} />
             })}
           </WrapStakingCard>
         </WrapContainer>
