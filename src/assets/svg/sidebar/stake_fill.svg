@@ -1,0 +1,8 @@
+<svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 22.11786 22.11783"><defs>
+<style>.stakecls-1{fill:url(#stakeNew_Gradient_Swatch_2);}.stakecls-2{fill:url(#stakeNew_Gradient_Swatch_2-2);}</style>
+<linearGradient id="stakeNew_Gradient_Swatch_2" x1="771.59151" y1="572.99417" x2="764.59806" y2="568.45257" gradientUnits="userSpaceOnUse">
+<stop offset="0" stop-color="#329d9c"/><stop offset="1" stop-color="#7be495"/></linearGradient>
+<linearGradient id="stakeNew_Gradient_Swatch_2-2" x1="778.85654" y1="587.28453" x2="756.89473" y2="573.02236" xlink:href="#stakeNew_Gradient_Swatch_2"/>
+</defs>
+<path class="stakecls-1" d="M771.7612,572.23288h-7.77114a.59761.59761,0,0,1-.59776-.59777,4.48333,4.48333,0,1,1,8.96666,0A.59761.59761,0,0,1,771.7612,572.23288Zm-7.11908-1.19556h6.467a3.2884,3.2884,0,0,0-6.467,0Z" transform="translate(-756.81671 -567.15177)"/>
+<path class="stakecls-2" d="M775.94562,571.03729h-16.14a2.99246,2.99246,0,0,0-2.98889,2.989v12.25439a2.99245,2.99245,0,0,0,2.98889,2.989h16.14a2.99247,2.99247,0,0,0,2.989-2.989V574.02625A2.99247,2.99247,0,0,0,775.94562,571.03729Zm-11.95551,5.38013a.89664.89664,0,1,1,.89667-.89667A.89664.89664,0,0,1,763.99011,576.41742Zm7.77112,0a.89664.89664,0,1,1,.89667-.89667A.89664.89664,0,0,1,771.76123,576.41742Z" transform="translate(-756.81671 -567.15177)"/></svg>

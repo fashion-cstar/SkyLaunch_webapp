@@ -1,0 +1,8 @@
+<svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 22.69946 22.69952">
+<defs><style>.idocls-1{fill:url(#idoNew_Gradient_Swatch_2);}</style>
+<linearGradient id="idoNew_Gradient_Swatch_2" x1="549.92443" y1="545.83541" x2="530.88481" y2="533.47094" gradientUnits="userSpaceOnUse">
+<stop offset="0" stop-color="#329d9c"/>
+<stop offset="1" stop-color="#7be495"/>
+</linearGradient></defs>
+<path class="idocls-1" d="M540.40462,528.30342a11.34976,11.34976,0,1,0,11.34974,11.34973A11.34973,11.34973,0,0,0,540.40462,528.30342Zm3.80895,17.21113-3.80895-2.00249-3.80894,2.00249.72748-4.24134-3.08154-3.0037,4.25849-.61886,1.90451-3.85884,1.90443,3.85884,4.25858.61886-3.08154,3.0037Z" transform="translate(-529.05489 -528.30342)"/>
+</svg>
