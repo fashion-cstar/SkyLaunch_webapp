@@ -1,4 +1,4 @@
-import { ButtonPrimary, ButtonSecondary } from '../../components/Button'
+import { ButtonPrimary, ButtonSecondary, ButtonIdoNotingtoClaim } from '../../components/Button'
 
 import { NavLink } from 'react-router-dom'
 import React, { useEffect, useMemo, useState, useCallback } from 'react'
@@ -137,7 +137,7 @@ export default function UserIdoRow({ idoInfo, idoIndex}: { idoInfo: any, idoInde
             userInfoData={idoInfo.userInfoData} rewardToken={idoInfo.rewardToken} fundToken={idoInfo.fundToken}/>)}
       <ButtonSection>        
           { idoInfo.type===1 ?(<ButtonPrimary style={{ width: '150px', fontSize:"14px", padding:"0px 5px", height:'30px', textTransform: 'uppercase' }} onClick={openClaimModal}>Claim</ButtonPrimary>):
-            idoInfo.type===2 ?(<ButtonSecondary style={{ width: '150px', fontSize:"14px", padding:"0px 5px", height:'30px', textTransform: 'uppercase' }} disabled>Nothing to Claim</ButtonSecondary>):
+            idoInfo.type===2 ?(<ButtonIdoNotingtoClaim style={{ width: '150px', fontSize:"14px", padding:"0px 5px", height:'30px', textTransform: 'uppercase' }} disabled>Nothing to Claim</ButtonIdoNotingtoClaim>):
             (<ButtonSecondary style={{ width: '150px', fontSize:"14px", padding:"0px 5px", height:'30px', textTransform: 'uppercase' }} onClick={toggleWalletModal}>Change Network</ButtonSecondary>)
           }        
       </ButtonSection>      

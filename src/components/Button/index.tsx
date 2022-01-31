@@ -107,6 +107,38 @@ export const ButtonSecondary = styled(Base)`
   }
 `
 
+export const ButtonIdoNotingtoClaim = styled(Base)`
+  box-shadow: inset 2px 2px 5px rgba(255, 255, 255, 0.095);
+  backdrop-filter: blur(28px);
+  color: #000;
+  font-size: 15px;
+  font-weight: 600;
+  background: linear-gradient(to right, #FF9F81, #FFCABA);
+  &:hover .tooltip {
+    visibility: visible;
+    opacity: 1;
+  }
+  &:focus {
+    box-shadow: 0 0 0 1pt ${({ theme }) => theme.primary4};
+    border: 1px solid ${({ theme }) => theme.primary3};
+  }
+  &:hover {
+    border: 1px solid ${({ theme }) => theme.primary3};
+  }
+  &:active {
+    box-shadow: 0 0 0 1pt ${({ theme }) => theme.primary4};
+    border: 1px solid ${({ theme }) => theme.primary3};
+  }
+  &:disabled {
+    opacity: 50%;
+    cursor: auto;
+    background: linear-gradient(to right, #909090, #909090);
+  }
+  a:hover {
+    text-decoration: none;
+  }
+`
+
 export const ButtonSuccess = styled(Base)<{ isPointer?: boolean }>`
   background-color: #1EF7E7;
   box-shadow: inset 2px 2px 5px rgba(255, 255, 255, 0.095);
