@@ -6,6 +6,7 @@ import BlockchainLogo from '../BlockchainLogo'
 import { CHAIN_LABELS } from '../../constants'
 import { ChainId } from '@skylaunch/sdk'
 import ClaimModal from '../claim/ClaimModal'
+import NFTClaimModal from '../NFTClaim/NFTClaimModal'
 import CrossChainModal from 'components/CrossChainModal'
 import Loader from '../Loader'
 import PlainPopup from 'components/Popups/PlainPopup'
@@ -17,6 +18,8 @@ import ZeroLogo from '../../assets/images/zero-logo-text.png'
 import { useActiveWeb3React } from '../../hooks'
 import { useCrosschainState } from 'state/crosschain/hooks'
 import { useETHBalances } from '../../state/wallet/hooks'
+import { ButtonPrimary } from '../Button'
+import { useFundRaisingCallback, useFundAndRewardToken, useTotalReward, useClaimCallback } from 'state/fundraising/hooks'
 
 const HeaderFrame = styled.div`
   display: grid;
@@ -56,7 +59,8 @@ const HeaderControls = styled.div`
   height: 76px;
   min-width: 465px;  
   ${({ theme }) => theme.mediaWidth.upToMedium`
-    justify-self: center;
+    // justify-self: center;
+    justify-content: center;
     width: 100%;
     position: fixed;
     bottom: 0px;
@@ -68,10 +72,9 @@ const HeaderControls = styled.div`
 const HeaderElement = styled.div`
   display: flex;
   align-items: start;
-  gap: 8px;
-
+  gap: 8px;  
   ${({ theme }) => theme.mediaWidth.upToMedium`
-    flex-direction: row-reverse;
+    // flex-direction: row-reverse;
   `};
 `
 const AccountElement = styled.div<{ active: boolean }>`
@@ -102,10 +105,10 @@ const NetworkCard = styled(YellowCard)`
   text-transform: uppercase;
   margin-right: 20px;
   ${({ theme }) => theme.mediaWidth.upToMedium`
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    // position: absolute;
+    // top: 50%;
+    // left: 50%;
+    // transform: translate(-50%, -50%);
   `};
 
   ${({ theme }) => theme.mediaWidth.upToSmall`
@@ -132,6 +135,14 @@ const BalanceText = styled(Text)`
     display: none;
   `};
 `
+
+const NFTClaimButton = styled.div`
+  width: 150px;
+  min-width: 150px;
+  margin-top: 2px;
+  margin-left: 20px;
+  margin-right: 20px;
+`
 const BlockchainLogoWrap = styled.span`
   position: absolute;
   left: 10px;
@@ -155,8 +166,17 @@ const NotConnectedWrap = styled.div`
     pointer-events: none;
   }
   ${({ theme }) => theme.mediaWidth.upToMedium`
-    position: relative;
-    margin: 0 auto;
+    // position: relative;
+    // margin: 0 auto;
+    height: 76px;
+    background: #1c1c1c;
+    backdrop-filter: blur(28px);
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    position: fixed;
+    bottom: 0px;
+    left: 0px;    
   `};
 `
 
@@ -206,7 +226,7 @@ const NetworkSwitcher = () => {
   const [crossPopupOpen, setShowPopupModal] = useState(false)
 
   const hidePopupModal = () => setShowPopupModal(false)
-  const hideCrossChainModal = () => setShowCrossChainModal(false)
+  const hideCrossChainModal = () => setShowCrossChainModal(false)  
 
   const showCrossChainModal = () => {
     const currentTime = ~~(Date.now() / 1000)
@@ -250,6 +270,8 @@ const NetworkSwitcher = () => {
 const Header = () => {
   const { account, chainId } = useActiveWeb3React()  
   const userEthBalance = useETHBalances(account ? [account] : [], chainId)?.[account ?? '']
+  const { poolInfoCallback, userInfoCallback, countsOfPoolCallback } = useFundRaisingCallback()
+  const [showClaimModal, setShowClaimModal] = useState(false)
   let label,
     symbol = ''
 
@@ -258,12 +280,21 @@ const Header = () => {
     symbol = NETWORK_SYMBOLS[label || 'Ethereum']
   }
 
+  const openClaimModal = async () => {        
+    setShowClaimModal(!showClaimModal)    
+  }
   return (
     <HeaderFrame>
       <ClaimModal />
-      {account && userEthBalance ? (
+      {account && userEthBalance ? (<>
+        <NFTClaimModal 
+          isOpen={showClaimModal} account={account} onDismiss={() => setShowClaimModal(false)}
+        />
         <HeaderControls>
           <HeaderElement>
+            <NFTClaimButton>
+              <ButtonPrimary style={{ width: '100%', fontSize:"14px", padding:"0px 5px", height:'30px', textTransform: 'uppercase' }} onClick={openClaimModal}>NFT Drop Claim</ButtonPrimary>
+            </NFTClaimButton>            
             <NetworkSwitcher />
             <AccountElement active={!!account}>
               <BalanceText>
@@ -273,7 +304,7 @@ const Header = () => {
             </AccountElement>
           </HeaderElement>
         </HeaderControls>
-      ) : account && !userEthBalance ? (
+      </>) : account && !userEthBalance ? (
         <NotConnectedWrap className="no-point">
           <Loader stroke="#6752F7" style={{ marginRight: '10px', marginTop: '-15px' }} />
           <Web3Status />

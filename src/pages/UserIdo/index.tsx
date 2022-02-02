@@ -60,11 +60,13 @@ const ListContainer = styled.div`
   border-radius: 15px;
 `
 const WalletConnectContainer = styled.div`
+  min-height: 300px;  
   display: flex;    
   justify-content: center;
+  align-items: center;    
   margin-top: 2rem;
-  margin-bottom: 2rem;
-  padding: 150px 20px 150px 20px;  
+  margin-bottom: 2rem;  
+  padding-top: 130px;
   background: #1C1C1C;
   box-shadow: 0 0 5px 1px #101010;
   border-radius: 15px;  
@@ -73,7 +75,7 @@ const HeadersWrap = styled.div`
   display: flex;
   flex-direction: row;  
   justify-content: start;
-  align-items: center;    
+  align-items: center;
   ${({ theme }) => theme.mediaWidth.upToMedium`
     display: none;
   `};
@@ -164,7 +166,8 @@ export default function UserIdoDetail() {
           }
         }))
       }
-      if (IdoList && countsOfPool){        
+      if (IdoList && countsOfPool){   
+        setUserIdos([])
         fetch()
       }
     }, [IdoList, countsOfPool, chainId])
@@ -200,7 +203,7 @@ export default function UserIdoDetail() {
                   )                
                   return null
               })}
-            </ListContainer></>):(<WalletConnectContainer><div style={{width:'250px'}}><Web3Status /></div></WalletConnectContainer>)}
+            </ListContainer></>):(<WalletConnectContainer><Web3Status /></WalletConnectContainer>)}
         </PageContainer>
         </>
     )

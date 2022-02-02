@@ -69,7 +69,7 @@ const Web3StatusConnect = styled(Web3StatusGeneric) <{ faded?: boolean }>`
   font-weight: 500;
   transition: all .2s ease-in-out;
   text-transform: uppercase;
-
+  max-width: 200px;
   ${({ faded }) =>
     faded &&
     css`
