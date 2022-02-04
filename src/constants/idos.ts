@@ -20,7 +20,8 @@ export const IDO_LIST = [
     disclaimer: `Restricted countries for Wasder - Afghanistan, Albania, US, Botswana, Cambodia, Cuba, Ghana, Iran, Iraq, Jamaica, Korea, Libya, Mauritius, Myanmar, Nicaragua, Panama, Pakistan, South Sudan, North Sudan, Syria, Crimea, Trinidad and Tobago, Uganda, Vanuatu, Yemen, Zimbabwe, Jurisdictions in which participation or ownership of tokens is prohibited by an applicable law AND-OR jurisdictions which are subject to United States of America, United Nations, or other applicable sanctions or embargoes. If you are from a restricted country, but won an allocation, your allocation will be automatically by our market maker as part of our ZeroID offering. You will be able to claim your allocation at a later time.`,
     buttonSectionEnabled: true,
     whiteListUrl: 'https://docs.google.com/spreadsheets/d/16N4S_VqEfN04hfsfz4SIqZdH-jGqyJynCfZ6bjMBhaE/edit?usp=sharing',
-    network: 1,
+    network: 4,
+    pid: 0,
     seed: {
       tokenAllocation: '10,000,000',
       totalTokenPercent: '10%',
@@ -95,6 +96,7 @@ export const IDO_LIST = [
     buttonSectionEnabled: false,
     whiteListUrl: '',
     network: 4,
+    pid: 1,
     seed: {
       tokenAllocation: '10,000,000',
       totalTokenPercent: '10%',
@@ -173,6 +175,7 @@ for Grow products and earn loyalty benefits.`,
     whiteListUrl: 'https://docs.google.com/spreadsheets/d/1v1By-TTQxs-sBHcyOh3LV_u5SqFSm5h3732pAioE_Vo/edit?usp=sharing',
     kycURL: `https://verify-with.blockpass.org/?clientId=GROW_IDO_KYC&serviceName=IDO%20KYC&env=prod`,
     network: 4,
+    pid: 2,
     seed: {
       tokenAllocation: '10,000,000',
       totalTokenPercent: '10%',
