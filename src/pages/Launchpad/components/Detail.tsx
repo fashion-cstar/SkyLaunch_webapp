@@ -171,7 +171,6 @@ const LinksGroupContent = styled.div`
   ${({ theme }) => theme.mediaWidth.upToLarge`
     align-items: center;
   `};
-   
 `
 const ComponentBoxContainer = styled.div`  
   display: flex;
