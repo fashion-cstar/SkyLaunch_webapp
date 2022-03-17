@@ -1,22 +1,22 @@
 import { CloseIcon, TYPE } from '../../../theme'
 import { LoadingView, SubmittedView } from 'components/ModalViews'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { AppDispatch } from '../../../state'
 import { AutoColumn } from 'components/Column'
 import { ButtonError } from 'components/Button'
 import Modal from 'components/Modal'
 import { RowBetween } from 'components/Row'
-import { TransactionResponse } from '@ethersproject/providers'
 import styled from 'styled-components'
-import { useTransactionAdder } from 'state/transactions/hooks'
 import { UserInfo, PoolInfo, setUserInfo } from 'state/fundraising/actions'
-import toCurrencyAmount from 'utils/toCurrencyAmount'
-import toEtherAmount from 'utils/toEtherAmount'
+import { useActiveWeb3React } from '../../../hooks'
+import parseEther from 'utils/parseEther'
+import formatEther from 'utils/formatEther'
 import { Token } from '@skylaunch/sdk'
 import { Contract } from '@ethersproject/contracts'
 import { BigNumber } from 'ethers'
-import { useClaimCallback } from 'state/fundraising/hooks'
+import { useClaimCallback, useAddTxRevertedToast, usePendingRewards } from 'state/fundraising/hooks'
+import { useAddPopup } from 'state/application/hooks'
 
 const ContentWrapper = styled(AutoColumn)`
   width: 100%;
@@ -37,55 +37,80 @@ const HypotheticalRewardRate = styled.div<{ dim: boolean }>`
 `
 
 interface ClaimModalProps {
-    isOpen: boolean,
-    account: string | null | undefined,    
-    pid: number,
-    userInfoData: UserInfo,    
-    pendingAmount: number,
-    fundToken: Token | undefined,
-    rewardToken: Token | undefined,
-    onDismiss: () => void
-    resetCollectedRewards: (amount:BigNumber) => void
-  }
+  isOpen: boolean,
+  pid: number,
+  userInfoData: UserInfo,
+  fundToken: Token | undefined,
+  rewardToken: Token | undefined,
+  onDismiss: () => void
+  resetCollectedRewards: (amount: BigNumber) => void
+}
 
-export default function ClaimModal({ isOpen, account, pid, userInfoData, pendingAmount, fundToken, rewardToken, onDismiss, resetCollectedRewards }: ClaimModalProps) {
+export default function ClaimModal({ isOpen, pid, userInfoData, fundToken, rewardToken, onDismiss, resetCollectedRewards }: ClaimModalProps) {
 
-  // monitor call to help UI loading state  
+  const { library, account, chainId } = useActiveWeb3React()
   const [hash, setHash] = useState<string | undefined>()
-  const [attempting, setAttempting] = useState(false)  
-  const [pendingRewards, setPendingRewards] = useState(BigNumber.from(0))
+  const [attempting, setAttempting] = useState(false)
+  const [claimedPending, setClaimedPending] = useState(BigNumber.from(0))
   const { claimCallback, pendingCallback } = useClaimCallback(account)
+  const { addTxRevertedToast } = useAddTxRevertedToast()
+  const [pendingAmount, setPending] = useState(0)
+  const userPending = usePendingRewards(pid)
+
+  useEffect(() => {
+    if (userPending && rewardToken) {
+      setPending(formatEther(userPending, rewardToken, 3))
+    }
+  }, [userPending, rewardToken])
   function wrappedOnDismiss() {
     setHash(undefined)
     setAttempting(false)
     onDismiss()
   }
 
-  const successClaiming=(pending:BigNumber) => {
-    if (rewardToken){
-      let _amount=userInfoData.collectedRewards     
-      setPendingRewards(pending)                     
+  const successClaiming = (pending: BigNumber) => {
+    if (rewardToken) {
+      let _amount = userInfoData.collectedRewards
+      setClaimedPending(pending)
       resetCollectedRewards(_amount.add(pending))
     }
   }
 
   async function onClaimReward() {
-    if (rewardToken){     
+    if (rewardToken) {
       setAttempting(true)
-      try{
-        pendingCallback(pid).then((pending:any) => {
-          claimCallback(pid, rewardToken.symbol).then((hash:string) => {
-            setHash(hash)
-            successClaiming(pending)
-          }).catch(error => {
+      try {
+        pendingCallback(pid).then((pending: any) => {
+          if (pending) {
+            claimCallback(pid, rewardToken.symbol).then((hash: string) => {
+              if (hash) {
+                setHash(hash)
+                successClaiming(pending)
+              } else {
+                setAttempting(false)
+              }
+            }).catch(error => {
+              setAttempting(false)
+              let err: any = error
+              if (err?.message) addTxRevertedToast(err?.message)
+              if (err?.error) {
+                if (err?.error?.message) addTxRevertedToast(err?.error?.message)
+              }
+              wrappedOnDismiss()
+            })
+          } else {
             setAttempting(false)
-            console.log(error)
-          })
-        }).catch((error:any) => {
+          }
+        }).catch((error: any) => {
           setAttempting(false)
-          console.log(error)
+          let err: any = error
+          if (err?.message) addTxRevertedToast(err?.message)
+          if (err?.error) {
+            if (err?.error?.message) addTxRevertedToast(err?.error?.message)
+          }
+          wrappedOnDismiss()
         })
-      }catch(error){
+      } catch (error) {
         setAttempting(false)
         console.log(error)
       }
@@ -96,45 +121,45 @@ export default function ClaimModal({ isOpen, account, pid, userInfoData, pending
     <Modal isOpen={isOpen} onDismiss={wrappedOnDismiss} maxHeight={90}>
       {!attempting && !hash && (
         <ContentWrapper gap="lg">
-            <RowBetween>
-                <TYPE.mediumHeader>Claim</TYPE.mediumHeader>
-                <CloseIcon onClick={wrappedOnDismiss} />
-            </RowBetween>          
-            <AutoColumn justify="center" gap="md">
-              <TYPE.body fontWeight={600} fontSize={36}>
-                {pendingAmount}
-              </TYPE.body>
-              <TYPE.body>Unclaimed {rewardToken?rewardToken.symbol:''}</TYPE.body>
-            </AutoColumn>          
-            <BalanceContainer>
-                {userInfoData && fundToken && toEtherAmount(userInfoData.fundingAmount, fundToken, 2)>0 && (<HypotheticalRewardRate dim={userInfoData.fundingAmount.gt(0)?false:true}>
-                    <div>
-                    <TYPE.black fontWeight={600}>Funded Amount</TYPE.black>
-                    </div>
+          <RowBetween>
+            <TYPE.mediumHeader>Claim</TYPE.mediumHeader>
+            <CloseIcon onClick={wrappedOnDismiss} />
+          </RowBetween>
+          <AutoColumn justify="center" gap="md">
+            <TYPE.body fontWeight={600} fontSize={36}>
+              {pendingAmount}
+            </TYPE.body>
+            <TYPE.body>Unclaimed {rewardToken ? rewardToken.symbol : ''}</TYPE.body>
+          </AutoColumn>
+          <BalanceContainer>
+            {userInfoData && fundToken && formatEther(userInfoData.fundingAmount, fundToken, 2) > 0 && (<HypotheticalRewardRate dim={userInfoData.fundingAmount.gt(0) ? false : true}>
+              <div>
+                <TYPE.black fontWeight={600}>Funded Amount</TYPE.black>
+              </div>
 
-                    <TYPE.black>
-                    {userInfoData?toEtherAmount(userInfoData.fundingAmount, fundToken, 4):0}{' '}{fundToken?fundToken.symbol:''}
-                    </TYPE.black>
-                </HypotheticalRewardRate>)}    
-                {userInfoData && rewardToken && (<HypotheticalRewardRate dim={userInfoData.collectedRewards.gt(0)?false:true}>
-                    <div>
-                    <TYPE.black fontWeight={600}>Collected Rewards</TYPE.black>
-                    </div>
+              <TYPE.black>
+                {userInfoData ? formatEther(userInfoData.fundingAmount, fundToken, 4) : 0}{' '}{fundToken ? fundToken.symbol : ''}
+              </TYPE.black>
+            </HypotheticalRewardRate>)}
+            {userInfoData && rewardToken && (<HypotheticalRewardRate dim={userInfoData.collectedRewards.gt(0) ? false : true}>
+              <div>
+                <TYPE.black fontWeight={600}>Collected Rewards</TYPE.black>
+              </div>
 
-                    <TYPE.black>
-                    {userInfoData?toEtherAmount(userInfoData.collectedRewards, rewardToken, 3):0}{' '}{rewardToken?rewardToken.symbol:''}
-                    </TYPE.black>
-                </HypotheticalRewardRate>)}                   
-            </BalanceContainer>
-            <ButtonError onClick={onClaimReward}>
-                Claim
-            </ButtonError>
+              <TYPE.black>
+                {userInfoData ? formatEther(userInfoData.collectedRewards, rewardToken, 3) : 0}{' '}{rewardToken ? rewardToken.symbol : ''}
+              </TYPE.black>
+            </HypotheticalRewardRate>)}
+          </BalanceContainer>
+          <ButtonError onClick={onClaimReward}>
+            Claim
+          </ButtonError>
         </ContentWrapper>
       )}
       {attempting && !hash && (
         <LoadingView onDismiss={wrappedOnDismiss}>
           <AutoColumn gap="12px" justify={'center'}>
-            <TYPE.body fontSize={20}>Claiming{' pending '}{rewardToken?rewardToken.symbol:''}</TYPE.body>
+            <TYPE.body fontSize={20}>Claiming{' pending '}{rewardToken ? rewardToken.symbol : ''}</TYPE.body>
           </AutoColumn>
         </LoadingView>
       )}
@@ -142,7 +167,7 @@ export default function ClaimModal({ isOpen, account, pid, userInfoData, pending
         <SubmittedView onDismiss={wrappedOnDismiss} hash={hash}>
           <AutoColumn gap="12px" justify={'center'}>
             <TYPE.largeHeader>Transaction Submitted</TYPE.largeHeader>
-            <TYPE.body fontSize={20}>Claimed {rewardToken?toEtherAmount(pendingRewards, rewardToken, 3):''}{' '}{rewardToken?rewardToken.symbol:''}!</TYPE.body>
+            <TYPE.body fontSize={20}>Claimed {rewardToken ? formatEther(claimedPending, rewardToken, 3) : ''}{' '}{rewardToken ? rewardToken.symbol : ''}!</TYPE.body>
           </AutoColumn>
         </SubmittedView>
       )}

@@ -4,6 +4,7 @@ import styled, { ThemeContext } from 'styled-components'
 import ListUpdatePopup from './ListUpdatePopup'
 import { PopupContent } from '../../state/application/actions'
 import TransactionPopup from './TransactionPopup'
+import TxRevertedPopup from './TxRevertedPopup'
 import { X } from 'react-feather'
 import { animated } from 'react-spring'
 import { useRemovePopup } from '../../state/application/hooks'
@@ -88,6 +89,9 @@ export default function PopupItem({
   } else if ('simpleAnnounce' in content) {
     const message = content.simpleAnnounce.message
     popupContent = <strong>{message}</strong>
+  } else if ('txReverted' in content) {
+    const message = content.txReverted.message
+    popupContent=<TxRevertedPopup message={message} />
   }
 
   const faderStyle = useSpring({

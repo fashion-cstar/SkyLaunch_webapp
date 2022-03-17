@@ -10,7 +10,7 @@ export type TokenConfig = {
   resourceId: string
   isNativeWrappedToken?: boolean
   assetBase: string
-  disableTransfer?: boolean;
+  disableTransfer?: boolean
 }
 
 export type BridgeConfig = {
@@ -55,12 +55,12 @@ export const crosschainConfig: ChainbridgeConfig = {
           resourceId: '0x0000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc200'
         },
         {
-          address: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
-          name: "USDT",
-          symbol: "USDT",
+          address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+          name: 'USDT',
+          symbol: 'USDT',
           assetBase: 'USDT',
           decimals: 6,
-          resourceId: "0x0000000000000000000000dAC17F958D2ee523a2206206994597C13D831ec700",
+          resourceId: '0x0000000000000000000000dAC17F958D2ee523a2206206994597C13D831ec700'
         },
         {
           address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
@@ -197,7 +197,7 @@ export const crosschainConfig: ChainbridgeConfig = {
           assetBase: 'WAS',
           decimals: 18,
           resourceId: '0x00000000000000000000000c572544a4Ee47904d54aaA6A970AF96B6f00E1b01'
-        },
+        }
       ]
     },
     {
@@ -221,12 +221,12 @@ export const crosschainConfig: ChainbridgeConfig = {
           resourceId: '0x0000000000000000000000f6F3EEa905ac1da6F6DD37d06810C6Fcb0EF518301'
         },
         {
-          address: "0x650CECaFE61f3f65Edd21eFacCa18Cc905EeF0B7",
-          name: "zUSDT",
-          symbol: "zUSDT",
+          address: '0x650CECaFE61f3f65Edd21eFacCa18Cc905EeF0B7',
+          name: 'zUSDT',
+          symbol: 'zUSDT',
           assetBase: 'USDT',
           decimals: 6,
-          resourceId: "0x0000000000000000000000a14d2e53e7578cD69A6B97Bff054F56280A8d2C801",
+          resourceId: '0x0000000000000000000000a14d2e53e7578cD69A6B97Bff054F56280A8d2C801'
         },
         {
           address: '0x474Bb79C3e8E65DcC6dF30F9dE68592ed48BBFDb',
@@ -355,7 +355,7 @@ export const crosschainConfig: ChainbridgeConfig = {
           assetBase: 'WAS',
           decimals: 18,
           resourceId: '0x0000000000000000000000DE03bB9EFf0804516Be4Bdac5761b7526798aF0F02'
-        },
+        }
       ]
     },
     {
@@ -393,7 +393,7 @@ export const crosschainConfig: ChainbridgeConfig = {
           symbol: 'zETH',
           assetBase: 'ETH',
           decimals: 18,
-          resourceId: '0x00000000000000000000007c815BBc21FED2B97CA163552991A5C30d6a233603',
+          resourceId: '0x00000000000000000000007c815BBc21FED2B97CA163552991A5C30d6a233603'
         },
         {
           address: '0xB6D5487b00e53e7009E6560189EB8B8c22e11Bf3',
@@ -401,7 +401,7 @@ export const crosschainConfig: ChainbridgeConfig = {
           symbol: 'zBTC',
           assetBase: 'BTC',
           decimals: 8,
-          resourceId: '0x0000000000000000000000B6D5487b00e53e7009E6560189EB8B8c22e11Bf303',
+          resourceId: '0x0000000000000000000000B6D5487b00e53e7009E6560189EB8B8c22e11Bf303'
         },
         {
           address: '0x7e7bAFF135c42ed90C0EdAb16eAe48ecEa417018',
@@ -409,7 +409,7 @@ export const crosschainConfig: ChainbridgeConfig = {
           symbol: 'zDAI',
           assetBase: 'DAI',
           decimals: 18,
-          resourceId: '0x00000000000000000000007e7bAFF135c42ed90C0EdAb16eAe48ecEa41701803',
+          resourceId: '0x00000000000000000000007e7bAFF135c42ed90C0EdAb16eAe48ecEa41701803'
         },
         {
           address: '0x1f534d2B1ee2933f1fdF8e4b63A44b2249d77EAf',
@@ -417,7 +417,7 @@ export const crosschainConfig: ChainbridgeConfig = {
           symbol: 'ZERO',
           assetBase: 'ZERO',
           decimals: 18,
-          resourceId: '0x00000000000000000000001f534d2B1ee2933f1fdF8e4b63A44b2249d77EAf03',
+          resourceId: '0x00000000000000000000001f534d2B1ee2933f1fdF8e4b63A44b2249d77EAf03'
         },
         {
           address: '0xaC532d2FC81a077C9F93Be7ea698E2f1d224Ec04',
@@ -425,7 +425,7 @@ export const crosschainConfig: ChainbridgeConfig = {
           symbol: 'zAVAX',
           assetBase: 'AVAX',
           decimals: 18,
-          resourceId: '0x0000000000000000000000aC532d2FC81a077C9F93Be7ea698E2f1d224Ec0403',
+          resourceId: '0x0000000000000000000000aC532d2FC81a077C9F93Be7ea698E2f1d224Ec0403'
         },
         {
           address: '0xE1D075E79d17fBE745f575634Fb055c62c39CaF4',
@@ -433,7 +433,7 @@ export const crosschainConfig: ChainbridgeConfig = {
           symbol: 'zLINK',
           assetBase: 'LINK',
           decimals: 18,
-          resourceId: '0x0000000000000000000000E1D075E79d17fBE745f575634Fb055c62c39CaF403',
+          resourceId: '0x0000000000000000000000E1D075E79d17fBE745f575634Fb055c62c39CaF403'
         },
         {
           address: '0xc69CF0e0d00adbF1ab447340C31E39fcf9Ef6cb5',
@@ -441,7 +441,7 @@ export const crosschainConfig: ChainbridgeConfig = {
           symbol: 'zAAVE',
           assetBase: 'AAVE',
           decimals: 18,
-          resourceId: '0x0000000000000000000000c69CF0e0d00adbF1ab447340C31E39fcf9Ef6cb503',
+          resourceId: '0x0000000000000000000000c69CF0e0d00adbF1ab447340C31E39fcf9Ef6cb503'
         },
         {
           address: '0xA6b4a72a6f8116dab486fB88192450CF3ed4150C',
@@ -449,7 +449,7 @@ export const crosschainConfig: ChainbridgeConfig = {
           symbol: 'zUNI',
           assetBase: 'UNI',
           decimals: 18,
-          resourceId: '0x0000000000000000000000A6b4a72a6f8116dab486fB88192450CF3ed4150C03',
+          resourceId: '0x0000000000000000000000A6b4a72a6f8116dab486fB88192450CF3ed4150C03'
         },
         {
           address: '0x2D6d5bc58adEDa28f62B0aBc3f53F5EAef497FCc',
@@ -457,7 +457,7 @@ export const crosschainConfig: ChainbridgeConfig = {
           symbol: 'zSUSHI',
           assetBase: 'SUSHI',
           decimals: 18,
-          resourceId: '0x00000000000000000000002D6d5bc58adEDa28f62B0aBc3f53F5EAef497FCc03',
+          resourceId: '0x00000000000000000000002D6d5bc58adEDa28f62B0aBc3f53F5EAef497FCc03'
         },
         {
           address: '0xD83FEaB895bDebF9D3E1BE50b7d4d81cf4a0211c',
@@ -465,7 +465,7 @@ export const crosschainConfig: ChainbridgeConfig = {
           symbol: 'z1INCH',
           assetBase: '1INCH',
           decimals: 18,
-          resourceId: '0x0000000000000000000000D83FEaB895bDebF9D3E1BE50b7d4d81cf4a0211c03',
+          resourceId: '0x0000000000000000000000D83FEaB895bDebF9D3E1BE50b7d4d81cf4a0211c03'
         },
         {
           address: '0xaaa777E372788F498462B7ed0fAaad7BA264586D',
@@ -473,7 +473,7 @@ export const crosschainConfig: ChainbridgeConfig = {
           symbol: 'zYFI',
           assetBase: 'YFI',
           decimals: 18,
-          resourceId: '0x0000000000000000000000aaa777E372788F498462B7ed0fAaad7BA264586D03',
+          resourceId: '0x0000000000000000000000aaa777E372788F498462B7ed0fAaad7BA264586D03'
         },
         {
           address: '0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56',
@@ -514,8 +514,8 @@ export const crosschainConfig: ChainbridgeConfig = {
           assetBase: 'WISB',
           decimals: 18,
           // resourceId: '0x00000000000000000000004f491d389A5bF7C56bd1e4d8aF2280fD217C854303'
-          resourceId: "",
-          disableTransfer: true,
+          resourceId: '',
+          disableTransfer: true
         },
         {
           address: '0x081A4D4e4A0cC74D6a7A61578f86b8C93CC950a0',
@@ -532,15 +532,15 @@ export const crosschainConfig: ChainbridgeConfig = {
           assetBase: 'WAS',
           decimals: 18,
           resourceId: '0x00000000000000000000000f236c7EDda9c1e87036dD258bd9D1bcC37EA66C03'
-        },
+        }
       ]
     },
     {
       chainId: 4,
       networkId: 128,
       name: 'HECO',
-      bridgeAddress: "0x651A4FD3550426788bA73B68655ad40627226e30",
-      erc20HandlerAddress: "0x55B2952a406514cB1b1279D42Aa9be9CC8d4ECfd",
+      bridgeAddress: '0x651A4FD3550426788bA73B68655ad40627226e30',
+      erc20HandlerAddress: '0x55B2952a406514cB1b1279D42Aa9be9CC8d4ECfd',
       rpcUrl: 'https://http-mainnet-node.huobichain.com',
       type: 'Ethereum',
       gasLimit: 60000,
@@ -683,16 +683,15 @@ export const crosschainConfig: ChainbridgeConfig = {
           assetBase: 'WAS',
           decimals: 18,
           resourceId: '0x0000000000000000000000c9EFDAC4fE5828361b0aE69d1C16670CDa712BDc04'
-        },
-
+        }
       ]
     },
     {
       chainId: 5,
       networkId: 137,
       name: 'Polygon',
-      bridgeAddress: "0xF82B6C89A1D3340733eA4f74F9D111b5D7127876",
-      erc20HandlerAddress: "0xD02408A62ED3708429ccFb04d9dEA302884ab6a7",
+      bridgeAddress: '0xF82B6C89A1D3340733eA4f74F9D111b5D7127876',
+      erc20HandlerAddress: '0xD02408A62ED3708429ccFb04d9dEA302884ab6a7',
       rpcUrl: 'https://rpc-mainnet.matic.network',
       type: 'Ethereum',
       gasLimit: 60000,
@@ -722,7 +721,7 @@ export const crosschainConfig: ChainbridgeConfig = {
           symbol: 'zETH',
           assetBase: 'ETH',
           decimals: 18,
-          resourceId: '0x00000000000000000000004801D3057109758C3Cc82859Fe28C5692802033005',
+          resourceId: '0x00000000000000000000004801D3057109758C3Cc82859Fe28C5692802033005'
         },
         {
           address: '0x2FaB07236d5E1F400568E475B21dBc6AdFEd57D5',
@@ -730,7 +729,7 @@ export const crosschainConfig: ChainbridgeConfig = {
           symbol: 'zBTC',
           assetBase: 'BTC',
           decimals: 8,
-          resourceId: '0x00000000000000000000002FaB07236d5E1F400568E475B21dBc6AdFEd57D505',
+          resourceId: '0x00000000000000000000002FaB07236d5E1F400568E475B21dBc6AdFEd57D505'
         },
         {
           address: '0x5b75Ff9e5c15Bb94AB166A80dD5398B3B9f50E25',
@@ -738,7 +737,7 @@ export const crosschainConfig: ChainbridgeConfig = {
           symbol: 'zDAI',
           assetBase: 'DAI',
           decimals: 18,
-          resourceId: '0x00000000000000000000005b75Ff9e5c15Bb94AB166A80dD5398B3B9f50E2505',
+          resourceId: '0x00000000000000000000005b75Ff9e5c15Bb94AB166A80dD5398B3B9f50E2505'
         },
         {
           address: '0xb67176655e7919a27aA34C279157124619aDFd4B',
@@ -746,7 +745,7 @@ export const crosschainConfig: ChainbridgeConfig = {
           symbol: 'ZERO',
           assetBase: 'ZERO',
           decimals: 18,
-          resourceId: '0x0000000000000000000000b67176655e7919a27aA34C279157124619aDFd4B05',
+          resourceId: '0x0000000000000000000000b67176655e7919a27aA34C279157124619aDFd4B05'
         },
         {
           address: '0xEa83FCEe5875c8f09B0a9B999CBbB1CeD26A462B',
@@ -754,7 +753,7 @@ export const crosschainConfig: ChainbridgeConfig = {
           symbol: 'zAVAX',
           assetBase: 'AVAX',
           decimals: 18,
-          resourceId: '0x0000000000000000000000Ea83FCEe5875c8f09B0a9B999CBbB1CeD26A462B05',
+          resourceId: '0x0000000000000000000000Ea83FCEe5875c8f09B0a9B999CBbB1CeD26A462B05'
         },
         {
           address: '0x317Edd9783a712Cb412806e6273d7c81C6738D98',
@@ -762,7 +761,7 @@ export const crosschainConfig: ChainbridgeConfig = {
           symbol: 'zLINK',
           assetBase: 'LINK',
           decimals: 18,
-          resourceId: '0x0000000000000000000000317Edd9783a712Cb412806e6273d7c81C6738D9805',
+          resourceId: '0x0000000000000000000000317Edd9783a712Cb412806e6273d7c81C6738D9805'
         },
         {
           address: '0x52AbdB3536a3a966056e096F2572B2755df26eac',
@@ -770,7 +769,7 @@ export const crosschainConfig: ChainbridgeConfig = {
           symbol: 'zAAVE',
           assetBase: 'AAVE',
           decimals: 18,
-          resourceId: '0x000000000000000000000052AbdB3536a3a966056e096F2572B2755df26eac05',
+          resourceId: '0x000000000000000000000052AbdB3536a3a966056e096F2572B2755df26eac05'
         },
         {
           address: '0xba79bf6D52934D3b55FE0c14565A083c74FBD224',
@@ -778,7 +777,7 @@ export const crosschainConfig: ChainbridgeConfig = {
           symbol: 'zUNI',
           assetBase: 'UNI',
           decimals: 18,
-          resourceId: '0x0000000000000000000000ba79bf6D52934D3b55FE0c14565A083c74FBD22405',
+          resourceId: '0x0000000000000000000000ba79bf6D52934D3b55FE0c14565A083c74FBD22405'
         },
         {
           address: '0x3Fc84b2B0F0CFa85A83F5215ec0A56930a49C141',
@@ -786,7 +785,7 @@ export const crosschainConfig: ChainbridgeConfig = {
           symbol: 'zSUSHI',
           assetBase: 'SUSHI',
           decimals: 18,
-          resourceId: '0x00000000000000000000003Fc84b2B0F0CFa85A83F5215ec0A56930a49C14105',
+          resourceId: '0x00000000000000000000003Fc84b2B0F0CFa85A83F5215ec0A56930a49C14105'
         },
         {
           address: '0x10B34Bd0d3b4532BE749b39Aae4B01d229e538E3',
@@ -794,7 +793,7 @@ export const crosschainConfig: ChainbridgeConfig = {
           symbol: 'z1INCH',
           assetBase: '1INCH',
           decimals: 18,
-          resourceId: '0x000000000000000000000010B34Bd0d3b4532BE749b39Aae4B01d229e538E305',
+          resourceId: '0x000000000000000000000010B34Bd0d3b4532BE749b39Aae4B01d229e538E305'
         },
         {
           address: '0x7c815BBc21FED2B97CA163552991A5C30d6a2336',
@@ -802,7 +801,7 @@ export const crosschainConfig: ChainbridgeConfig = {
           symbol: 'zYFI',
           assetBase: 'YFI',
           decimals: 18,
-          resourceId: '0x00000000000000000000007c815BBc21FED2B97CA163552991A5C30d6a233605',
+          resourceId: '0x00000000000000000000007c815BBc21FED2B97CA163552991A5C30d6a233605'
         },
         {
           address: '0x21d815016bF0a24CA6E169bd1A32C50514aab91F',
@@ -835,7 +834,7 @@ export const crosschainConfig: ChainbridgeConfig = {
           assetBase: 'WAS',
           decimals: 18,
           resourceId: '0x0000000000000000000000faEF64930CDD15a19B24EA71Efa14d37f240116905'
-        },
+        }
         // {
         //   address: '0x08193764bd81a742c15125e48f41b1232068c912',
         //   name: 'MINT',
@@ -893,8 +892,6 @@ export const crosschainConfig: ChainbridgeConfig = {
         }
       ]
     }
-
-
   ]
 
   // rinkeby - FUJI

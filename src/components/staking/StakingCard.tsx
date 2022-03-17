@@ -39,7 +39,7 @@ const StakingCardStyled = styled.div`
 `
 const CardContainer = styled.div`
   background: rgba(28, 28, 28, 0.54);
-  box-shadow: inset 2px 2px 5px rgb(255 255 255 / 10%);
+  box-shadow: inset 2px 2px 2px 4px rgb(255 255 255 / 10%);
   backdrop-filter: blur(28px);
   border-radius: 20px;
 `

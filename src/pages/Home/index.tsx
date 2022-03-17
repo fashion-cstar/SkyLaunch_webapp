@@ -25,23 +25,23 @@ const BubbleMarginWrap = styled.div`
   display: flex;
   gap: 1rem;
   ${({ theme }) => theme.mediaWidth.upToMedium`
- width: 100%;
- justify-content: space-between;
- align-items: center;
-`};
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+  `};
   ${({ theme }) => theme.mediaWidth.upToExtraSmall`
- gap: 0.1rem;
-`};
+    gap: 0.1rem;
+  `};
 `
 
 const HomeContainer = styled.div`
   display: flex;
   flex-direction: column;
-  margin-top: 2rem;
+  margin-top: 1rem;
   margin-bottom: 2rem;
   background: #1A1A1A;
   box-shadow: 0 0 5px 1px #101010;
-  border-radius: 15px;
+  border-radius: 15px;  
 `
 
 const HomeWrapper = styled.div`
@@ -49,6 +49,9 @@ const HomeWrapper = styled.div`
   flex-direction: column;
   padding: 30px 60px;
   width: 100%;
+  ${({ theme }) => theme.mediaWidth.upToSmall`
+    padding: 10px 30px;
+  `};
 `
 
 const Header = styled.div`
@@ -57,23 +60,41 @@ const Header = styled.div`
 const Heading = styled.div`
   margin-top: 25px;
   font-size: 20px;
+  ${({ theme }) => theme.mediaWidth.upToSmall`
+    margin-top: 15px;
+    font-size: 18px;
+    text-align: center;
+  `};
 `
 const HowToHeading = styled.div`
   font-size: 15px;
+  ${({ theme }) => theme.mediaWidth.upToSmall`
+    font-size: 14px;
+    text-align: center;
+  `};
 `
 const Summary = styled.div`
   margin-bottom: 1rem;  
   margin-top: 10px;
   font-size: 14px;
   color: #b0b0b0;
+  ${({ theme }) => theme.mediaWidth.upToSmall`
+    font-size: 12px;
+    text-align: center;
+  `};
 `
 const WelcomeContainer = styled.div`
+`
+const ScoreMiningContainer = styled.div`
 `
 const HowToContainer = styled.div`
 `
 const ListSection = styled.ul`
   font-size: 14px;
   color: #b0b0b0;
+  ${({ theme }) => theme.mediaWidth.upToSmall`
+    font-size: 12px;  
+  `};
 `
 const UpcomingIdosContainer = styled.div`
   display: flex;
@@ -236,9 +257,9 @@ export default function Home() {
           <HomeWrapper>
             <WelcomeContainer>              
               <Header>
-                <Heading>Wolcome to SkyLaunch</Heading>
+                <Heading>Welcome to SkyLaunch</Heading>
                 <Summary>
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla semper augue eget auctor pretium. Maecenas in quam sed nibh lobortis cursus. Morbi congue interdum vehicula. Curabitur tempus, dui in dapibus eleifend, nisi dui lacinia arcu, pharetra auctor lorem sapien in nunc. Nam pulvinar vulputate orci nec vulputate.
+                  SkyLaunch is the next generation of launchpad and a project lifetime partner. Only the finest quality early stage blockchain projects make it to the IDO stage with SkyLaunch. Each project that becomes listed for their IDO with us, you can rest assured, has been thoroughly researched from every perspective to both ensure project quality and minimise financial risk for our investors. Furthermore, each and every project will gain access to a stellar network of partners through our post-IDO Alliance Network, ensuring growth, prosperity and success.                
                 </Summary>
               </Header>
             </WelcomeContainer>
@@ -258,17 +279,26 @@ export default function Home() {
                 <Header>
                   <HowToHeading>How to participate</HowToHeading>
                   <Summary>
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla semper augue eget auctor pretium. Maecenas in quam sed nibh lobortis cursus. Morbi congue interdum vehicula. Curabitur tempus, dui in dapibus eleifend, nisi dui lacinia arcu, pharetra auctor lorem sapien in nunc. Nam pulvinar vulputate orci nec vulputate.
+                    To participate in a SkyLaunch IDO, select launchpad on the left menu. You can participate in the selection of IDOs listed under the ‘live’ selection immediately, and once the functionality is in place we will have the option to select and participate in upcoming IDOs. Your IDO allocation is determined by your allocation score, which you can find on our SKYFI stakepad. This score is determined by your SKYFI staking and takes into account amount staked, length of stake, and number of days since your last withdrawal. IDO participation follows 5 key steps:
                   </Summary>
                   <ListSection>
-                    <li>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</li>
-                    <li>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</li>
-                    <li>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</li>
-                    <li>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</li>
+                    <li>Ensure you have SKYFI token staked to establish your score for IDOs.</li>
+                    <li>Go to the Launchpad tab and click Detail next to the IDO you are interested in.</li>
+                    <li>If the IDO is live you can click the SUBSCRIBE button. This will allow you to join the pool of interested potential investors.</li>
+                    <li>At the end of the subscription period, on the same IDO page you can click FUND.</li>
+                    <li>Once the funding phase is completed, click ‘USER IDO TOKENS’ in the left menu and claim your tokens.</li>
                   </ListSection>
                 </Header>
               </HowToContainer>
             </UpcomingIdosContainer>
+            <ScoreMiningContainer>              
+              <Header>
+                <Heading>Score Mining - A fairer allocation system for everyone</Heading>
+                <Summary>
+                  Simply stake our native token - SKYFI - to grow your allocation score in real time. We have given you total control of your allocation!
+                </Summary>
+              </Header>
+            </ScoreMiningContainer>
             {/* <Flex isColumn={isColumn}>
               {!tvlData.length ? (
                 <CenterWrap>

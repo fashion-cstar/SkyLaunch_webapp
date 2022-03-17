@@ -30,6 +30,8 @@ import { useHasSocks } from '../../hooks/useSocksBalance'
 import { useTranslation } from 'react-i18next'
 import { useWalletModalToggle } from '../../state/application/hooks'
 import { useETHBalances } from '../../state/wallet/hooks'
+import { useLoginWithMetaMask, useSignedAccount, useIsLogging } from 'state/fundraising/hooks'
+import { setUserId, setJwtToken, setSignedAccount, setIsLogging, setIsFormSent } from 'state/fundraising/actions'
 
 const IconWrapper = styled.div<{ size?: number }>`
   ${({ theme }) => theme.flexColumnNoWrap};
@@ -95,7 +97,7 @@ const Web3StatusConnected = styled.div`
   column-gap: 30px;
 `
 
-const StatusIconWrap = styled.div<{isBalance:boolean}>`  
+const StatusIconWrap = styled.div<{ isBalance: boolean }>`  
   // top: 75%;
   transform: ${({ isBalance }) => (isBalance ? 'translateY(-40%)' : 'translateY(-20%)')};  
   // right: 30px;  
@@ -177,8 +179,11 @@ function Web3StatusInner() {
   } = useCrosschainState()
   const dispatch = useDispatch<AppDispatch>()
   const { t } = useTranslation()
-  const { account, connector, error } = useWeb3React()
+  const { account, connector, error, deactivate, activate } = useWeb3React()
   const { ENSName } = useENSName(account ?? undefined)
+  const signedAccount = useSignedAccount()
+  const isLogging = useIsLogging()
+  const { fetchLoginWithMetaMask } = useLoginWithMetaMask()
 
   const allTransactions = useAllTransactions()
   const { chainId } = useActiveWeb3React()
@@ -209,6 +214,68 @@ function Web3StatusInner() {
     chainIdErrorPrev.current = (chainIdErrorPrev.current !== chainIdError && chainIdError.toString() !== '{}') ?
       chainIdErrorPrev.current = chainIdError : chainIdErrorPrev.current
   }, [chainIdError])
+
+  useEffect(() => {
+    if (account && account.toLowerCase() !== signedAccount && !isLogging) {
+      requestSignature()
+    }
+  }, [account, signedAccount, isLogging])
+
+  const resetSignToken = () => {
+    dispatch(setUserId({ userId: '' }))
+    dispatch(setJwtToken({ JwtToken: '' }))
+    dispatch(setSignedAccount({ signedAccount: '' }))
+    dispatch(setIsLogging({ isLogging: false }))
+    dispatch(setIsFormSent({ isFormSent: false }))
+  }
+  useEffect(() => {
+    if (!account) {
+      resetSignToken()
+    }
+  }, [account])
+
+  const deactivateAccount = () => {
+    try {
+      deactivate()
+      resetSignToken()
+    } catch (ex) {
+      console.log(ex)
+    }
+  }
+
+  useEffect(() => {
+    if (signedAccount) {
+      dispatch(setIsLogging({ isLogging: false }))
+    }
+  }, [signedAccount])
+  
+  const requestSignature = () => {
+    dispatch(setIsLogging({ isLogging: true }))
+    fetchLoginWithMetaMask().then(async (sign: any) => {
+      if (sign) {
+        if (sign?.userId && sign?.jwtToken) {
+          dispatch(setUserId({ userId: sign.userId }))
+          dispatch(setJwtToken({ JwtToken: sign.jwtToken }))
+          dispatch(setSignedAccount({ signedAccount: sign.account }))
+          try {
+            await activate(injected)
+          } catch (ex) {
+            deactivateAccount()
+            console.log(ex)
+          }
+        }
+      } else {
+        deactivateAccount()
+      }
+    }).catch((error) => {
+      console.log(error)
+      deactivateAccount()
+    });
+  }
+
+  const handleWalletConnect = async () => {
+    requestSignature()
+  }
 
   const checkCrossChainId = useCallback(() => {
     if (chainIdErrorPrev.current !== chainIdError) {
@@ -252,7 +319,7 @@ function Web3StatusInner() {
           <HeaderRowBetween>
             <Text>{pending?.length} Pending</Text>
             <LoaderWrap>
-            <Loader stroke="#6752F7" />
+              <Loader stroke="#6752F7" />
             </LoaderWrap>
           </HeaderRowBetween>
         ) : (
@@ -262,7 +329,7 @@ function Web3StatusInner() {
           </>
         )}
         {!hasPendingTransactions && connector && (
-          <StatusIconWrap isBalance={userEthBalance?true:false}>
+          <StatusIconWrap isBalance={userEthBalance ? true : false}>
             <StatusIcon connector={connector} />
           </StatusIconWrap>
         )}
@@ -274,7 +341,7 @@ function Web3StatusInner() {
   }
   else {
     return (
-      <Web3StatusConnect id="connect-wallet" onClick={toggleWalletModal} faded={!account}>
+      <Web3StatusConnect id="connect-wallet" onClick={handleWalletConnect} faded={!account}>
         {t('Connect Wallet')}
       </Web3StatusConnect>
     )

@@ -10,6 +10,7 @@ const StyledNavLink = styled(NavLink)`
 
 const RowContainer = styled.div`  
   padding: 0 16px;   
+  margin-top: 10px;
   display: flex;
   flex-direction: column;
   justify-content: center;

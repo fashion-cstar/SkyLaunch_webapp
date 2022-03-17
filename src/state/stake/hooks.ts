@@ -77,14 +77,14 @@ export const STAKING_REWARDS_INFO: {
   [ChainId.RINKEBY]: [
     {
       tokens: [SKYFI[ChainId.RINKEBY], SKYFI[ChainId.RINKEBY]],
-      stakingRewardAddress: '0xb24BebDA7fc57807C7e7c01E92D607Eb5a76f8b8',
+      stakingRewardAddress: '0x46c29ce0CA377AaF01979Eec8610F256a47A2AE2',
       rewardInfo: {
         tradeLink: 'https://app.uniswap.org/#/swap?use=V2&inputCurrency=ETH&outputCurrency=' + SKYFI[ChainId.RINKEBY].address
       }
     },
     {
       tokens: [WETH[ChainId.RINKEBY], SKYFI[ChainId.RINKEBY]],
-      stakingRewardAddress: '0x5AAEfF3D1A314DD146cEc421f66c0641f444C63B',
+      stakingRewardAddress: '0x833bf79f4F35eF8c5b2699217E9a5b5380bCa089',
       rewardInfo: {
         tradeLink: 'https://app.uniswap.org/#/swap?use=V2&inputCurrency=ETH&outputCurrency=' + SKYFI[ChainId.RINKEBY].address,
         addLiquidityLink: 'https://app.uniswap.org/#/add/v2/ETH/' + SKYFI[ChainId.RINKEBY].address,

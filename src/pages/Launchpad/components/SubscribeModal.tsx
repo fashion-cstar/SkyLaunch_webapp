@@ -7,49 +7,37 @@ import { AutoColumn } from 'components/Column'
 import { ButtonError } from 'components/Button'
 import Modal from 'components/Modal'
 import { RowBetween, RowCenter } from 'components/Row'
-import { TransactionResponse } from '@ethersproject/providers'
 import styled from 'styled-components'
 import { useTransactionAdder } from 'state/transactions/hooks'
-import { UserInfo, PoolInfo, setUserInfo, setIsSubscribed } from 'state/fundraising/actions'
-import toCurrencyAmount from 'utils/toCurrencyAmount'
-import toEtherAmount from 'utils/toEtherAmount'
-import { calculateGasMargin } from '../../../utils'
-import { Token } from '@skylaunch/sdk'
-import { Contract } from '@ethersproject/contracts'
 import { BigNumber } from 'ethers'
 import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import { ZERO_ADDRESS } from '../../../constants'
-import { ChainId } from '@skylaunch/sdk'
 import { useActiveWeb3React } from '../../../hooks'
-import { useSubscribeCallback, useUtilityNFTTokenId } from 'state/fundraising/hooks'
+import { useSubscribeCallback, useNFTOwnerByIndex, useAddTxRevertedToast, useUserMultiplier } from 'state/fundraising/hooks'
+import { useHistory } from 'react-router'
 
 const ContentWrapper = styled(AutoColumn)`
   width: 100%;
   padding: 1rem;
 `
 
-const BalanceContainer = styled.div`
-  margin-bottom: 20px;
-`
-
-const HypotheticalRewardRate = styled.div<{ dim: boolean }>`
-  display: flex;
-  justify-content: space-between;
-  padding-right: 20px;
-  padding-left: 20px;
-  padding-top: 20px;  
-  opacity: ${({ dim }) => (dim ? 0.5 : 1)};
+const LinkStakingPage = styled.div`
+  text-decoration: underline;
+  cursor: pointer;
+  color: #aaaaee;
+  font-size: 15px;
+  margin-top: 10px;
 `
 
 interface ClaimModalProps {
-    isOpen: boolean,        
-    pid: number,    
-    kyc_addresses: any,
-    onDismiss: () => void,
-    resetIsSubscribe: (value: boolean) => void
-  }
+  isOpen: boolean,
+  pid: number,
+  kyc_addresses: any,
+  onDismiss: () => void,
+  resetIsSubscribe: (value: boolean) => void
+}
 
 export default function SubscribeModal({ isOpen, pid, kyc_addresses, onDismiss, resetIsSubscribe }: ClaimModalProps) {
 
@@ -57,8 +45,12 @@ export default function SubscribeModal({ isOpen, pid, kyc_addresses, onDismiss, 
   const [attempting, setAttempting] = useState(false)
   const { library, account, chainId } = useActiveWeb3React()
   const [NFTTokenId, setNFTTokenId] = useState(-1)
-  const { NFTTokenIdCallback } = useUtilityNFTTokenId(account)
+  const { NFTOwnerByIndexCallback } = useNFTOwnerByIndex(account)
   const { subscribeCallback, subscribeWithNFTCallback } = useSubscribeCallback(account)
+  const { addTxRevertedToast } = useAddTxRevertedToast()
+  const userMultiplier = useUserMultiplier()
+  const [multiplier, setMultiplier] = useState(0)
+  const history = useHistory()
 
   function wrappedOnDismiss() {
     setHash(undefined)
@@ -71,82 +63,123 @@ export default function SubscribeModal({ isOpen, pid, kyc_addresses, onDismiss, 
     setValue(Number((event.target as HTMLInputElement).value));
   };
 
-  useEffect(() => {        
-    NFTTokenIdCallback()
-    .then(tokenId => {     
-      console.log(tokenId)         
-      if (tokenId!==undefined){        
-        setNFTTokenId(tokenId)
-      }      
-    })      
-    .catch(error => {
-      setNFTTokenId(-1)
-    })      
+  useEffect(() => {
+    if (userMultiplier) {
+      try {
+        setMultiplier(userMultiplier.toNumber())
+      } catch (ex) {
+
+      }
+    }
+  }, [userMultiplier])
+
+  useEffect(() => {
+    NFTOwnerByIndexCallback()
+      .then(tokenId => {
+        if (tokenId) {
+          setNFTTokenId(tokenId)
+        }
+      })
+      .catch(error => {
+        setNFTTokenId(-1)
+      })
   }, [])
 
   async function onSubscribe() {
-    try{      
-      setAttempting(true)      
-      const claim = kyc_addresses.kycRecords[account?account:ZERO_ADDRESS];
-      subscribeCallback(pid, claim).then((hash:string) => {
-        setHash(hash)
-        resetIsSubscribe(true)
+    try {
+      setAttempting(true)
+      const claim = kyc_addresses.kycRecords[account ? account : ZERO_ADDRESS];
+      subscribeCallback(pid, claim).then((hash: string) => {
+        if (hash) {
+          setHash(hash)
+          resetIsSubscribe(true)
+        } else {
+          setAttempting(false)
+        }
       }).catch(error => {
         setAttempting(false)
-        console.log(error)
-      })      
-    }catch(error){
-      setAttempting(false)
-      console.log(error)
-    }    
-  }
-
-  async function onSubscribeNFT() {
-    try{      
-      setAttempting(true)      
-      const claim = kyc_addresses.kycRecords[account?account:ZERO_ADDRESS];
-      subscribeWithNFTCallback(pid, claim, NFTTokenId).then((hash:string) => {
-        setHash(hash)
-        resetIsSubscribe(true)
-      }).catch(error => {
-        setAttempting(false)
-        console.log(error)
-      })      
-    }catch(error){
+        let err: any = error
+        if (err?.message) addTxRevertedToast(err?.message)
+        if (err?.error) {
+          if (err?.error?.message) addTxRevertedToast(err?.error?.message)
+        }
+        wrappedOnDismiss()
+      })
+    } catch (error) {
       setAttempting(false)
       console.log(error)
     }
   }
 
-  const handleSubscribe = () =>{
-    if (subscribeType===1) onSubscribe()
+  async function onSubscribeNFT() {
+    try {
+      setAttempting(true)
+      const claim = kyc_addresses.kycRecords[account ? account : ZERO_ADDRESS];
+      subscribeWithNFTCallback(pid, claim, NFTTokenId).then((hash: string) => {
+        if (hash) {
+          setHash(hash)
+          resetIsSubscribe(true)
+        } else {
+          setAttempting(false)
+        }
+      }).catch(error => {
+        setAttempting(false)
+        let err: any = error
+        if (err?.message) addTxRevertedToast(err?.message)
+        if (err?.error) {
+          if (err?.error?.message) addTxRevertedToast(err?.error?.message)
+        }
+        wrappedOnDismiss()
+      })
+    } catch (error) {
+      setAttempting(false)
+      console.log(error)
+    }
+  }
+
+  const handleSubscribe = () => {
+    if (subscribeType === 1) onSubscribe()
     else onSubscribeNFT()
   }
+
+  const handleGotoStaking = () => {
+    history.push(`/stake`)
+  }
+
   return (
     <Modal isOpen={isOpen} onDismiss={wrappedOnDismiss} maxHeight={90}>
       {!attempting && !hash && (
         <ContentWrapper gap="lg">
-            <RowBetween>
-                <TYPE.mediumHeader>Subscribe</TYPE.mediumHeader>
-                <CloseIcon onClick={wrappedOnDismiss} />
-            </RowBetween> 
-            {/* <RowCenter>
-                <TYPE.mediumHeader>Subscribe</TYPE.mediumHeader>
-            </RowCenter>                 */}
+          <RowBetween>
+            <TYPE.mediumHeader>Subscribe</TYPE.mediumHeader>
+            <CloseIcon onClick={wrappedOnDismiss} />
+          </RowBetween>
+          {multiplier > 0 && (
             <RowCenter>
-                <RadioGroup
-                    aria-labelledby="demo-controlled-radio-buttons-group"
-                    name="controlled-radio-buttons-group"
-                    value={subscribeType}
-                    onChange={handleChange}
-                >
-                    <FormControlLabel value={1} control={<Radio />} label="Subscribe" />
-                    <FormControlLabel value={2} control={<Radio />} label="Subscribe with Utility NFT" disabled={NFTTokenId===-1} />
-                </RadioGroup>
+              <RadioGroup
+                aria-labelledby="demo-controlled-radio-buttons-group"
+                name="controlled-radio-buttons-group"
+                value={subscribeType}
+                onChange={handleChange}
+              >
+                <FormControlLabel value={1} control={<Radio />} label="Subscribe" />
+                <FormControlLabel value={2} control={<Radio />} label="Subscribe with Utility NFT" disabled={NFTTokenId === -1} />
+              </RadioGroup>
             </RowCenter>
-            <ButtonError onClick={handleSubscribe}>
-                Subscribe
-            </ButtonError>
+          )}
+          {multiplier <= 0 && (
+            <div>
+              <TYPE.black>
+                Your Score is 0
+              </TYPE.black>
+              <LinkStakingPage onClick={handleGotoStaking}>
+                Simply stake our tokens to build up your score
+              </LinkStakingPage>
+            </div>
+          )}
+          <ButtonError onClick={handleSubscribe} disabled={multiplier > 0 ? false : true}>
+            Subscribe
+          </ButtonError>
         </ContentWrapper>
       )}
       {attempting && !hash && (

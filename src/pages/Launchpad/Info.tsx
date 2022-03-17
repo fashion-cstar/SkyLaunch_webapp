@@ -50,6 +50,16 @@ const InfoSection = styled.div`
   p {
     margin-right: 15px;
   }
+  ${({ theme }) => theme.mediaWidth.upToSmall`
+    flex-direction: column;
+  `};
+  ${({ theme }) => theme.mediaWidth.upToMedium`
+    justify-content: center;
+  `};
+`
+
+const LaunchTimeContainer = styled.div`
+  display: flex
 `
 
 export default function ZeroGravityInfo() {
@@ -98,10 +108,10 @@ export default function ZeroGravityInfo() {
       name: 'Details',
       value: 'detail'
     },
-    {
-      name: 'Seed Round',
-      value: 'seed'
-    },
+    // {
+    //   name: 'Seed Round',
+    //   value: 'seed'
+    // },
     {
       name: 'IDO Details',
       value: 'ido'
@@ -115,9 +125,11 @@ export default function ZeroGravityInfo() {
           <LogoWrapper>
             <img src={idoData?.logo ?? ''} alt={idoData?.idoURL ?? ''} />            
           </LogoWrapper>
-          <p>{launchString}</p>
-          <p>{launchDate}</p>
-          <p>{launchTime}</p>
+          <LaunchTimeContainer>
+            <p>{launchString}</p>
+            <p>{launchDate}</p>
+            <p>{launchTime}</p>
+          </LaunchTimeContainer>
         </InfoSection>
         <HeaderContainer>
           <MenuTabs

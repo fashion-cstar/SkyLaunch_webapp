@@ -104,7 +104,8 @@ export default function ModalMore({ isOpen, onDismiss }: ModalMoreProps) {
           Home
         </MenuItem>
 
-        <MenuItem id="link" href="https://skylaunch.medium.com">
+        {/* <MenuItem id="link" href="https://skylaunch.medium.com"> */}
+        <MenuItem id="link" href="https://medium.com/skylaunch">
           <IconLink>
             <BookOpen size={20} />
           </IconLink>

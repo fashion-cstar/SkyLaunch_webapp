@@ -16,6 +16,9 @@ const TContainer = styled.div`
     padding: 0 40px;
     width: 50px;
     border: 1px solid #222222;
+    ${({ theme }) => theme.mediaWidth.upToMedium`
+        padding: 0 20px;
+    `};
     `
 const NumBox = styled.div`
     textAlign: center;

@@ -1,7 +1,7 @@
 import React, { memo } from 'react'
 import moment from 'moment'
 import styled from 'styled-components'
-import toEtherAmount from 'utils/toEtherAmount'
+import formatEther from 'utils/formatEther'
 import { UserInfo } from 'state/fundraising/actions'
 import { Token } from '@skylaunch/sdk'
 
@@ -40,8 +40,8 @@ const NoteTextBar = ({
         <>
             {!isKYCed && progressPhase<=1 && (<ProgressDescription>You are not KYCed! Click KYC button to register!</ProgressDescription>)}
             {isSubscribed && progressPhase<=1 && (<ProgressDescription>You already subscribed!</ProgressDescription>)}
-            {isSubscribed && isFunded && progressPhase===2 && fundToken && toEtherAmount(userInfoData.fundingAmount, fundToken, 4)<maxAlloc && (<ProgressDescription>You funded. To fund more, click FUND IT button!</ProgressDescription>)}
-            {isSubscribed && isFunded && progressPhase===2 && fundToken && toEtherAmount(userInfoData.fundingAmount, fundToken, 4)>=maxAlloc && (<ProgressDescription>You already reached your maximum allocation!</ProgressDescription>)}
+            {isSubscribed && isFunded && progressPhase===2 && fundToken && formatEther(userInfoData.fundingAmount, fundToken, 4)<maxAlloc && (<ProgressDescription>You funded. To fund more, click FUND IT button!</ProgressDescription>)}
+            {isSubscribed && isFunded && progressPhase===2 && fundToken && formatEther(userInfoData.fundingAmount, fundToken, 4)>=maxAlloc && (<ProgressDescription>You already reached your maximum allocation!</ProgressDescription>)}
             {isSubscribed && !isFunded && progressPhase===2 && (<ProgressDescription>You already subscribed! Click FUND IT button to stake!</ProgressDescription>)}
             {isKYCed && !isSubscribed && progressPhase<=1 && (<ProgressDescription>You already KYCed! Click SUBSCRIBE button to subscribe!</ProgressDescription>)}
             {!isSubscribed && progressPhase>=2 && (<ProgressDescription>You are not a subscriber!</ProgressDescription>)} 

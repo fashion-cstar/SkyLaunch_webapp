@@ -87,8 +87,8 @@ export const bscBTC = new Token(ChainId.SMART_CHAIN, '0xB6D5487b00e53e7009E65601
 export const bscUNI = new Token(ChainId.SMART_CHAIN, '0xA6b4a72a6f8116dab486fB88192450CF3ed4150C', 18, 'zUNI', 'zUNI')
 export const bscSUSHI = new Token(ChainId.SMART_CHAIN, '0x2D6d5bc58adEDa28f62B0aBc3f53F5EAef497FCc', 18, 'zSUSHI', 'zSUSHI')
 export const bscDAI = new Token(ChainId.SMART_CHAIN, '0x7e7bAFF135c42ed90C0EdAb16eAe48ecEa417018', 18, 'zDAI', 'zDAI')
-export const bscETH = new Token(ChainId.SMART_CHAIN, '0x7c815BBc21FED2B97CA163552991A5C30d6a2336', 18, 'zETH', 'zETH');
-export const bscINDA = new Token(ChainId.SMART_CHAIN, '0xc878a79b63a41a831e469ae1a830a765efd9d468', 2, 'INDA', 'INDA');
+export const bscETH = new Token(ChainId.SMART_CHAIN, '0x7c815BBc21FED2B97CA163552991A5C30d6a2336', 18, 'zETH', 'zETH')
+export const bscINDA = new Token(ChainId.SMART_CHAIN, '0xc878a79b63a41a831e469ae1a830a765efd9d468', 2, 'INDA', 'INDA')
 export const bscCHART = new Token(ChainId.SMART_CHAIN, '0xc33A42C9D19f944FA12ff46f27B3B85e18a13778', 18, 'CHART', 'ChartEx')
 export const bscWISB = new Token(ChainId.SMART_CHAIN, '0x4f491d389A5bF7C56bd1e4d8aF2280fD217C8543', 18, 'WISB', 'Wise Token')
 
@@ -134,7 +134,7 @@ export const SKYFI: { [chainId in ChainId]: Token } = {
 
 export const SKYFUNDRAISING_ADDRESS: { [chainId in ChainId]?: string } = {
   [ChainId.MAINNET]: ZERO_ADDRESS,
-  [ChainId.RINKEBY]: "0xa2C6a0a0571D1F0022308A7dC15823daa2E866fB",
+  [ChainId.RINKEBY]: "0x9b9f49e7924bd2d05c00cc606662685f52b44299",  
   [ChainId.ROPSTEN]: ZERO_ADDRESS,
   [ChainId.GÖRLI]: ZERO_ADDRESS,
   [ChainId.KOVAN]: ZERO_ADDRESS,
@@ -150,7 +150,7 @@ export const SKYFUNDRAISING_ADDRESS: { [chainId in ChainId]?: string } = {
 
 export const SKYNFTTOKEN_ADDRESS: { [chainId in ChainId]?: string } = {
   [ChainId.MAINNET]: ZERO_ADDRESS,
-  [ChainId.RINKEBY]: "0xAc533a3c0017C2afF3f042d09C29E74AD9784Ae5",
+  [ChainId.RINKEBY]: "0x293A828B47B3cEa3B9eF4773485289116dA18e75",
   [ChainId.ROPSTEN]: ZERO_ADDRESS,
   [ChainId.GÖRLI]: ZERO_ADDRESS,
   [ChainId.KOVAN]: ZERO_ADDRESS,
@@ -164,7 +164,7 @@ export const SKYNFTTOKEN_ADDRESS: { [chainId in ChainId]?: string } = {
   [ChainId.HECO]: ZERO_ADDRESS,
 }
 
-export const LPTokens: {[chainId in ChainId]: Token } = {
+export const LPTokens: { [chainId in ChainId]: Token } = {
   [ChainId.MAINNET]: new Token(ChainId.MAINNET, ZERO_ADDRESS, 18, 'ETH/SKYFI', 'SkyLaunch'),
   [ChainId.RINKEBY]: new Token(ChainId.RINKEBY, '0x21B97C1641A4c9B69a783a7D581109267e851867', 18, 'SKYFI/ETH', 'SkyLaunch'),
   [ChainId.ROPSTEN]: new Token(ChainId.ROPSTEN, ZERO_ADDRESS, 18, 'SKYFI', 'SkyLaunch'),

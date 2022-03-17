@@ -26,6 +26,7 @@ import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline';
 import { makeStyles } from '@material-ui/core/styles'
 import Fab from '@material-ui/core/Fab'
 import { useHistory } from 'react-router'
+import { useIsFormSent, useIsKYCed, useUserId } from 'state/fundraising/hooks'
 
 const HeaderRow = styled.div`
   ${({ theme }) => theme.flexRowNoWrap};
@@ -135,7 +136,7 @@ const AccountControl = styled.div`
   }
 `
 
-const AddressLink = styled(ExternalLink)<{ hasENS: boolean; isENS: boolean }>`
+const AddressLink = styled(ExternalLink) <{ hasENS: boolean; isENS: boolean }>`
   font-size: 0.825rem;
   color: ${({ theme }) => theme.text3};
   margin-left: 1rem;
@@ -277,11 +278,12 @@ export default function AccountDetails({
   openOptions
 }: AccountDetailsProps) {
   const { chainId, account, connector } = useActiveWeb3React()
-  const isKYCed = false
   const theme = useContext(ThemeContext)
   const dispatch = useDispatch<AppDispatch>()
   const history = useHistory()
-
+  const IsFormSent = useIsFormSent()
+  const isKYCed = useIsKYCed()
+  const userId = useUserId()
   const classes = useStyles()
 
   function formatConnectorName() {
@@ -366,7 +368,7 @@ export default function AccountDetails({
                     <WalletAction
                       style={{ fontSize: '.825rem', fontWeight: 400, marginRight: '8px' }}
                       onClick={() => {
-                        ;(connector as any).close()
+                        ; (connector as any).close()
                       }}
                     >
                       Disconnect
@@ -399,14 +401,14 @@ export default function AccountDetails({
                       </div>
                       {isKYCed ? (
                         <>
-                          <Fab size="small" className={classes.extendedIconGreen} variant="extended">
+                          {/* <Fab size="small" className={classes.extendedIconGreen} variant="extended">
                             <CheckCircleIcon /> KYC
-                          </Fab>
+                          </Fab> */}
                         </>
                       ) : (
                         <>
-                          <Fab size="small" onClick={goToKyc} className={classes.extendedIconRed} variant="extended">
-                            <ErrorOutlineIcon /> KYC
+                          <Fab size="small" onClick={goToKyc} className={classes.extendedIconRed} variant="extended" disabled={!userId || IsFormSent}>
+                            {!(!userId || IsFormSent) && <ErrorOutlineIcon />} <span style={{color:(!userId || IsFormSent)?'white':'inherit'}}>{IsFormSent ? 'IN PROGRESS' : 'KYC'}</span>
                           </Fab>
                         </>
                       )}

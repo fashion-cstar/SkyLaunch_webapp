@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
-
+import React, { useEffect, useState } from 'react';
+import { AppDispatch } from 'state'
 import { ButtonOutlined } from 'components/Button'
 import { CgCheckO } from 'react-icons/cg';
 import PageContainer from 'components/PageContainer';
 import styled from 'styled-components';
 import { Title, PageHeader } from '../../theme'
+import { useUserId, useJwtToken } from 'state/fundraising/hooks'
+import { setIsFormSent } from 'state/fundraising/actions'
+import { useDispatch } from 'react-redux'
 
 const BgWrapper = styled.div`
   background: #1c1c1c;
@@ -76,51 +79,77 @@ const Row = styled.div`
   }
 `
 export default function SkyLaunchKyc() {
-
-  const [formSent, setFormSent] = useState(false);
-
-  const [emailState, setEmailState] = useState('');
+  const dispatch = useDispatch<AppDispatch>()
+  const [formSent, setFormSent] = useState(false)  
+  const [emailState, setEmailState] = useState('')  
   const handleEmailState = (input: any) => {
     const val = input.target.value;
     setEmailState(val);
   }
-
-  const [walletState, setWalletState] = useState('');
+  const userId = useUserId()
+  const jwtToken = useJwtToken()
+  const [walletState, setWalletState] = useState('')
   const handleWalletState = (input: any) => {
     const val = input.target.value;
     setWalletState(val);
   }
 
-  const emailURL = 'https://prod-44.eastus2.logic.azure.com:443/workflows/1756218e802e427aafde6c1b01ea9913/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=mhkGIWPGB6EVx4Sw-yMp0Z2b5FfCqEApXFD73J0nb7E'
+  const [blockpass, setBlockpass] = useState()
+
+  useEffect(() => {
+    if (window && userId !== '') {
+      loadBlockpassWidget()
+    }
+  }, [userId])
+
+
+  const loadBlockpassWidget = () => {
+    if (window) {
+      const win: any = window
+      const blockpass = new win.BlockpassKYCConnect(
+        'public_kyc__testnet_10705',
+        { refId: userId }
+      )
+
+      blockpass.startKYCConnect()
+
+      blockpass.on('KYCConnectSuccess', () => {
+        //add code that will trigger when data have been sent.
+        console.log('KYCConnectSuccess')
+        setFormSent(true)
+        dispatch(setIsFormSent({ isFormSent: true }))
+      })
+
+      blockpass.on('KYCConnectLoad', () => {
+        //add code that will trigger when the iframe is loaded.
+        //ex: stop loading animation
+      })
+
+      blockpass.on('KYCConnectCancel', () => {
+        //add code that will trigger when the workflow is aborted. ex:
+        //alert('Cancelled!')
+      })
+    }
+  }
+
   const handleSubmit = () => {
-    window.open("https://verify-with.blockpass.org/?clientId=sky_launch_kyc_001&serviceName=Sky%20Launch%20KYC&env=prod", '_blank')
   }
 
   return (
-    <>      
+    <>
       <PageHeader>
         <Title>KYC</Title>
       </PageHeader>
       <PageContainer>
-        <div style={{ maxWidth: '500px', width: '100%', margin: 'auto'}}>
+        <div style={{ maxWidth: '500px', width: '100%', margin: 'auto' }}>
           <Disclaimer>
             <p>When you click the link below you will be redirected to our KYC verification partner. Please ensure that the wallet address you provide during the KYC is the one you would like to use on our platform.</p>
             <p>We update our system once a day. When you are connected with a wallet address which has been verified, you will be able to participate in our IDO platform.</p>
           </Disclaimer>
           <BgWrapper>
             {!formSent && <>
-              {/* <Row>
-                <h6>Wallet Address:</h6>
-                <input
-                  className="input"
-                  type="text"
-                  placeholder="Wallet Address"
-                  onChange={handleWalletState}
-                  value={walletState}
-                />
-              </Row> */}
               <Row>
-                <ButtonOutlined className="green" onClick={handleSubmit}>KYC</ButtonOutlined>
+                <ButtonOutlined id="blockpass-kyc-connect" className="green" onClick={handleSubmit} disabled={!userId}>KYC</ButtonOutlined>
               </Row>
             </>}
 

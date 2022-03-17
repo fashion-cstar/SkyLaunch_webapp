@@ -11,16 +11,15 @@ import { PieChart, Pie, Sector, Cell, ResponsiveContainer } from 'recharts';
 const IdoDetails = styled.div`
   display: flex;
   align-items: start;
-  justify-content: space-between;
-  padding: 0 40px;
+  justify-content: space-between;  
+  margin-top: 2rem;
+  margin-bottom: 2rem;
 `
 
 const BgWrapper = styled.div`
   background: #1c1c1c;
   box-shadow: 0 0 5px 1px #101010;
   border-radius: 15px;
-  margin-bottom: 8rem;
-  margin-top: 4rem;
   padding: 30px 60px;
   width: 100%;
   position: relative;
@@ -32,9 +31,11 @@ const BgWrapper = styled.div`
 const Header = styled.div`
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  height: 32px;
+  align-items: center;  
   text-transform: uppercase;
+  ${({ theme }) => theme.mediaWidth.upToSmall`
+    flex-direction: column;
+  `};
 `
 
 const HeadingContainer = styled.div`
@@ -66,12 +67,21 @@ const ContractContainer = styled.div`
 const ContractInfo = styled.div`
   display: flex;
   align-items: center;
-
+  justify-content: space-between;
+  margin-top: 10px;
+  margin-bottom: 15px;
   p {
     margin: 0 0 0 20px;
   }
+  ${({ theme }) => theme.mediaWidth.upToSmall`
+    flex-direction: column;
+  `};
 `
-
+const AddressContainer = styled.div`
+  ${({ theme }) => theme.mediaWidth.upToExtraSmall`
+    font-size: 12px;
+  `};
+`
 const SeedSection = styled.div`
   display: flex;
   flex-wrap: wrap;
@@ -80,6 +90,15 @@ const SeedSection = styled.div`
 const SeedItem = styled.div`
   width: 20%;
   margin-right: 5%;
+  ${({ theme }) => theme.mediaWidth.upToSmall`
+    margin-top: 20px;
+    width: 80%;
+    display: flex;
+    justify-content: space-between;
+  `};
+  ${({ theme }) => theme.mediaWidth.upToExtraSmall`
+    width: 100%;    
+  `};
 `
 
 const SeedItemTitle = styled.p`
@@ -87,12 +106,19 @@ const SeedItemTitle = styled.p`
   align-items: flex-end;
   height: 70px;
   margin: 0;
-  font-weight: 600;
-  line-height: 20px;
+  font-weight: 600;  
+  ${({ theme }) => theme.mediaWidth.upToSmall`    
+    width: 100%;
+    display: block;
+    height: 30px;
+  `};
 `
 
 const SeedItemValue = styled.p`
   margin: 15px 0 20px;
+  ${({ theme }) => theme.mediaWidth.upToSmall`    
+    margin: 0;
+  `};
 `
 
 const GraphContainer = styled.div`
@@ -100,15 +126,24 @@ const GraphContainer = styled.div`
   justify-content: space-between;
   margin: 0 -50px;
   font-size: 12px;
+  ${({ theme }) => theme.mediaWidth.upToMedium`
+    flex-direction: column;
+  `};
 `
 
 const GuideContainer = styled.div`
 `
 
 const GuideTitle = styled.p`
+  ${({ theme }) => theme.mediaWidth.upToSmall`
+    text-align: center;
+  `};
 `
 
 const GuideContent = styled.p`
+  ${({ theme }) => theme.mediaWidth.upToSmall`
+    text-align: center;
+  `};
 `
 
 export default function IdoDetailComponent() {
@@ -185,9 +220,11 @@ export default function IdoDetailComponent() {
           <ContractContainer>
             <p>Contracts</p>
             <ContractInfo>
-              <BlockchainLogo size="28px" blockchain={'BNB'} />
-              <p>Binance Smart Chain</p>
-              <p>0xf67932d8c28227c586d971b6b51749d35dc03558</p>
+              <div style={{display: "flex"}}>
+                <BlockchainLogo size="28px" blockchain={'BNB'} />
+                <p>Binance Smart Chain</p>
+              </div>
+              <AddressContainer>0xf67932d8c28227c586d971b6b51749d35dc03558</AddressContainer>
             </ContractInfo>
           </ContractContainer>
           <SeedSection>
@@ -225,8 +262,8 @@ export default function IdoDetailComponent() {
             </SeedItem>
           </SeedSection>
           <GraphContainer>
-            <ResponsiveContainer width="100%" height={500}>
-              <PieChart width={400} height={400}>
+            <ResponsiveContainer width="100%" height={350}>
+              <PieChart width={350} height={350}>
                 <Pie
                   data={idoData?.tokenAllocation}
                   cx="50%"
@@ -244,8 +281,8 @@ export default function IdoDetailComponent() {
                 </Pie>
               </PieChart>
             </ResponsiveContainer>
-            <ResponsiveContainer width="100%" height={500}>
-              <PieChart width={400} height={400}>
+            <ResponsiveContainer width="100%" height={350}>
+              <PieChart width={350} height={350}>
                 <Pie
                   data={idoData?.tokenAllocation}
                   cx="50%"

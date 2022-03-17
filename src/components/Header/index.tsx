@@ -19,7 +19,7 @@ import { useActiveWeb3React } from '../../hooks'
 import { useCrosschainState } from 'state/crosschain/hooks'
 import { useETHBalances } from '../../state/wallet/hooks'
 import { ButtonPrimary } from '../Button'
-import { useFundRaisingCallback, useFundAndRewardToken, useTotalReward, useClaimCallback } from 'state/fundraising/hooks'
+import { usePoolAndUserInfoCallback } from 'state/fundraising/hooks'
 
 const HeaderFrame = styled.div`
   display: grid;
@@ -84,7 +84,7 @@ const AccountElement = styled.div<{ active: boolean }>`
   justify-content: center;
   width: 100%;
   margin-top: 5px;
-  cursor: pointer;  
+  cursor: pointer;    
   :focus {
     border: 1px solid blue;
   }
@@ -132,7 +132,7 @@ const BalanceText = styled(Text)`
   letter-spacing: -0.01em;
   color: #ffffff;
   ${({ theme }) => theme.mediaWidth.upToExtraSmall`
-    display: none;
+    // display: none;
   `};
 `
 
@@ -269,8 +269,7 @@ const NetworkSwitcher = () => {
 }
 const Header = () => {
   const { account, chainId } = useActiveWeb3React()  
-  const userEthBalance = useETHBalances(account ? [account] : [], chainId)?.[account ?? '']
-  const { poolInfoCallback, userInfoCallback, countsOfPoolCallback } = useFundRaisingCallback()
+  const userEthBalance = useETHBalances(account ? [account] : [], chainId)?.[account ?? '']  
   const [showClaimModal, setShowClaimModal] = useState(false)
   let label,
     symbol = ''

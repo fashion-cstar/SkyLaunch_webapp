@@ -14,7 +14,7 @@ export type PoolInfo = {
     maxUtilityNFTsValue: BigNumber
     rewardsStartTime: BigNumber
     rewardsCliffEndTime: BigNumber
-    rewardsEndTime: BigNumber
+    rewardsEndTime: BigNumber   
 }
 
 export type UserInfo = {      
@@ -35,3 +35,8 @@ export const setProgressPhase = createAction<{ progressPhase: number }>('fundrai
 export const setPoolID = createAction<{ poolID: number }>('fundraising/setPoolID')
 export const setMaxAlloc = createAction<{ maxAlloc: number }>('fundraising/setMaxAlloc')
 // export const setRemainSecs = createAction<{ remainSecs: number }>('fundraising/setRemainSecs')
+export const setUserId = createAction<{ userId: string }>('fundraising/setUserId')
+export const setJwtToken = createAction<{ JwtToken: string }>('fundraising/setJwtToken')
+export const setSignedAccount = createAction<{ signedAccount: string }>('fundraising/setSignedAccount')
+export const setIsLogging = createAction<{ isLogging: boolean }>('fundraising/setIsLogging')
+export const setIsFormSent = createAction<{ isFormSent: boolean }>('fundraising/setIsFormSent')

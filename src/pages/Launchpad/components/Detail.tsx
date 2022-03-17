@@ -15,7 +15,6 @@ import moment from 'moment'
 import styled from 'styled-components'
 import { useParams } from 'react-router'
 import { IDO_LIST } from 'constants/idos'
-import { useTransactionAdder } from 'state/transactions/hooks'
 import { ButtonPrimary, ButtonSecondary } from 'components/Button'
 import { ExternalLink } from '../../../theme'
 import FundModal from './FundModal'
@@ -26,24 +25,23 @@ import useCurrentBlockTimestamp from '../../../hooks/useCurrentBlockTimestamp'
 import { ZERO_ADDRESS, NATIVE_TOKEN } from '../../../constants'
 import { Token } from '@skylaunch/sdk'
 import { getContract } from '../../../utils'
-import toEtherAmount from 'utils/toEtherAmount'
+import formatEther from 'utils/formatEther'
 import { useFundRaisingContract, useTokenContract, useSkyNFTContract } from '../../../hooks/useContract'
-import kyc_addresses from '../../../constants/abis/kycMerkleRoot.json';
 import FundRaisingButtons from './FundRaisingButtons'
 import RemainingTimePanel from './RemainingTimePanel'
 import UserInfoPanel from './UserInfoPanel'
 import Circle from '../../../assets/images/blue-loader.svg'
 import { CustomLightSpinner } from '../../../theme'
 import { PoolInfo, UserInfo } from 'state/fundraising/actions'
-import { useFundRaisingCallback, useFundAndRewardToken, useMaximumAllocation, useClaimCallback, getProgressPhase, fetchKYClist } from 'state/fundraising/hooks'
+import { usePoolAndUserInfoCallback, useFundAndRewardTokenCallback, useMaxAllocCallback, getProgressPhase, fetchKYClist } from 'state/fundraising/hooks'
 import ERC20_ABI from 'constants/abis/erc20.json'
-import toCurrencyAmount from 'utils/toCurrencyAmount'
+import parseEther from 'utils/parseEther'
 import { MaxUint256 } from '@ethersproject/constants'
 
 const IdoDetails = styled.div`
   display: flex;
   align-items: start;
-  justify-content: space-between;
+  justify-content: space-between;  
   margin-top: 2rem;
   margin-bottom: 2rem;
   border-radius: 15px;
@@ -62,17 +60,27 @@ const BgWrapper = styled.div`
   padding: 30px 60px;
   width: 100%;  
   border-radius: 15px;
+  ${({ theme }) => theme.mediaWidth.upToSmall`  
+    padding: 30px 20px;
+  `};
 `
 const Header = styled.div`
   text-transform: uppercase;
 `
 const Heading = styled.div`
   margin: 1rem 0;
+  ${({ theme }) => theme.mediaWidth.upToSmall`  
+    text-align: center;
+  `};
 `
 
 const Summary = styled.div`
   margin-bottom: 2rem;
   font-size: 14px;
+  ${({ theme }) => theme.mediaWidth.upToSmall`
+    font-size: 12px;
+    text-align: center;
+  `};
 `
 
 const SocialLinks = styled.div`
@@ -127,20 +135,39 @@ const SeedContent = styled.div`
 
 const SeedTitle = styled.div`
   font-weight: 600;
+  ${({ theme }) => theme.mediaWidth.upToSmall`
+    text-align: center;
+  `};
 `
 
 const SeedInfo = styled.div`
   margin-top: 10px;
+  ${({ theme }) => theme.mediaWidth.upToSmall`
+    text-align: center;
+  `};
 `
 
 const SeedSection = styled.div`
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: wrap;  
+  ${({ theme }) => theme.mediaWidth.upToSmall`
+    flex-wrap: nowrap;
+    flex-direction: column;
+  `};
 `
 
 const SeedItem = styled.div`
   width: 20%;
   margin-right: 5%;
+  ${({ theme }) => theme.mediaWidth.upToSmall`
+    margin-top: 20px;
+    width: 80%;
+    display: flex;
+    justify-content: space-between;
+  `};
+  ${({ theme }) => theme.mediaWidth.upToExtraSmall`
+    width: 100%;    
+  `};
 `
 
 const SeedItemTitle = styled.p`
@@ -148,12 +175,19 @@ const SeedItemTitle = styled.p`
   align-items: flex-end;
   height: 70px;
   margin: 0;
-  font-weight: 600;
-  line-height: 20px;
+  font-weight: 600;  
+  ${({ theme }) => theme.mediaWidth.upToSmall`    
+    width: 100%;
+    display: block;
+    height: 30px;
+  `};
 `
 
 const SeedItemValue = styled.p`
   margin: 15px 0 20px;
+  ${({ theme }) => theme.mediaWidth.upToSmall`    
+    margin: 0;
+  `};
 `
 const ButtonsGroup = styled.div`
   display: flex;
@@ -260,7 +294,7 @@ const FundButtonContainer = styled.div`
 `}; 
 `
 
-export default function DetailComponent() {  
+export default function DetailComponent() {
   const { idoURL } = useParams<{ idoURL: string }>()
   const [idoData, setIdoData] = useState<any>()
   const { library, account, chainId } = useActiveWeb3React()
@@ -269,193 +303,198 @@ export default function DetailComponent() {
   const [showSubscribeModal, setShowSubscribeModal] = useState(false)
   const [showFundModal, setShowFundModal] = useState(false)
   const [showClaimModal, setShowClaimModal] = useState(false)
-  const [activeStep, setActiveStep] = useState(0)  
-  const [pid, setPid] = useState(-1)  
-  const [remainSecs, setRemainSecs] = useState(0);  
-  const [pendingAmount, setPendingAmount] = useState(0);
+  const [activeStep, setActiveStep] = useState(0)
+  const [pid, setPid] = useState(-1)
+  const [remainSecs, setRemainSecs] = useState(0);
   const [readyFundRaising, setReadyFundRaising] = useState(false)
   const [fundToken, setFundToken] = useState<Token | undefined>()
   const [rewardToken, setRewardToken] = useState<Token | undefined>()
-  const blockTimestamp = useCurrentBlockTimestamp()  
-  // const [kyc_addresses, setKYCaddresses] = useState<any>()
+  const blockTimestamp = useCurrentBlockTimestamp()
+  const [kyc_addresses, setKYCaddresses] = useState<any>()
   const IdoListComplete = IDO_LIST // fetch this list from the server  
-  const [poolInfoData, setPoolInfoData]=useState<PoolInfo | undefined>()
-  const [userInfoData, setUserInfoData]=useState<UserInfo | undefined>()
-  const [countsOfPool, setCountsOfPool]=useState(0)
-  const [maxAlloc, setMaxAlloc]=useState(0)
-  const [isKYCed, setIsKYCed]=useState(false)
-  const [isSubscribed, setIsSubscribed]=useState(false)
-  const [isFunded, setIsFunded]=useState(false)
-  const [progressPhase, setProgressPhase]=useState(0)
-  const { poolInfoCallback, userInfoCallback, countsOfPoolCallback } = useFundRaisingCallback()
-  const { fundTokenCallback, rewardTokenCallback } = useFundAndRewardToken(account)
-  const { maxAllocCallback } = useMaximumAllocation()
-  const { pendingCallback } = useClaimCallback(account)
+  const [poolInfoData, setPoolInfoData] = useState<PoolInfo | undefined>()
+  const [userInfoData, setUserInfoData] = useState<UserInfo | undefined>()
+  const [countsOfPool, setCountsOfPool] = useState(0)
+  const [maxAlloc, setMaxAlloc] = useState(0)
+  const [isKYCed, setIsKYCed] = useState(false)
+  const [isSubscribed, setIsSubscribed] = useState(false)
+  const [isFunded, setIsFunded] = useState(false)
+  const [progressPhase, setProgressPhase] = useState(0)
+  const { poolInfoCallback, userInfoCallback, countsOfPoolCallback } = usePoolAndUserInfoCallback()
+  const { fundTokenCallback, rewardTokenCallback } = useFundAndRewardTokenCallback(account)
+  const { maxAllocCallback } = useMaxAllocCallback()
 
-  const updateCallback = useCallback(() => {    
-    setRemainSecs(remainSecs-1)
+  const updateCallback = useCallback(() => {
+    setRemainSecs(remainSecs - 1)
   }, [remainSecs])
-  useInterval(updateCallback, remainSecs>0?1000:null)
+  useInterval(updateCallback, remainSecs > 0 ? 1000 : null)
 
   useEffect(() => {
-    if (account){      
-      countsOfPoolCallback().then(res => {         
-        setCountsOfPool(res) 
+    if (account) {
+      countsOfPoolCallback().then(res => {
+        setCountsOfPool(res)
       }).catch(error => { setCountsOfPool(0) })
     }
   }, [account])
-  
-  useEffect(() => {    
-    if (pid>=0 && pid<countsOfPool){
-      poolInfoCallback(pid)      
-      .then(poolInfo => {        
-        if (poolInfo) setPoolInfoData(poolInfo)
-        else setPoolInfoData(undefined)
-      })      
-      .catch(error => {
-        setPoolInfoData(undefined)
-      })
+
+  useEffect(() => {
+    if (pid >= 0 && pid < countsOfPool) {
+      poolInfoCallback(pid)
+        .then(poolInfo => {
+          if (poolInfo) setPoolInfoData(poolInfo)
+          else setPoolInfoData(undefined)
+        })
+        .catch(error => {
+          setPoolInfoData(undefined)
+        })
     }
   }, [poolInfoCallback, pid, countsOfPool, account])
 
-  useEffect(() => {    
-    if (pid>=0 && pid<countsOfPool && account){
+  useEffect(() => {
+    if (pid >= 0 && pid < countsOfPool && account) {
       userInfoCallback(pid)
-      .then(userInfo => {
-        if (userInfo) setUserInfoData(userInfo)
-        else setUserInfoData(undefined)
-      })      
-      .catch(error => {
-        setUserInfoData(undefined)
-      })
+        .then(userInfo => {
+          if (userInfo) setUserInfoData(userInfo)
+          else setUserInfoData(undefined)
+        })
+        .catch(error => {
+          setUserInfoData(undefined)
+        })
     }
   }, [userInfoCallback, pid, countsOfPool, account])
 
   useEffect(() => {
-    if (poolInfoData){
-      fundTokenCallback(poolInfoData.fundRaisingToken).then(fundToken => {        
-        setFundToken(fundToken)
+    if (poolInfoData) {
+      fundTokenCallback(poolInfoData.fundRaisingToken).then(fundToken => {
+        if (fundToken) setFundToken(fundToken)
       }).catch(error => {
         setFundToken(undefined)
       })
       rewardTokenCallback(poolInfoData.rewardToken).then(rewardToken => {
-        setRewardToken(rewardToken)
+        if (rewardToken) setRewardToken(rewardToken)
       }).catch(error => {
         setRewardToken(undefined)
       })
     }
   }, [poolInfoData])
 
-  const checkSubscribed = (userInfo:UserInfo) => {
+  const checkSubscribed = (userInfo: UserInfo) => {
     if (userInfo['multiplier'].gt(BigNumber.from(0)) || userInfo['nftValue'].gt(BigNumber.from(0))) return true
-    else return false    
+    else return false
   }
-  
+
   useEffect(() => {
-    if (userInfoData && kyc_addresses){                            
-      const claim = kyc_addresses.kycRecords[account?account:ZERO_ADDRESS]
+    if (userInfoData && kyc_addresses) {
+      const claim = kyc_addresses.kycRecords[account ? account : ZERO_ADDRESS]
       if (claim) setIsKYCed(true)
-      else setIsKYCed(false)                
+      else setIsKYCed(false)
       if (checkSubscribed(userInfoData)) setIsSubscribed(true)
-      else setIsSubscribed(false)               
+      else setIsSubscribed(false)
       if (userInfoData['fundingAmount'].gt(BigNumber.from(0))) setIsFunded(true)
-      else setIsFunded(false)        
-    }    
-  }, [userInfoData, kyc_addresses])  
+      else setIsFunded(false)
+    }
+  }, [userInfoData, kyc_addresses])
 
   async function setupVestingRewards() {
-    if (fundRaisingContract && library && fundToken && kyc_addresses){              
-      try{        
-        const claim = kyc_addresses.kycRecords[account?account:ZERO_ADDRESS];
-        let rewardAmount=await fundRaisingContract.getRequiredRewardAmountForAmountRaised(2)        
+    if (fundRaisingContract && library && fundToken && kyc_addresses) {
+      try {
+        const claim = kyc_addresses.kycRecords[account ? account : ZERO_ADDRESS];
+        let _pid = 6
+        let rewardAmount = await fundRaisingContract.getRequiredRewardAmountForAmountRaised(_pid)
         let useExact = false
-          let tokenContract:Contract=getContract("0x1259DC2949DBA66a9A9dE7C5f36341e9D8357Fa0", ERC20_ABI, library, account ? account : undefined)          
-    
-            let estimatedGas = await tokenContract.estimateGas.approve(fundRaisingContract.address, MaxUint256).catch(() => {              
-              useExact = true
-              return tokenContract.estimateGas.approve(fundRaisingContract.address, rewardAmount)
-            })
-                    
-            let gas = chainId === ChainId.AVALANCHE || chainId === ChainId.SMART_CHAIN ? BigNumber.from(350000) : estimatedGas
-        
-            await tokenContract.approve(fundRaisingContract.address, useExact ? rewardAmount : MaxUint256, {
-              gasLimit: calculateGasMargin(gas)
-            })
-            .then((response: TransactionResponse) => {                     
-              console.log(response)
-            })
-            .catch((error: Error) => {
-              console.debug('Failed to approve token', error)              
-            })
-            useExact = false
-        estimatedGas = await fundRaisingContract.estimateGas.setupVestingRewards(2, rewardAmount, BigNumber.from(	Math.floor(Date.now() / 1000)+900),BigNumber.from(	Math.floor(Date.now() / 1000)+900),BigNumber.from(1643548935)).catch(() => {        
+        let tokenContract: Contract = getContract("0x1259DC2949DBA66a9A9dE7C5f36341e9D8357Fa0", ERC20_ABI, library, account ? account : undefined)
+
+        let estimatedGas = await tokenContract.estimateGas.approve(fundRaisingContract.address, MaxUint256).catch(() => {
           useExact = true
-          return fundRaisingContract.estimateGas.setupVestingRewards(2, rewardAmount, BigNumber.from(	Math.floor(Date.now() / 1000)+900),BigNumber.from(	Math.floor(Date.now() / 1000)+900),BigNumber.from(1643548935))
-        })        
-        gas = chainId === ChainId.AVALANCHE || chainId === ChainId.SMART_CHAIN ? BigNumber.from(350000) : estimatedGas        
-        fundRaisingContract.setupVestingRewards(2, rewardAmount, BigNumber.from(	Math.floor(Date.now() / 1000)+900),BigNumber.from(	Math.floor(Date.now() / 1000)+900),BigNumber.from(1643548935), {
+          return tokenContract.estimateGas.approve(fundRaisingContract.address, rewardAmount)
+        })
+
+        let gas = chainId === ChainId.AVALANCHE || chainId === ChainId.SMART_CHAIN ? BigNumber.from(350000) : estimatedGas
+
+        await tokenContract.approve(fundRaisingContract.address, useExact ? rewardAmount : MaxUint256, {
           gasLimit: calculateGasMargin(gas)
         })
-        .then((response: TransactionResponse) => {          
-          console.log(response)          
+          .then((response: TransactionResponse) => {
+            console.log(response)
+          })
+          .catch((error: Error) => {
+            console.debug('Failed to approve token', error)
+          })
+        useExact = false
+        estimatedGas = await fundRaisingContract.estimateGas.setupVestingRewards(_pid, rewardAmount, BigNumber.from(Math.floor(Date.now() / 1000) + 120), BigNumber.from(Math.floor(Date.now() / 1000) + 120), BigNumber.from(1647273016)).catch(() => {
+          useExact = true
+          return fundRaisingContract.estimateGas.setupVestingRewards(_pid, rewardAmount, BigNumber.from(Math.floor(Date.now() / 1000) + 120), BigNumber.from(Math.floor(Date.now() / 1000) + 120), BigNumber.from(1647273016))
         })
-        .catch((error: Error) => {
-          console.debug('Failed to setupVestingRewards', error)          
-          // throw error
-        }) 
-      }catch(error){
-        console.debug('Failed to setupVestingRewards', error)        
-        // throw error
+        gas = chainId === ChainId.AVALANCHE || chainId === ChainId.SMART_CHAIN ? BigNumber.from(350000) : estimatedGas
+        fundRaisingContract.setupVestingRewards(_pid, rewardAmount, BigNumber.from(Math.floor(Date.now() / 1000) + 120), BigNumber.from(Math.floor(Date.now() / 1000) + 120), BigNumber.from(1647273016), {
+          gasLimit: calculateGasMargin(gas)
+        })
+          .then((response: TransactionResponse) => {
+            console.log(response)
+          })
+          .catch((error: Error) => {
+            console.debug('Failed to setupVestingRewards', error)
+          })
+      } catch (error) {
+        console.debug('Failed to setupVestingRewards', error)
       }
     }
   }
 
-  const updateProgressAndRemainTime= (blockTime:BigNumber, realBlockTime:boolean) => {    
-    if (blockTime && poolInfoData){      
-      const res=getProgressPhase(poolInfoData, blockTime)      
-      if ((Number(res.progressPhase)!=progressPhase || remainSecs===0) && res.remainSecs>0){
-        setRemainSecs(Number(res.remainSecs))               
+  const updateProgressAndRemainTime = (blockTime: BigNumber, realBlockTime: boolean) => {
+    if (blockTime && poolInfoData) {
+      const res = getProgressPhase(poolInfoData, blockTime)
+      if ((Number(res.progressPhase) != progressPhase || remainSecs === 0) && res.remainSecs > 0) {
+        setRemainSecs(Number(res.remainSecs))
       }
-      setProgressPhase(Number(res.progressPhase)) 
+      setProgressPhase(Number(res.progressPhase))
       if (res.loaded) setReadyFundRaising(true)
-      let step=res.progressPhase
-      if (step>=3) step--
+      let step = res.progressPhase
+      if (step >= 3) step--
       setActiveStep(step)
     }
   }
 
   useEffect(() => {
-    // fetchKYClist().then(res => {
-    //   if (res) setKYCaddresses(res)      
-    // })    
-  },[])
-  
-  useEffect(() => {    
-    if (poolInfoData && userInfoData && fundToken && pid>=0 && isSubscribed){
-      maxAllocCallback(pid).then(maxalloc => {
-        if (maxalloc) setMaxAlloc(toEtherAmount(maxalloc, fundToken, 0))
-        else setMaxAlloc(0)
-      }).catch((error: any) => {
-        setMaxAlloc(0)
-      })        
+    fetchKYClist().then(res => {
+      if (res) setKYCaddresses(res)
+    })
+  }, [])
+
+  useEffect(() => {
+    if (poolInfoData && userInfoData && fundToken && pid >= 0 && isSubscribed) {
+      maxAllocCallback(pid)
+        .then(maxalloc => {
+          if (maxalloc) setMaxAlloc(formatEther(maxalloc, fundToken, 0))
+          else setMaxAlloc(0)
+        })
+        .catch((error: any) => {
+          setMaxAlloc(0)
+        })
     }
-    if (pid>=0 && poolInfoData && userInfoData) updateProgressAndRemainTime(BigNumber.from(Math.floor(Date.now() / 1000)), false)    
+    if (pid >= 0 && poolInfoData && userInfoData) updateProgressAndRemainTime(BigNumber.from(Math.floor(Date.now() / 1000)), false)
   }, [poolInfoData, userInfoData, fundToken, pid, isSubscribed])
 
-  useEffect(() => {          
-    if (blockTimestamp && pid>=0){
-      updateProgressAndRemainTime(blockTimestamp, true)      
+  useEffect(() => {
+    if (blockTimestamp && pid >= 0) {
+      updateProgressAndRemainTime(blockTimestamp, true)
     }
   }, [blockTimestamp, pid])
-  
-  useEffect(() => {    
-    if (!poolInfoData && !userInfoData){
+
+  useEffect(() => {
+    if (!poolInfoData && !userInfoData) {
       setIdoData(IDO_LIST.find(item => item.idoURL === idoURL))
-      const isIDOURL = (element:any) => element.idoURL===idoURL
-      setPid(IdoListComplete.findIndex(isIDOURL))     
+      // const isIDOURL = (element:any) => element.idoURL===idoURL
+      // setPid(IdoListComplete.findIndex(isIDOURL))           
     }
   }, [idoURL, poolInfoData, userInfoData])
-  
+
+  useEffect(() => {
+    if (idoData) {
+      setPid(idoData.pid)
+    }
+  }, [idoData])
+
   const goToSite = (str: string) => {
     window.open(str, '_blank')
   }
@@ -480,109 +519,110 @@ export default function DetailComponent() {
     return []
   }, [idoData])
 
-  const resetCollectedRewards = (amount:BigNumber) => {    
-    let userInfo:any={...userInfoData, collectedRewards:amount}
+  const resetCollectedRewards = (amount: BigNumber) => {
+    let userInfo: any = { ...userInfoData, collectedRewards: amount }
     setUserInfoData(userInfo)
   }
 
-  const resetIsSubscribe = (value:boolean) => {        
+  const resetIsSubscribe = (value: boolean) => {
     setIsSubscribed(value)
   }
 
   const resetFundState = (isfund: boolean, fundamount: BigNumber) => {
     setIsFunded(isfund)
-    let userInfo:any={...userInfoData, fundingAmount: fundamount}
+    let userInfo: any = { ...userInfoData, fundingAmount: fundamount }
     setUserInfoData(userInfo)
   }
 
   const openSubscribeModal = () => {
     setShowSubscribeModal(!showSubscribeModal)
   }
-  const openFundModal = () => {         
-    setShowFundModal(!showFundModal)    
+  const openFundModal = () => {
+    setShowFundModal(!showFundModal)
   }
 
-  const openClaimModal = async () => {    
-    if (rewardToken){
-      let pending=await pendingCallback(pid)    
-      setPendingAmount(toEtherAmount(pending, rewardToken, 3))
-      setShowClaimModal(!showClaimModal)
+  const openClaimModal = async () => {
+    if (rewardToken) {
+      try {
+        setShowClaimModal(!showClaimModal)
+      } catch (error) {
+        console.log(error)
+      }
     }
   }
 
   return (
-    <>      
+    <>
       <IdoDetails>
         <PoolDetails>
-          <HeroWrapper src='/images/ido_hero.png' />
-          <BgWrapper>                        
+          <HeroWrapper src={idoData?.hero} />
+          <BgWrapper>
             <Header>
               <Heading>Project Summary</Heading>
               <Summary>
                 {idoData?.description ?? ''}
               </Summary>
             </Header>
-            {poolInfoData && userInfoData && isKYCed && !isSubscribed && testNFTContract && progressPhase==1 && (<SubscribeModal
-            isOpen={showSubscribeModal} onDismiss={() => setShowSubscribeModal(false)} 
-            pid={pid} kyc_addresses={kyc_addresses} resetIsSubscribe={resetIsSubscribe}/>)}
+            {poolInfoData && userInfoData && isKYCed && !isSubscribed && testNFTContract && progressPhase == 1 && (<SubscribeModal
+              isOpen={showSubscribeModal} onDismiss={() => setShowSubscribeModal(false)}
+              pid={pid} kyc_addresses={kyc_addresses} resetIsSubscribe={resetIsSubscribe} />)}
 
-            {poolInfoData && userInfoData && isSubscribed && progressPhase==2 && (<FundModal            
-            isOpen={showFundModal} onDismiss={() => setShowFundModal(false)} resetFundState={resetFundState}
-            pid={pid} userInfoData={userInfoData} maxAlloc={maxAlloc} fundToken={fundToken}/>)}
-            
-            {poolInfoData && userInfoData && isFunded && (<ClaimModal resetCollectedRewards={resetCollectedRewards}        
-            isOpen={showClaimModal} account={account} onDismiss={() => setShowClaimModal(false)}
-            pid={pid} pendingAmount={pendingAmount}
-            userInfoData={userInfoData} rewardToken={rewardToken} fundToken={fundToken}/>)}
-                        
+            {poolInfoData && userInfoData && isSubscribed && progressPhase == 2 && (<FundModal
+              isOpen={showFundModal} onDismiss={() => setShowFundModal(false)} resetFundState={resetFundState}
+              pid={pid} userInfoData={userInfoData} fundToken={fundToken} />)}
+
+            {poolInfoData && userInfoData && isFunded && (<ClaimModal resetCollectedRewards={resetCollectedRewards}
+              isOpen={showClaimModal} onDismiss={() => setShowClaimModal(false)}
+              pid={pid} userInfoData={userInfoData} rewardToken={rewardToken} fundToken={fundToken} />)}
+
             {account && kyc_addresses && (
-            <ComponentBoxContainer>
-              {!(readyFundRaising && poolInfoData && userInfoData) ? (
-              <CenterWrap>
-                <CustomLightSpinner src={Circle} alt="loader" size={'90px'} />
-              </CenterWrap>
-              ) : (
-                <>                                   
-                  <LinksGroupContainer>
-                    <LinksGroupContent>
-                      <ButtonsGroup>
-                        {idoData?.whiteListUrl && (
-                          <ButtonPrimary width="120px" padding="5px 20px" onClick={() => goToSite(idoData.whiteListUrl)}>WHITEPAPER</ButtonPrimary>
-                        )}                                 
-                      </ButtonsGroup>                      
-                      <SocialLinks>
-                        {socialMediaLinks.map(iconDetails => (
-                          <SocialIcon key={iconDetails.url} onClick={() => window.open(iconDetails.url)}>
-                            {iconDetails.icon}
-                            <Tooltip className="tooltip">{iconDetails.type}</Tooltip>
-                          </SocialIcon>
-                        ))}
-                      </SocialLinks>
-                      <ExternalLink href={idoData?.siteUrl}>{idoData?.siteUrl}</ExternalLink>
-                    </LinksGroupContent>
-                  </LinksGroupContainer>
-                  <ProgressContainer>
-                    <FundButtonContainer>
-                    {(poolInfoData && userInfoData)?
-                      <>
-                        <FundRaisingButtons  isKYCed={isKYCed} isSubscribed={isSubscribed} progressPhase={progressPhase} fundToken={fundToken} userInfoData={userInfoData} maxAlloc={maxAlloc} idoURL={idoURL} openSubscribeModal={openSubscribeModal} openFundModal={openFundModal} openClaimModal={openClaimModal} />
-                      </>:<></>}
-                    </FundButtonContainer>   
-                    <StepperContainer>
-                      <StepperContainerLabel>PROGRESS</StepperContainerLabel>
-                      <NewStepper activeStep={activeStep} />
-                      {remainSecs>0 && (<RemainingTimePanel secs={remainSecs} />)}
-                      {isFunded && (<UserInfoPanel multiplier={userInfoData?userInfoData.multiplier.toNumber():0}
-                                        fundingAmount={userInfoData && fundToken?toEtherAmount(userInfoData.fundingAmount, fundToken, 3):0}
-                                        collectedRewards={userInfoData && rewardToken?toEtherAmount(userInfoData.collectedRewards, rewardToken, 3):0}
-                                        fundTokenSymbol={fundToken?fundToken.symbol:''} 
-                                        rewardTokenSymbol={rewardToken?rewardToken.symbol:''} 
-                                        progressPhase={progressPhase} />)}
-                    </StepperContainer>                                       
-                    {/* <ButtonPrimary width="120px" padding="5px 20px" onClick={() => setupVestingRewards()}>setupVestingRewards</ButtonPrimary> */}                    
-                  </ProgressContainer>
-                </>)}
-            </ComponentBoxContainer>)}
+              <ComponentBoxContainer>
+                {!(readyFundRaising && poolInfoData && userInfoData) ? (
+                  <CenterWrap>
+                    <CustomLightSpinner src={Circle} alt="loader" size={'90px'} />
+                  </CenterWrap>
+                ) : (
+                  <>
+                    <LinksGroupContainer>
+                      <LinksGroupContent>
+                        <ButtonsGroup>
+                          {idoData?.whiteListUrl && (
+                            <ButtonPrimary width="120px" padding="5px 20px" onClick={() => goToSite(idoData.whiteListUrl)}>WHITEPAPER</ButtonPrimary>
+                          )}
+                        </ButtonsGroup>
+                        <SocialLinks>
+                          {socialMediaLinks.map(iconDetails => (
+                            <SocialIcon key={iconDetails.url} onClick={() => window.open(iconDetails.url)}>
+                              {iconDetails.icon}
+                              <Tooltip className="tooltip">{iconDetails.type}</Tooltip>
+                            </SocialIcon>
+                          ))}
+                        </SocialLinks>
+                        <ExternalLink href={idoData?.siteUrl}>{idoData?.siteUrl}</ExternalLink>
+                      </LinksGroupContent>
+                    </LinksGroupContainer>
+                    <ProgressContainer>
+                      <FundButtonContainer>
+                        {(poolInfoData && userInfoData) ?
+                          <>
+                            <FundRaisingButtons isKYCed={isKYCed} isSubscribed={isSubscribed} progressPhase={progressPhase} fundToken={fundToken} userInfoData={userInfoData} maxAlloc={maxAlloc} idoURL={idoURL} openSubscribeModal={openSubscribeModal} openFundModal={openFundModal} openClaimModal={openClaimModal} />
+                          </> : <></>}
+                      </FundButtonContainer>
+                      <StepperContainer>
+                        <StepperContainerLabel>PROGRESS</StepperContainerLabel>
+                        <NewStepper activeStep={activeStep} />
+                        {remainSecs > 0 && (<RemainingTimePanel secs={remainSecs} />)}
+                        {isFunded && (<UserInfoPanel multiplier={userInfoData ? userInfoData.multiplier.toNumber() : 0}
+                          fundingAmount={userInfoData && fundToken ? formatEther(userInfoData.fundingAmount, fundToken, 3) : 0}
+                          collectedRewards={userInfoData && rewardToken ? formatEther(userInfoData.collectedRewards, rewardToken, 3) : 0}
+                          fundTokenSymbol={fundToken ? fundToken.symbol : ''}
+                          rewardTokenSymbol={rewardToken ? rewardToken.symbol : ''}
+                          progressPhase={progressPhase} />)}
+                      </StepperContainer>
+                      {/* <ButtonPrimary width="120px" padding="5px 20px" onClick={() => setupVestingRewards()}>setupVestingRewards</ButtonPrimary> */}
+                    </ProgressContainer>
+                  </>)}
+              </ComponentBoxContainer>)}
             <SeedContent>
               <SeedTitle>Seed Round</SeedTitle>
               <SeedInfo>Seed Round Closed On {moment(idoData?.seed?.closedDate).format('lll')}</SeedInfo>

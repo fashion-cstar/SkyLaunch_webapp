@@ -33,7 +33,7 @@ const WrapStakingCard = styled.div`
 const WrapContainer = styled.div`
   display: flex;
   flex-direction: column;
-  margin-top: 2rem;
+  margin-top: 1rem;
   margin-bottom: 1rem;
   background: #1C1C1C;
   box-shadow: 0 0 5px 1px #101010;

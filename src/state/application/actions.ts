@@ -22,6 +22,11 @@ export type PopupContent =
       message: string
     }
   }
+  | {
+    txReverted: {
+      message: string
+    }
+  }
 
 export enum ApplicationModal {
   WALLET,

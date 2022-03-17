@@ -1,18 +1,16 @@
 import { ButtonPrimary, ButtonSecondary, ButtonIdoNotingtoClaim } from '../../components/Button'
 
 import { NavLink } from 'react-router-dom'
-import React, { useEffect, useMemo, useState, useCallback } from 'react'
+import React, { useEffect, useState } from 'react'
 import styled from 'styled-components'
 import { BigNumber } from '@ethersproject/bignumber'
-import toEtherAmount from 'utils/toEtherAmount'
+import formatEther from 'utils/formatEther'
 import ClaimModal from '../Launchpad/components/ClaimModal'
 import { useActiveWeb3React } from '../../hooks'
-import { useClaimCallback } from 'state/fundraising/hooks'
+import { usePoolAndUserInfoCallback, useFundAndRewardTokenCallback, useTotalRewards, usePendingRewards } from 'state/fundraising/hooks'
+import { PoolInfo, UserInfo } from 'state/fundraising/actions'
+import { Token } from '@skylaunch/sdk'
 import { useWalletModalToggle } from 'state/application/hooks'
-const moment = require('moment');
-const StyledNavLink = styled(NavLink)`
-  text-decoration: none
-`
 
 const RowContainer = styled.div`
   display: flex;  
@@ -97,67 +95,178 @@ const InfoSection = styled.div<{ width?: any }>`
     margin-top: 1rem;
   `};
 `
-export default function UserIdoRow({ idoInfo, idoIndex}: { idoInfo: any, idoIndex: number }) {
+export default function UserIdoRow({ logo, network, pid }: { logo: string, network: number, pid: number }) {
   const { library, account, chainId } = useActiveWeb3React()
   const [totalTokens, setTotalTokens] = useState(0)
   const [claimedTokens, setClaimedTokens] = useState(0)
   const [leftTokens, setLeftTokens] = useState(0)
   const [amountToClaim, setAmountToClaim] = useState(0)
   const [showClaimModal, setShowClaimModal] = useState(false)
-  const { pendingCallback } = useClaimCallback(account)
-  const [pendingAmount, setPendingAmount] = useState(0);
+  const [countsOfPool, setCountsOfPool] = useState(0)
+  const [poolInfoData, setPoolInfoData] = useState<PoolInfo | undefined>()
+  const [userInfoData, setUserInfoData] = useState<UserInfo | undefined>()
+  const [rewardToken, setRewardToken] = useState<Token | undefined>()
+  const [fundToken, setFundToken] = useState<Token | undefined>()
+  const [userIdoType, setUserIdoType] = useState(0)
+  const [cliffEndTime, setCliffEndTime] = useState('')
+  const userTotalRewards = useTotalRewards(pid)
+  const userPendingRewards = usePendingRewards(pid)
+  const { poolInfoCallback, userInfoCallback, countsOfPoolCallback } = usePoolAndUserInfoCallback()
+  const { fundTokenCallback, rewardTokenCallback } = useFundAndRewardTokenCallback(account)
   const toggleWalletModal = useWalletModalToggle()
-  useEffect(() => {
-    setTotalTokens(idoInfo.totalTokens)
-    setClaimedTokens(idoInfo.claimedTokens)
-    setLeftTokens(idoInfo.leftTokens)
-    setAmountToClaim(idoInfo.amountToClaim)
-  }, [idoInfo])
 
-  const resetCollectedRewards = (amount:BigNumber) => {         
-    let left=Math.round((totalTokens-toEtherAmount(amount, idoInfo.rewardToken, 2))*100)/100    
-    setClaimedTokens(toEtherAmount(amount, idoInfo.rewardToken, 2))
-    setAmountToClaim(0)
-    setLeftTokens(left)
+  useEffect(() => {
+    if (account) {
+      countsOfPoolCallback().then(res => {
+        setCountsOfPool(res)
+      }).catch(error => { setCountsOfPool(0) })
+    } else {
+      setCountsOfPool(0)
+    }
+  }, [account])
+
+  useEffect(() => {
+    if (pid >= 0 && pid < countsOfPool) {
+      poolInfoCallback(pid)
+        .then(poolInfo => {
+          if (poolInfo) setPoolInfoData(poolInfo)
+          else setPoolInfoData(undefined)
+        })
+        .catch(error => {
+          setPoolInfoData(undefined)
+        })
+    }
+  }, [poolInfoCallback, pid, countsOfPool, account])
+
+  useEffect(() => {
+    if (pid >= 0 && pid < countsOfPool && account) {
+      userInfoCallback(pid)
+        .then(userInfo => {
+          if (userInfo) setUserInfoData(userInfo)
+          else setUserInfoData(undefined)
+        })
+        .catch(error => {
+          setUserInfoData(undefined)
+        })
+    }
+  }, [userInfoCallback, pid, countsOfPool, account])
+
+  useEffect(() => {
+    if (poolInfoData) {
+      fundTokenCallback(poolInfoData.fundRaisingToken).then(fundToken => {
+        if (fundToken) setFundToken(fundToken)
+      }).catch(error => {
+        setFundToken(undefined)
+      })
+      rewardTokenCallback(poolInfoData.rewardToken).then(rewardToken => {
+        if (rewardToken) setRewardToken(rewardToken)
+      }).catch(error => {
+        setRewardToken(undefined)
+      })
+    }
+  }, [poolInfoData])
+
+  useEffect(() => {
+    if (rewardToken) {
+      setAmountToClaim(formatEther(userPendingRewards, rewardToken, 2))
+    }
+  }, [userPendingRewards, rewardToken])
+
+  useEffect(() => {
+    if (totalTokens > 0) {
+      let left = Math.round((totalTokens - amountToClaim - claimedTokens) * 100) / 100
+      setLeftTokens(left)
+    }
+  }, [totalTokens, claimedTokens, amountToClaim])
+
+  useEffect(() => {
+    if (network === chainId) {
+      if (userInfoData && poolInfoData && rewardToken) {
+        if (userInfoData?.fundingAmount.gt(0)) {          
+          if (poolInfoData?.rewardsStartTime.gt(0) && poolInfoData?.rewardsCliffEndTime.lte(BigNumber.from(Math.floor(Date.now() / 1000)))) {
+            if (userTotalRewards.gt(0)) {
+              setTotalTokens(formatEther(userTotalRewards, rewardToken, 2))
+            }
+            setClaimedTokens(formatEther(userInfoData.collectedRewards, rewardToken, 2))
+            setUserIdoType(1) //claim
+          } else {
+            setUserIdoType(2)
+            if (poolInfoData?.rewardsCliffEndTime.gt(0)){
+              setCliffEndTime((new Date(poolInfoData?.rewardsCliffEndTime.toNumber() * 1000)).toLocaleString('en-GB', { timeZone: 'UTC' }))
+            }
+            if (userTotalRewards.gt(0)) {
+              setTotalTokens(formatEther(userTotalRewards, rewardToken, 2))
+              setLeftTokens(formatEther(userTotalRewards, rewardToken, 2))
+            }
+            setClaimedTokens(0)
+            setAmountToClaim(0)
+          }
+        }
+      } else {
+        setUserIdoType(0)
+        setTotalTokens(0)
+        setClaimedTokens(0)
+        setLeftTokens(0)
+        setAmountToClaim(0)
+      }
+    } else {
+      setUserIdoType(3)
+    }
+  }, [userInfoData, poolInfoData, userTotalRewards, rewardToken])
+
+  const resetCollectedRewards = (amount: BigNumber) => {
+    if (rewardToken) {
+      let left = Math.round((totalTokens - formatEther(amount, rewardToken, 2)) * 100) / 100
+      setClaimedTokens(formatEther(amount, rewardToken, 2))
+      setAmountToClaim(0)
+      setLeftTokens(left)
+    }
   }
 
-  const openClaimModal = async () => {    
-    if (idoInfo.rewardToken){
-      let pending=await pendingCallback(idoInfo.pid)    
-      setPendingAmount(toEtherAmount(pending, idoInfo.rewardToken, 3))
-      setShowClaimModal(!showClaimModal)
+  const openClaimModal = async () => {
+    if (rewardToken) {
+      try {
+        setShowClaimModal(!showClaimModal)
+      } catch (error) {
+        console.log(error)
+      }
     }
   }
 
   return (
-    <RowContainer>
-      {idoInfo.poolInfoData && idoInfo.userInfoData && (<ClaimModal resetCollectedRewards={resetCollectedRewards}        
-            isOpen={showClaimModal} account={account} onDismiss={() => setShowClaimModal(false)}
-            pid={idoInfo.pid} pendingAmount={pendingAmount}
-            userInfoData={idoInfo.userInfoData} rewardToken={idoInfo.rewardToken} fundToken={idoInfo.fundToken}/>)}
-      <ButtonSection>        
-          { idoInfo.type===1 ?(<ButtonPrimary style={{ width: '150px', fontSize:"14px", padding:"0px 5px", height:'30px', textTransform: 'uppercase' }} onClick={openClaimModal}>Claim</ButtonPrimary>):
-            idoInfo.type===2 ?(<ButtonIdoNotingtoClaim style={{ width: '150px', fontSize:"14px", padding:"0px 5px", height:'30px', textTransform: 'uppercase' }} disabled>Nothing to Claim</ButtonIdoNotingtoClaim>):
-            (<ButtonSecondary style={{ width: '150px', fontSize:"14px", padding:"0px 5px", height:'30px', textTransform: 'uppercase' }} onClick={toggleWalletModal}>Change Network</ButtonSecondary>)
-          }        
-      </ButtonSection>      
-      <LogoWrapper>
-        <img src={idoInfo.logo} />
-      </LogoWrapper>
-      <TableContainer>
-        <InfoSection className="mobile-hidden" width={25}>
-          <div style={{textAlign: 'center'}}>{totalTokens?totalTokens:'--'}</div>
-        </InfoSection>
-        <InfoSection className="mobile-hidden" width={25}>
-          <div style={{textAlign: 'center'}}>{claimedTokens?claimedTokens:'--'}</div>
-        </InfoSection>
-        <InfoSection className="mobile-hidden" width={25}>
-          <div style={{textAlign: 'center'}}>{leftTokens?leftTokens:'--'}</div>
-        </InfoSection>
-        <InfoSection className="mobile-hidden" width={25}>
-          <div style={{textAlign: 'center'}}>{amountToClaim?amountToClaim:'--'}</div>
-        </InfoSection>   
-      </TableContainer>      
-    </RowContainer>
+    <>
+      {userIdoType > 0 && <RowContainer>
+        {poolInfoData && userInfoData && (<ClaimModal resetCollectedRewards={resetCollectedRewards}
+          isOpen={showClaimModal} onDismiss={() => setShowClaimModal(false)}
+          pid={pid} userInfoData={userInfoData} rewardToken={rewardToken}
+          fundToken={fundToken} />)}
+        <ButtonSection>
+          {userIdoType === 1 ? (<ButtonPrimary style={{ width: '150px', fontSize: "14px", padding: "0px 5px", height: '30px', textTransform: 'uppercase' }} onClick={openClaimModal}>Claim</ButtonPrimary>) :
+            userIdoType === 2 ? (<ButtonIdoNotingtoClaim style={{ width: '150px', fontSize: "14px", padding: "0px 5px", height: '30px', textTransform: 'uppercase' }} disabled>Nothing to Claim</ButtonIdoNotingtoClaim>) :
+              (<ButtonSecondary style={{ width: '150px', fontSize: "14px", padding: "0px 5px", height: '30px', textTransform: 'uppercase' }} onClick={toggleWalletModal}>Change Network</ButtonSecondary>)
+          }
+        </ButtonSection>
+        <LogoWrapper>
+          <img src={logo} />
+        </LogoWrapper>
+        <TableContainer>
+          <InfoSection className="mobile-hidden" width={20}>
+            <div style={{ textAlign: 'center' }}>{totalTokens ? totalTokens : '--'}</div>
+          </InfoSection>
+          <InfoSection className="mobile-hidden" width={20}>
+            <div style={{ textAlign: 'center' }}>{claimedTokens ? claimedTokens : '--'}</div>
+          </InfoSection>
+          <InfoSection className="mobile-hidden" width={20}>
+            <div style={{ textAlign: 'center' }}>{leftTokens ? leftTokens : '--'}</div>
+          </InfoSection>
+          <InfoSection className="mobile-hidden" width={20}>
+            <div style={{ textAlign: 'center' }}>{amountToClaim ? amountToClaim : '--'}</div>
+          </InfoSection>
+          <InfoSection className="mobile-hidden" width={20}>
+            {userIdoType === 2 && <div style={{ textAlign: 'right' }}>{cliffEndTime}</div>}
+          </InfoSection>
+        </TableContainer>
+      </RowContainer>}
+    </>
   )
 }

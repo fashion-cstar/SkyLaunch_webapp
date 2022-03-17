@@ -70,8 +70,17 @@ const ButtonSection = styled.div`
       display: none;
     }
     margin-bottom: 1rem;
-    margin-top: 1rem;
+    // margin-top: 1rem;
   `};
+`
+
+const IdoButtonLogoContainer=styled.div`
+  display: flex;
+  ${({ theme }) => theme.mediaWidth.upToMedium`
+    flex-direction: column-reverse;
+    align-items: center;
+    justify-content: center;
+`};
 `
 const TableContainer = styled.div`
   width: 100%;  
@@ -95,14 +104,16 @@ const InfoSection = styled.div<{ width?: number }>`
 export default function IdoRow({ idoInfo, idoIndex}: { idoInfo: any, idoIndex: number }) {
   return (
     <RowContainer>
-      <ButtonSection>
-        <StyledNavLink id={`${idoInfo.idoURL}-nav-link`} to={`/launchpad/${idoInfo.idoURL}`}>
-          <ButtonPrimary style={{ width: '100%', height:'30px', textTransform: 'uppercase' }}>Details</ButtonPrimary>
-        </StyledNavLink>
-      </ButtonSection>      
-      <LogoWrapper>
-        <img src={idoInfo.logo} />
-      </LogoWrapper>
+      <IdoButtonLogoContainer>
+        <ButtonSection>
+          <StyledNavLink id={`${idoInfo.idoURL}-nav-link`} to={`/launchpad/${idoInfo.idoURL}`}>
+            <ButtonPrimary style={{ width: '100%', height:'30px', textTransform: 'uppercase' }}>Details</ButtonPrimary>
+          </StyledNavLink>
+        </ButtonSection>      
+        <LogoWrapper>
+          <img src={idoInfo.logo} />
+        </LogoWrapper>
+      </IdoButtonLogoContainer>
       <TableContainer>
         <InfoSection className="mobile-hidden" width={16}>
           <div style={{textAlign: 'center'}}>{idoInfo.tierName}</div>

@@ -10,12 +10,12 @@ import styled from 'styled-components'
 import moment from 'moment'
 import { useDispatch } from 'react-redux'
 import { AppDispatch } from '../../state'
-import toEtherAmount from 'utils/toEtherAmount'
+import formatEther from 'utils/formatEther'
 import { useParams } from 'react-router'
 import { useFundRaisingContract } from '../../hooks/useContract'
 import { Token } from '@skylaunch/sdk'
 import Web3Status from 'components/Web3Status'
-import { useFundRaisingCallback, useFundAndRewardToken, useTotalReward, useClaimCallback } from 'state/fundraising/hooks'
+import { usePoolAndUserInfoCallback, useFundAndRewardTokenCallback, useTotalRewardCallback, useClaimCallback } from 'state/fundraising/hooks'
 
 const HeaderContainer = styled.div`  
   width: 100%;
@@ -52,7 +52,7 @@ const StyledButtonsWrap = styled.div`
 const ListContainer = styled.div`
   display: flex;
   flex-direction: column;
-  margin-top: 2rem;
+  margin-top: 1rem;
   margin-bottom: 2rem;
   padding: 30px 20px 20px 20px;  
   background: #1C1C1C;
@@ -64,7 +64,7 @@ const WalletConnectContainer = styled.div`
   display: flex;    
   justify-content: center;
   align-items: center;    
-  margin-top: 2rem;
+  margin-top: 1rem;
   margin-bottom: 2rem;  
   padding-top: 130px;
   background: #1C1C1C;
@@ -81,7 +81,7 @@ const HeadersWrap = styled.div`
   `};
 `
 const HeaderSection = styled.div`
-  width: 25%;
+  width: 20%;
   padding-left: 10px;
   padding-right: 10px;
   font-size: 0.8rem;  
@@ -95,116 +95,37 @@ const TableHeader = styled.div`
 `
 
 export default function UserIdoDetail() {
-    const [showActive, setShowActive] = useState(true)
-    const [activeTab, setActiveTab] = useState('upcoming')    
-    const { idoURL } = useParams<{ idoURL: string }>()
-    const [idoData, setIdoData] = useState<any>()
-    const { library, account, chainId } = useActiveWeb3React()
-    const fundRaisingContract = useFundRaisingContract()        
-    const [showClaimModal, setShowClaimModal] = useState(false)    
-    const [pid, setPid] = useState(-1)      
-    const [pendingAmount, setPendingAmount] = useState(0);      
-    const [fundToken, setFundToken] = useState<Token | undefined>()
-    const [rewardToken, setRewardToken] = useState<Token | undefined>()
-    const [countsOfPool, setCountsOfPool]=useState(0)
-    const { poolInfoCallback, userInfoCallback, countsOfPoolCallback } = useFundRaisingCallback()
-    const { totalRewardCallback } = useTotalReward(account)
-    const { pendingCallback } = useClaimCallback(account)
-    const { rewardTokenCallback, fundTokenCallback } = useFundAndRewardToken(account)
-    const [userIdos, setUserIdos] = useState<any>([])
-    const IdoList = useMemo(() => {
-        if (showActive) {
-        return IDO_LIST.filter(item => moment(item?.endDate ?? '').isAfter(moment.now()))
-        }
-        return IDO_LIST.filter(item => moment(item?.endDate ?? '').isBefore(moment.now()))
-    }, [showActive, IDO_LIST])
+  const { library, account, chainId } = useActiveWeb3React()
+  const IdoList = useMemo(() => {
+    return IDO_LIST.filter(item => moment(item?.endDate ?? '').isAfter(moment.now()))
+  }, [IDO_LIST])
 
-    // const IdoListFiltered 
-    useEffect(() => {
-      const fetch=async () =>{
-        await Promise.all(IdoList.map(async (ido, index) => {
-          if (index<countsOfPool){                                   
-            if (ido.network===chainId){              
-              let poolInfo=await poolInfoCallback(index)
-              let userInfo=await userInfoCallback(index)
-              if (userInfo?.fundingAmount.gt(0) && poolInfo && userInfo){                               
-                let totalReward=await totalRewardCallback(index)                
-                let rewardToken=await rewardTokenCallback(poolInfo.rewardToken)                 
-                let fundToken=await fundTokenCallback(poolInfo.fundRaisingToken)
-                if (poolInfo?.rewardsStartTime.gt(0)){
-                  let pendingReward=await pendingCallback(index)                  
-                  if (totalReward && pendingReward && rewardToken){                    
-                    let total=toEtherAmount(totalReward,rewardToken,2)
-                    let pending=toEtherAmount(pendingReward,rewardToken,2)
-                    let collected=toEtherAmount(userInfo.collectedRewards,rewardToken,2)
-                    let left=Math.round((total-pending-collected)*100)/100
-                    let type=1 //claim
-                    if (pending===0) type=2 //nothing to claim
-                    let data:any={idoURL:ido.idoURL, logo:ido.logo, totalTokens:total, 
-                      claimedTokens:collected, leftTokens:left, amountToClaim:pending, 
-                      type:type, pid:index, poolInfoData:poolInfo, userInfoData:userInfo, 
-                      rewardToken:rewardToken, fundToken:fundToken}
-                    setUserIdos((oldArray:any) => [...oldArray, data]);
-                  }
-                }else{                                   
-                  if (totalReward && rewardToken){                    
-                    let total=toEtherAmount(totalReward,rewardToken,2)
-                    let type=2 //nothing to claim
-                    let data:any={idoURL:ido.idoURL, logo:ido.logo, totalTokens:total, 
-                      claimedTokens:0, leftTokens:total, amountToClaim:0, 
-                      type:type, pid:index, poolInfoData:poolInfo, userInfoData:userInfo, 
-                      rewardToken:rewardToken, fundToken:fundToken}
-                    setUserIdos((oldArray:any) => [...oldArray, data]);
-                  }
-                }
-              }
-            }else{
-              let type=3 //change network
-              let data:any={idoURL:ido.idoURL, logo:ido.logo, totalTokens:0, claimedTokens:0, leftTokens:0, amountToClaim:0, type:type}
-              setUserIdos((oldArray:any) => [...oldArray, data]);
-            }
-          }
-        }))
-      }
-      if (IdoList && countsOfPool){   
-        setUserIdos([])
-        fetch()
-      }
-    }, [IdoList, countsOfPool, chainId])
-   
-    useEffect(() => {
-      if (account){      
-        countsOfPoolCallback().then(res => {         
-          setCountsOfPool(res) 
-        }).catch(error => { setCountsOfPool(0) })
-      }
-    }, [account])
-
-    return (
-        <>
-        <PageHeader>
-            <Title>Your Ido Tokens</Title>           
-        </PageHeader>
-        <PageContainer>
-          {account?(<><ListContainer>
-              <HeadersWrap>
-                  <div style={{ minWidth: '160px', width: '160px', height: '20px' }}></div>
-                  <div style={{ minWidth: '140px', width: '140px' }}></div>
-                  <TableHeader>
-                  <HeaderSection>Total Tokens</HeaderSection>
-                  <HeaderSection>Claimed Tokens</HeaderSection>
-                  <HeaderSection>Left Tokens</HeaderSection>
-                  <HeaderSection>Amount To Claim</HeaderSection>     
-                  </TableHeader>
-              </HeadersWrap>
-              {userIdos?.map((idoInfo: any, index:number) => {               
-                  return (
-                      <UserIdoRow key={index} idoInfo={idoInfo} idoIndex={index} />
-                  )                
-                  return null
-              })}
-            </ListContainer></>):(<WalletConnectContainer><Web3Status /></WalletConnectContainer>)}
-        </PageContainer>
-        </>
-    )
+  return (
+    <>
+      <PageHeader>
+        <Title>Your Ido Tokens</Title>
+      </PageHeader>
+      <PageContainer>
+        {account ? (<><ListContainer>
+          <HeadersWrap>
+            <div style={{ minWidth: '160px', width: '160px', height: '20px' }}></div>
+            <div style={{ minWidth: '140px', width: '140px' }}></div>
+            <TableHeader>
+              <HeaderSection>Total Tokens</HeaderSection>
+              <HeaderSection>Claimed Tokens</HeaderSection>
+              <HeaderSection>Left Tokens</HeaderSection>
+              <HeaderSection>Amount To Claim</HeaderSection>
+              <HeaderSection>Cliff End Time</HeaderSection>
+            </TableHeader>
+          </HeadersWrap>
+          {IdoList?.map((ido: any, index: number) => {
+            return (
+              <UserIdoRow key={index} logo={ido.logo} network={ido.network} pid={ido.pid} />
+            )
+            return null
+          })}
+        </ListContainer></>) : (<WalletConnectContainer><Web3Status /></WalletConnectContainer>)}
+      </PageContainer>
+    </>
+  )
 }

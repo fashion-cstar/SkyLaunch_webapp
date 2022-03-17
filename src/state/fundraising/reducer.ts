@@ -11,8 +11,12 @@ import {
   setIsFunded,
   setProgressPhase,
   setPoolID,
-  setMaxAlloc
-//   setRemainSecs
+  setMaxAlloc,
+  setUserId,
+  setJwtToken,
+  setSignedAccount,
+  setIsLogging,
+  setIsFormSent
 } from './actions'
 
 export interface FundRaisingState {
@@ -24,7 +28,11 @@ export interface FundRaisingState {
   progressPhase: number
   poolID: number
   maxAlloc: number
-//   remainSecs: number
+  userId: string
+  JwtToken: string
+  signedAccount: string
+  isLogging: boolean
+  isFormSent: boolean
 }
 
 const initialState: FundRaisingState = {
@@ -35,35 +43,39 @@ const initialState: FundRaisingState = {
   isFunded: false,
   progressPhase: 0,
   poolID: 0,
-  maxAlloc: 0
-//   remainSecs: 0
+  maxAlloc: 0,
+  userId: '',
+  JwtToken: '',
+  signedAccount: '',
+  isLogging: false,
+  isFormSent: false
 }
 
 export default createReducer<FundRaisingState>(initialState, builder =>
   builder
     .addCase(setPoolInfo, (state, { payload: { poolInfo } }) => {
-        return {
-            ...state,
-            poolInfo
-        }
+      return {
+        ...state,
+        poolInfo
+      }
     })
     .addCase(setUserInfo, (state, { payload: { userInfo } }) => {
-        return {
-            ...state,
-            userInfo
-        }
-    })   
+      return {
+        ...state,
+        userInfo
+      }
+    })
     .addCase(setIsKYCed, (state, { payload: { isKYCed } }) => {
-        return {
-          ...state,
-          isKYCed
-        }
+      return {
+        ...state,
+        isKYCed
+      }
     })
     .addCase(setIsSubscribed, (state, { payload: { isSubscribed } }) => {
-        return {
-          ...state,
-          isSubscribed
-        }
+      return {
+        ...state,
+        isSubscribed
+      }
     })
     .addCase(setIsFunded, (state, { payload: { isFunded } }) => {
       return {
@@ -72,27 +84,51 @@ export default createReducer<FundRaisingState>(initialState, builder =>
       }
     })
     .addCase(setProgressPhase, (state, { payload: { progressPhase } }) => {
-        return {
-          ...state,
-          progressPhase
-        }
+      return {
+        ...state,
+        progressPhase
+      }
     })
     .addCase(setPoolID, (state, { payload: { poolID } }) => {
-        return {
-          ...state,
-          poolID
-        }
-    }) 
+      return {
+        ...state,
+        poolID
+      }
+    })
     .addCase(setMaxAlloc, (state, { payload: { maxAlloc } }) => {
       return {
         ...state,
         maxAlloc
       }
+    })
+    .addCase(setUserId, (state, { payload: { userId } }) => {
+      return {
+        ...state,
+        userId
+      }
+    })
+    .addCase(setJwtToken, (state, { payload: { JwtToken } }) => {
+      return {
+        ...state,
+        JwtToken
+      }
+    })
+    .addCase(setSignedAccount, (state, { payload: { signedAccount } }) => {
+      return {
+        ...state,
+        signedAccount
+      }
+    })
+    .addCase(setIsLogging, (state, { payload: { isLogging } }) => {
+      return {
+        ...state,
+        isLogging
+      }
+    })
+    .addCase(setIsFormSent, (state, { payload: { isFormSent } }) => {
+      return {
+        ...state,
+        isFormSent
+      }
     }) 
-    // .addCase(setRemainSecs, (state, { payload: { remainSecs } }) => {
-    //     return {
-    //       ...state,
-    //       remainSecs
-    //     }
-    // }) 
 )
