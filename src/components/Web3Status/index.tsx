@@ -30,8 +30,8 @@ import { useHasSocks } from '../../hooks/useSocksBalance'
 import { useTranslation } from 'react-i18next'
 import { useWalletModalToggle } from '../../state/application/hooks'
 import { useETHBalances } from '../../state/wallet/hooks'
-import { useLoginWithMetaMask, useSignedAccount, useIsLogging } from 'state/fundraising/hooks'
-import { setUserId, setJwtToken, setSignedAccount, setIsLogging, setIsFormSent } from 'state/fundraising/actions'
+import { useLoginWithMetaMask, useIsLogging, useKYCStatus } from 'state/fundraising/hooks'
+import { setIsLogging, setIsFormSent } from 'state/fundraising/actions'
 
 const IconWrapper = styled.div<{ size?: number }>`
   ${({ theme }) => theme.flexColumnNoWrap};
@@ -47,7 +47,7 @@ const Web3StatusGeneric = styled(ButtonPrimary)`
   ${({ theme }) => theme.flexRowNoWrap}
   align-self: flex-start;
   width: 100%;
-  padding: 5px 20px;
+  padding: 8px 20px;
   border-radius: 12px;
   cursor: pointer;
   user-select: none;
@@ -55,16 +55,6 @@ const Web3StatusGeneric = styled(ButtonPrimary)`
     outline: none;
   }
 `
-// const Web3StatusError = styled(Web3StatusGeneric)`
-//   background-color: ${({ theme }) => theme.red1};
-//   border: 1px solid ${({ theme }) => theme.red1};
-//   color: ${({ theme }) => theme.white};
-//   font-weight: 500;
-//   :hover,
-//   :focus {
-//     background-color: ${({ theme }) => darken(0.1, theme.red1)};
-//   }
-// `
 
 const Web3StatusConnect = styled(Web3StatusGeneric) <{ faded?: boolean }>`
   border: none;
@@ -81,8 +71,7 @@ const Web3StatusConnect = styled(Web3StatusGeneric) <{ faded?: boolean }>`
     `}
 `
 
-const Web3StatusConnected = styled.div`
-  font-family: Poppins;
+const Web3StatusConnected = styled.div`  
   font-style: normal;
   font-weight: 600;
   font-size: 13px;
@@ -181,7 +170,6 @@ function Web3StatusInner() {
   const { t } = useTranslation()
   const { account, connector, error, deactivate, activate } = useWeb3React()
   const { ENSName } = useENSName(account ?? undefined)
-  const signedAccount = useSignedAccount()
   const isLogging = useIsLogging()
   const { fetchLoginWithMetaMask } = useLoginWithMetaMask()
 
@@ -216,15 +204,13 @@ function Web3StatusInner() {
   }, [chainIdError])
 
   useEffect(() => {
+    const signedAccount = localStorage.getItem('signedAccount')
     if (account && account.toLowerCase() !== signedAccount && !isLogging) {
       requestSignature()
     }
-  }, [account, signedAccount, isLogging])
+  }, [account, isLogging])
 
   const resetSignToken = () => {
-    dispatch(setUserId({ userId: '' }))
-    dispatch(setJwtToken({ JwtToken: '' }))
-    dispatch(setSignedAccount({ signedAccount: '' }))
     dispatch(setIsLogging({ isLogging: false }))
     dispatch(setIsFormSent({ isFormSent: false }))
   }
@@ -242,21 +228,15 @@ function Web3StatusInner() {
       console.log(ex)
     }
   }
-
-  useEffect(() => {
-    if (signedAccount) {
-      dispatch(setIsLogging({ isLogging: false }))
-    }
-  }, [signedAccount])
   
   const requestSignature = () => {
     dispatch(setIsLogging({ isLogging: true }))
     fetchLoginWithMetaMask().then(async (sign: any) => {
       if (sign) {
         if (sign?.userId && sign?.jwtToken) {
-          dispatch(setUserId({ userId: sign.userId }))
-          dispatch(setJwtToken({ JwtToken: sign.jwtToken }))
-          dispatch(setSignedAccount({ signedAccount: sign.account }))
+          localStorage.setItem('userId', sign.userId)
+          localStorage.setItem('JwtToken', sign.jwtToken)
+          localStorage.setItem('signedAccount', sign.account)
           try {
             await activate(injected)
           } catch (ex) {
@@ -267,9 +247,11 @@ function Web3StatusInner() {
       } else {
         deactivateAccount()
       }
+      dispatch(setIsLogging({ isLogging: false }))
     }).catch((error) => {
       console.log(error)
       deactivateAccount()
+      dispatch(setIsLogging({ isLogging: false }))
     });
   }
 

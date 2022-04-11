@@ -13,8 +13,7 @@ const Flex = styled.span`
   display: flex;
 `
 
-const Text = styled.div`
-  font-family: Poppins;
+const Text = styled.div`  
   font-weight: 500;
   font-size: 14px;
   line-height: 100%;

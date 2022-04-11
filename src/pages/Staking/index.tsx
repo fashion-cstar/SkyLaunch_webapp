@@ -26,7 +26,7 @@ const WrapStakingCard = styled.div`
   margin-top: 20px;
   display: flex;
   flex-wrap: wrap;
-  gap: 1.5rem;
+  gap: 2.5rem;
   justify-content: center;  
 `
 
@@ -50,9 +50,6 @@ const Staking = () => {
   const [claimRewardStaking, setClaimRewardStaking] = useState<any>(null)
 
   const [apyRequested, setApyRequested] = useState(false)
-
-  // loop through eachs taking contract and collect more info
-  console.log(baseStakingInfo[0]);
 
   // const getAllAPY = async () => {
   //   const res = await getAllPoolsAPY()
@@ -81,9 +78,7 @@ const Staking = () => {
 
   // setArrayToShow()
 
-  console.log(baseStakingInfo)
   const stakingInfo = baseStakingInfo[0];
-  console.log(stakingInfo);
 
   const handleHarvest = (stakingInfo: any) => {
     setClaimRewardStaking(stakingInfo)
@@ -99,7 +94,7 @@ const Staking = () => {
       <PageContainer>
         <WrapContainer>
           <StakingHeader />
-          { /*<StakingControls /> */ }
+          { /*<StakingControls /> */}
           <WrapStakingCard>
             {baseStakingInfo.map((stakingInfo, index) => {
               return <StakingCard key={index} stakingInfoTop={stakingInfo} account={account} chainId={chainId} />

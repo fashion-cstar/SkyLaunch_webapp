@@ -1,5 +1,5 @@
 import { ExternalLink, LinkStyledButton, TYPE } from '../../theme'
-import React, { useCallback, useContext } from 'react'
+import React, { useCallback, useContext, useEffect, useState } from 'react'
 import { fortmatic, injected, portis, walletconnect, walletlink } from '../../connectors'
 import styled, { ThemeContext } from 'styled-components'
 
@@ -26,13 +26,14 @@ import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline';
 import { makeStyles } from '@material-ui/core/styles'
 import Fab from '@material-ui/core/Fab'
 import { useHistory } from 'react-router'
-import { useIsFormSent, useIsKYCed, useUserId } from 'state/fundraising/hooks'
+import { useIsFormSent, useKYCStatus } from 'state/fundraising/hooks'
 
 const HeaderRow = styled.div`
   ${({ theme }) => theme.flexRowNoWrap};
   padding: 1rem 1rem;
   font-weight: 500;
-  color: ${props => (props.color === 'blue' ? ({ theme }) => theme.primary1 : 'inherit')};
+  font-size: 18px;
+  color: ${props => (props.color === 'blue' ? ({ theme }) => theme.primary1 : '#ccc')};
   ${({ theme }) => theme.mediaWidth.upToMedium`
     padding: 1rem;
   `};
@@ -83,7 +84,7 @@ const AccountGroupingRow = styled.div`
 const AccountSection = styled.div`
   background-color: ${({ theme }) => theme.bg1};
   padding: 0rem 1rem;
-  border-radius: 12px;
+  border-radius: 12px;  
   ${({ theme }) => theme.mediaWidth.upToExtraSmall`padding: 0rem 1rem 0rem 1rem;`};
 `
 
@@ -154,6 +155,7 @@ const CloseIcon = styled.div`
   position: absolute;
   right: 1rem;
   top: 14px;
+  color: ${props => (props.color === 'blue' ? ({ theme }) => theme.primary1 : '#ccc')};
   &:hover {
     cursor: pointer;
     opacity: 0.6;
@@ -261,11 +263,11 @@ const useStyles = makeStyles((theme) => ({
     },
   },
   extendedIconRed: {
-    marginRight: theme.spacing(1),
+    marginRight: theme.spacing(0),
     backgroundColor: '#FF6871'
   },
   extendedIconGreen: {
-    marginRight: theme.spacing(1),
+    marginRight: theme.spacing(0),
     backgroundColor: '#27AE60'
   },
 }));
@@ -282,9 +284,18 @@ export default function AccountDetails({
   const dispatch = useDispatch<AppDispatch>()
   const history = useHistory()
   const IsFormSent = useIsFormSent()
-  const isKYCed = useIsKYCed()
-  const userId = useUserId()
+  const { isKYCed } = useKYCStatus()
+  // const userId = useUserId()
+  const [userId, setUserId] = useState<string | undefined | null>()
   const classes = useStyles()
+
+  useEffect(() => {
+    if (account) {
+      setUserId(localStorage.getItem('userId'))
+    } else {
+      setUserId(undefined)
+    }
+  }, [account])
 
   function formatConnectorName() {
     const { ethereum } = window
@@ -400,15 +411,15 @@ export default function AccountDetails({
                         <p> {account && shortenAddress(account)}</p>
                       </div>
                       {isKYCed ? (
-                        <>
-                          {/* <Fab size="small" className={classes.extendedIconGreen} variant="extended">
-                            <CheckCircleIcon /> KYC
-                          </Fab> */}
+                        <>                          
+                          <div style={{border: '2px solid #888', borderRadius:'13px', padding:'2px 8px 2px 8px'}}>
+                            <CheckCircleIcon /> <span style={{ color: '#aaa', fontSize:'12px' }}>KYC Approved</span>
+                          </div>
                         </>
                       ) : (
                         <>
                           <Fab size="small" onClick={goToKyc} className={classes.extendedIconRed} variant="extended" disabled={!userId || IsFormSent}>
-                            {!(!userId || IsFormSent) && <ErrorOutlineIcon />} <span style={{color:(!userId || IsFormSent)?'white':'inherit'}}>{IsFormSent ? 'IN PROGRESS' : 'KYC'}</span>
+                            {!(!userId || IsFormSent) && <ErrorOutlineIcon />} <span style={{ color: (!userId || IsFormSent) ? 'white' : 'inherit' }}>{IsFormSent ? 'IN PROGRESS' : 'KYC'}</span>
                           </Fab>
                         </>
                       )}

@@ -17,8 +17,7 @@ const SelectWrap = styled.div`
 `
 const Title = styled.h2`
   font-size: 32px;
-  font-weight: bold;
-  font-family: Poppins;
+  font-weight: bold;  
   margin-right: 30px;
   ${({ theme }) => theme.mediaWidth.upToSmall`
   font-size: 20px;
@@ -52,8 +51,7 @@ const Heading = styled.h5`
   color: #a7b1f4;
   opacity: 0.4;
   font-size: 13px;
-  font-weight: 600;
-  font-family: Poppins;
+  font-weight: 600;  
   ${({ theme }) => theme.mediaWidth.upToSmall`
   text-align: center
 `};

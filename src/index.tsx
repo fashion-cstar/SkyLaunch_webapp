@@ -1,6 +1,6 @@
 import 'inter-ui'
 import './i18n'
-
+import './index.css'
 import React, { StrictMode } from 'react'
 import ThemeProvider, { FixedGlobalStyle, ThemedGlobalStyle } from './theme'
 import { Web3ReactProvider, createWeb3ReactRoot } from '@web3-react/core'

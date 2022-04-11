@@ -72,7 +72,7 @@ export default function CustomizedSteppers({activeStep}:{activeStep:number}) {
       <Stepper alternativeLabel activeStep={activeStep} connector={<QontoConnector />}>
         {steps.map((label) => (
           <Step key={label}>
-            <StepLabel StepIconComponent={QontoStepIcon} >{label}</StepLabel>
+            <StepLabel StepIconComponent={QontoStepIcon} ><span style={{ fontFamily: 'Poppins' }}>{label}</span></StepLabel>
           </Step>
         ))}
       </Stepper>

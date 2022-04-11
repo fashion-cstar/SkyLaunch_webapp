@@ -1,5 +1,5 @@
 import { Button as RebassButton } from 'rebass/styled-components'
-import React, { useMemo, useState, useCallback } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 
 import { ExternalLink, Title, PageHeader } from '../../theme'
 import { IDO_LIST } from '../../constants/idos'
@@ -9,9 +9,11 @@ import MenuTabs from '../../components/MenuTabs'
 import styled from 'styled-components'
 import moment from 'moment'
 import { useHistory } from 'react-router'
+import { useIdoDetailFromPool, useIsFormSent, useKYCStatus } from 'state/fundraising/hooks'
 import { useActiveWeb3React } from '../../hooks'
-import { darken, lighten } from 'polished'
-import { useIsFormSent, useIsKYCed } from 'state/fundraising/hooks'
+import formatEther from 'utils/formatEther'
+import Circle from '../../assets/images/blue-loader.svg'
+import { CustomLightSpinner } from 'theme'
 
 const HeaderContainer = styled.div`  
   width: 100%;
@@ -24,9 +26,9 @@ const HeaderContainer = styled.div`
 `
 
 const HeaderButton = styled.div`
-  padding: 5px 20px;
+  padding: 8px 20px;
   border-radius: 50px;
-  background: linear-gradient(to right, #79E295, #349F9C);
+  background: linear-gradient(to right, #9384DC, #D49583);
   color: #000;
   font-weight: 600;
   cursor: pointer;
@@ -54,7 +56,7 @@ const ListContainer = styled.div`
   flex-direction: column;
   margin-top: 1rem;
   margin-bottom: 2rem;
-  padding: 30px 20px 0px 20px;  
+  padding: 30px 20px 30px 20px;  
   background: #1C1C1C;
   box-shadow: 0 0 5px 1px #101010;
   border-radius: 15px;
@@ -81,6 +83,14 @@ const TableHeader = styled.div`
   display: flex;
   justify-content: space-between;
   width: 100%;  
+  align-items: end;
+`
+
+const CenterWrap = styled.div`
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin: 1rem 0;
 `
 
 const Base = styled(RebassButton) <{
@@ -97,7 +107,6 @@ const Base = styled(RebassButton) <{
   text-align: center;
   border-radius: ${({ borderRadius }) => borderRadius ? borderRadius : '44px'};
   outline: none;
-  border: 1px solid transparent;
   color: white;
   text-decoration: none;
   display: flex;
@@ -118,54 +127,67 @@ const Base = styled(RebassButton) <{
 `
 
 const ButtonRegister = styled(Base) <{ isPointer?: boolean, isKYCed?: boolean }>`
-  box-shadow: inset 2px 2px 5px rgba(255, 255, 255, 0.095);
-  backdrop-filter: blur(28px);
-  color: #000;
+  color: #fff;
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 500;
   display: ${({ isKYCed }) => (isKYCed ? 'none' : 'block')};
   text-transform: uppercase;
-  background: linear-gradient(to right, #79E295, #349F9C);
+  background: linear-gradient(#1c1c1c, #1c1c1c) padding-box, 
+  linear-gradient(to right, #9384DC, #D49583);
+  background-origin: padding-box, border-box;
+  background-repeat: no-repeat;
+  border: 2px solid transparent;
   &:hover .tooltip {
     visibility: visible;
     opacity: 1;
   }
-  &:focus {
-    opacity: 0.8;
-  }
-  &:focus {
-    box-shadow: 0 0 0 1pt ${({ theme }) => darken(0.05, theme.primary1)};
-    background-color: ${({ theme }) => darken(0.05, theme.primary1)};
-  }
-  &:hover {
-    background-color: ${({ theme }) => darken(0.05, theme.primary1)};
-  }
-  &:active {
-    box-shadow: 0 0 0 1pt ${({ theme }) => darken(0.1, theme.primary1)};
-    background-color: ${({ theme }) => darken(0.1, theme.primary1)};
-  }
   &:disabled {
-    background-color: ${({ theme, altDisabledStyle }) => (altDisabledStyle ? theme.primary1 : darken(3, theme.primary1))};
-    color: ${({ theme }) => theme.text1};
-    cursor: ${({ isPointer }) => (isPointer ? 'pointer' : 'auto')};
-    box-shadow: none;
-    border: 1px solid transparent;
-    outline: none;
-    opacity: ${({ altDisabledStyle }) => (altDisabledStyle ? '0.7' : '.7')};
+    opacity: 50%;
+    cursor: auto;
   }
 `
 
+const LaunchPadTitle = styled.div`
+  width: 100%;
+  font-size: 70px;
+  font-weight: 600;
+  margin-bottom: 10px;
+${({ theme }) => theme.mediaWidth.upToMedium`
+  text-align: center;
+  font-size: 50px;
+  font-weight: 500;
+  margin-top: 10px;
+  margin-bottom: 20px;
+`};
+`
+
 export default function ZeroGravityList() {
+  const { library, account, chainId } = useActiveWeb3React()
   const [activeTab, setActiveTab] = useState('upcoming')
   const history = useHistory()
   const IsFormSent = useIsFormSent()
-  const isKYCed = useIsKYCed()
-  const IdoListFiltered = IDO_LIST // fetch this list from the server  
+  const { isKYCed } = useKYCStatus()
+  const { getIdoDetailCallback } = useIdoDetailFromPool()
+  const [IdoListFiltered, setIdoListFiltered] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(false)
 
   const onHandleChangeTab = (tab: string) => {
     setActiveTab(tab)
   }
-  
+
+  useEffect(() => {
+    if (IDO_LIST){
+      setIsLoading(true)      
+      getIdoDetailCallback(IDO_LIST).then((list:any[]) => {
+        setIdoListFiltered(list)         
+        setIsLoading(false)             
+      }).catch(error => {        
+        setIdoListFiltered([])
+        setIsLoading(false)      
+      })                  
+    }
+  }, [IDO_LIST, account])
+
   const handleRegisterClick = useCallback(() => history.push('/launchpad/kyc'), [history]);
 
   const tabs = [
@@ -186,12 +208,12 @@ export default function ZeroGravityList() {
   return (
     <>
       <PageHeader>
-        <Title>Launchpad</Title>
+        <LaunchPadTitle>Launchpad</LaunchPadTitle>
         <StyledButtonsWrap>
           <StyledExternalLink href="https://skylaunch.finance/wp-content/uploads/2022/01/SkyLaunch-application-form.docx" target='_blank'>
             <HeaderButton className="launch-button green">Launch My Token</HeaderButton>
-          </StyledExternalLink>          
-          <ButtonRegister isKYCed={isKYCed} width="120px" padding="5px 20px" onClick={handleRegisterClick} disabled={IsFormSent}>{IsFormSent ? 'In Progress' : 'Register'}</ButtonRegister>
+          </StyledExternalLink>
+          <ButtonRegister width={isKYCed ? "190px" : "140px"} padding="6px 25px" onClick={handleRegisterClick} disabled={IsFormSent || isKYCed}>{IsFormSent ? 'In Progress' : isKYCed ? 'KYC Approved' : 'Register'}</ButtonRegister>
         </StyledButtonsWrap>
         <HeaderContainer>
           <MenuTabs
@@ -204,35 +226,42 @@ export default function ZeroGravityList() {
       <PageContainer>
         <ListContainer>
           <HeadersWrap>
-            <div style={{ minWidth: '110px', width: '110px', height: '20px' }}></div>
+            <div style={{ minWidth: '120px', width: '120px', height: '20px' }}></div>
             <div style={{ minWidth: '160px', width: '160px' }}></div>
             <TableHeader>
               <HeaderSection width={16}>Type</HeaderSection>
               <HeaderSection width={17}>Launch Date</HeaderSection>
-              <HeaderSection width={17}>Total Raise</HeaderSection>
+              <HeaderSection width={17}>Target Raise</HeaderSection>
               <HeaderSection width={16}>Token Amount</HeaderSection>
-              <HeaderSection width={17}>Min Alloc.</HeaderSection>
-              <HeaderSection width={17}>Max Alloc.</HeaderSection>
+              <HeaderSection width={17}>IDO Price</HeaderSection>
+              <HeaderSection width={17}>Max Alloc</HeaderSection>
             </TableHeader>
           </HeadersWrap>
-          {IdoListFiltered?.map((idoInfo: any, index: number) => {
-            if (activeTab === 'upcoming' && moment(idoInfo?.launchDate).isAfter(moment.now())) {
-              return (
-                <IdoRow key={index} idoInfo={idoInfo} idoIndex={index} />
-              )
-            }
-            if (activeTab === 'live' && moment(idoInfo?.launchDate).isBefore(moment.now()) && moment(idoInfo?.endDate).isAfter(moment.now())) {
-              return (
-                <IdoRow key={index} idoInfo={idoInfo} idoIndex={index} />
-              )
-            }
-            if (activeTab === 'finished' && moment(idoInfo?.endDate).isBefore(moment.now())) {
-              return (
-                <IdoRow key={index} idoInfo={idoInfo} idoIndex={index} />
-              )
-            }
-            return null
-          })}
+          {isLoading ?
+            <CenterWrap>
+              < CustomLightSpinner src={Circle} alt="loader" size={'90px'} />
+            </CenterWrap> :
+            <>
+              {IdoListFiltered?.map((idoInfo: any, index: number) => {
+                if (activeTab === 'upcoming' && moment(idoInfo?.launchDate).isAfter(moment.now())) {
+                  return (
+                    <IdoRow key={index} idoInfo={idoInfo} idoIndex={index} />
+                  )
+                }
+                if (activeTab === 'live' && moment(idoInfo?.launchDate).isBefore(moment.now()) && moment(idoInfo?.endDate).isAfter(moment.now())) {
+                  return (
+                    <IdoRow key={index} idoInfo={idoInfo} idoIndex={index} />
+                  )
+                }
+                if (activeTab === 'finished' && moment(idoInfo?.endDate).isBefore(moment.now())) {
+                  return (
+                    <IdoRow key={index} idoInfo={idoInfo} idoIndex={index} />
+                  )
+                }
+                return null
+              })}
+            </>
+          }
         </ListContainer>
       </PageContainer>
     </>

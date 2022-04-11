@@ -21,19 +21,6 @@ import { IDO_LIST } from '../../constants/idos'
 import moment from 'moment'
 import UpcomingIdoRow from './UpcomingIdoRow'
 
-const BubbleMarginWrap = styled.div`
-  display: flex;
-  gap: 1rem;
-  ${({ theme }) => theme.mediaWidth.upToMedium`
-    width: 100%;
-    justify-content: space-between;
-    align-items: center;
-  `};
-  ${({ theme }) => theme.mediaWidth.upToExtraSmall`
-    gap: 0.1rem;
-  `};
-`
-
 const HomeContainer = styled.div`
   display: flex;
   flex-direction: column;
@@ -55,11 +42,12 @@ const HomeWrapper = styled.div`
 `
 
 const Header = styled.div`
-  text-transform: uppercase;
+  // text-transform: uppercase;
 `
 const Heading = styled.div`
   margin-top: 25px;
   font-size: 20px;
+  font-weight: 700;
   ${({ theme }) => theme.mediaWidth.upToSmall`
     margin-top: 15px;
     font-size: 18px;
@@ -67,7 +55,8 @@ const Heading = styled.div`
   `};
 `
 const HowToHeading = styled.div`
-  font-size: 15px;
+  font-size: 17px;
+  font-weight: 500;
   ${({ theme }) => theme.mediaWidth.upToSmall`
     font-size: 14px;
     text-align: center;
@@ -75,9 +64,10 @@ const HowToHeading = styled.div`
 `
 const Summary = styled.div`
   margin-bottom: 1rem;  
-  margin-top: 10px;
+  margin-top: 20px;
   font-size: 14px;
   color: #b0b0b0;
+  line-height: 1.4;
   ${({ theme }) => theme.mediaWidth.upToSmall`
     font-size: 12px;
     text-align: center;
@@ -88,10 +78,12 @@ const WelcomeContainer = styled.div`
 const ScoreMiningContainer = styled.div`
 `
 const HowToContainer = styled.div`
+  margin-top: 10px;
 `
 const ListSection = styled.ul`
   font-size: 14px;
   color: #b0b0b0;
+  line-height: 1.4;
   ${({ theme }) => theme.mediaWidth.upToSmall`
     font-size: 12px;  
   `};
@@ -103,50 +95,11 @@ const UpcomingIdosContainer = styled.div`
 const IdosWrapper = styled.div`
   display: flex;
   justify-content: space-around;
-  align-items: end;
+  align-items: stretch;
   flex-wrap: wrap;
   margin-top: 1rem;
-  margin-bottom: 1rem;  
-`
-const Flex = styled.div<{ isColumn: boolean }>`
-  margin: 20px auto 0;
-  display: flex;
-  justify-content: ${({ isColumn }) => (isColumn ? 'center' : 'space-between')};
-  flex-wrap: wrap;  
-  gap: 4rem;
-  ${({ theme }) => theme.mediaWidth.upToMedium`
-  flex-direction: column;
-  align-items: center;
-  gap: 3rem;
-  margin: 10px auto 0;
-`};
-  ${({ theme }) => theme.mediaWidth.upToSmall`
-  gap: 2rem;
-`};
 `
 
-const CenterWrap = styled.div`
-  display: flex;
-  justify-content: center;
-  width: 100%;
-  margin: 1rem 0;
-`
-const FlexButtons = styled.div`
-  display: flex;
-  justify-content: space-around;
-  width: 100%;
-  margin-top: 50px;
-  margin-bottom: 4rem;
-  ${({ theme }) => theme.mediaWidth.upToSmall`
-  justify-content: center;
-`};
-`
-const Button = styled.div`
-  width: 25%;
-  ${({ theme }) => theme.mediaWidth.upToSmall`
-    width:100%;
-  `};
-`
 const HeroWrapper = styled.img`  
   width: 100%;    
   border-radius: 15px;
@@ -264,7 +217,7 @@ export default function Home() {
               </Header>
             </WelcomeContainer>
             <UpcomingIdosContainer>
-              <Heading>UPCOMING IDOs</Heading>              
+              <Heading>UPCOMING IDOS</Heading>              
               <IdosWrapper>
                 {IdoListFiltered?.map((idoInfo: any, index:number) => {
                   if (moment(idoInfo?.launchDate).isAfter(moment.now())) {
@@ -274,10 +227,11 @@ export default function Home() {
                   }               
                   return null
                 })}
-              </IdosWrapper>
-              <HowToContainer>              
+              </IdosWrapper>              
+            </UpcomingIdosContainer>
+            <HowToContainer>              
                 <Header>
-                  <HowToHeading>How to participate</HowToHeading>
+                  <Heading>How to participate</Heading>
                   <Summary>
                     To participate in a SkyLaunch IDO, select launchpad on the left menu. You can participate in the selection of IDOs listed under the ‘live’ selection immediately, and once the functionality is in place we will have the option to select and participate in upcoming IDOs. Your IDO allocation is determined by your allocation score, which you can find on our SKYFI stakepad. This score is determined by your SKYFI staking and takes into account amount staked, length of stake, and number of days since your last withdrawal. IDO participation follows 5 key steps:
                   </Summary>
@@ -290,7 +244,6 @@ export default function Home() {
                   </ListSection>
                 </Header>
               </HowToContainer>
-            </UpcomingIdosContainer>
             <ScoreMiningContainer>              
               <Header>
                 <Heading>Score Mining - A fairer allocation system for everyone</Heading>

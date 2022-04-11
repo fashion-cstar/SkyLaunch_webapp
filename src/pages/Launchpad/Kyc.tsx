@@ -5,9 +5,10 @@ import { CgCheckO } from 'react-icons/cg';
 import PageContainer from 'components/PageContainer';
 import styled from 'styled-components';
 import { Title, PageHeader } from '../../theme'
-import { useUserId, useJwtToken } from 'state/fundraising/hooks'
+// import { useUserId, useJwtToken } from 'state/fundraising/hooks'
 import { setIsFormSent } from 'state/fundraising/actions'
 import { useDispatch } from 'react-redux'
+import { useActiveWeb3React } from '../../hooks'
 
 const BgWrapper = styled.div`
   background: #1c1c1c;
@@ -22,14 +23,6 @@ const BgWrapper = styled.div`
     border-radius: 16px;
     padding: 20px;
   `};
-`
-const HeadingRow = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-`
-const Heading = styled.h2`
-
 `
 
 const Disclaimer = styled.div`
@@ -80,14 +73,16 @@ const Row = styled.div`
 `
 export default function SkyLaunchKyc() {
   const dispatch = useDispatch<AppDispatch>()
+  const { library, account, chainId } = useActiveWeb3React()
   const [formSent, setFormSent] = useState(false)  
-  const [emailState, setEmailState] = useState('')  
+  const [emailState, setEmailState] = useState('')    
   const handleEmailState = (input: any) => {
     const val = input.target.value;
     setEmailState(val);
   }
-  const userId = useUserId()
-  const jwtToken = useJwtToken()
+  // const userId = useUserId()
+  // const jwtToken = useJwtToken()
+  const [userId, setUserId] = useState<string | undefined | null>()
   const [walletState, setWalletState] = useState('')
   const handleWalletState = (input: any) => {
     const val = input.target.value;
@@ -97,7 +92,15 @@ export default function SkyLaunchKyc() {
   const [blockpass, setBlockpass] = useState()
 
   useEffect(() => {
-    if (window && userId !== '') {
+    if (account){
+        setUserId(localStorage.getItem('userId'))
+    }else{
+        setUserId(undefined)
+    }
+}, [account])
+
+  useEffect(() => {
+    if (window && userId) {
       loadBlockpassWidget()
     }
   }, [userId])

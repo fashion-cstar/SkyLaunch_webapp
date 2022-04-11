@@ -7,7 +7,6 @@ import Logo from './../../assets/images/skylaunch_logo_white_01.png'
 import NonceBloxLogo from './../../assets/images/nonceblox-logo.png'
 
 import Annoucements from './../../assets/social_icons/annoucements.png'
-import Linktree from './../../assets/social_icons/linktree.png'
 import Medium from './../../assets/social_icons/medium.png'
 import Reddit from './../../assets/social_icons/reddit.png'
 import Telegram from './../../assets/social_icons/telegram.png'
@@ -22,14 +21,8 @@ import { ReactComponent as LaunchPadSvg } from './../../assets/svg/sidebar/launc
 import { ReactComponent as LaunchPadFillSvg } from './../../assets/svg/sidebar/launchpad_fill.svg'
 import { ReactComponent as IdoSvg } from './../../assets/svg/sidebar/ido.svg'
 import { ReactComponent as IdoFillSvg } from './../../assets/svg/sidebar/ido_fill.svg'
-import { ReactComponent as MoreSvg } from './../../assets/svg/sidebar/more.svg'
-import { ReactComponent as MoreFillSvg } from './../../assets/svg/sidebar/more_fill.svg'
 
 import { ReactComponent as BuySkyFiSvg } from './../../assets/svg/buyskyfi.svg'
-import { ReactComponent as FacebookSvg } from './../../assets/svg/facebook.svg'
-import { ReactComponent as InstagramSvg } from './../../assets/svg/instagram.svg'
-import { ReactComponent as TwitterSvg } from './../../assets/svg/twitter.svg'
-import { ReactComponent as YoutubeSvg } from './../../assets/svg/youtube.svg'
 import MenuBurger from './../MenuBurger'
 import ModalMore from './../ModalMore'
 import { NavLink } from 'react-router-dom'
@@ -40,7 +33,7 @@ import { SKYFI } from '../../constants'
 import { useActiveWeb3React } from 'hooks'
 
 const SideMenuWrapper = styled.div<{ open?: boolean }>`
-  height: 100%;
+  height: 100%;  
   width: 260px;
   display: flex;
   flex-direction: column;
@@ -88,8 +81,7 @@ const StyledNavLink = styled(NavLink).attrs({
   color: ${({ theme }) => theme.white};
   width: fit-content;
   font-weight: 600;
-  transition: all 0.2s ease-in-out;
-  font-family: 'Poppins', sans-serif;
+  transition: all 0.2s ease-in-out;  
   margin-bottom: 1.5rem;
   span {
     &.active {
@@ -107,8 +99,7 @@ const StyledNavSvgLink = styled(NavLink)`
   text-decoration: none;
   color: ${({ theme }) => theme.white};  
   font-weight: 600;  
-  transition: all 0.2s ease-in-out;  
-  font-family: 'Poppins', sans-serif;  
+  transition: all 0.2s ease-in-out;    
   margin-bottom: 1.5rem;
   display: flex;
   flex-direction: row;  
@@ -126,8 +117,7 @@ const HeaderExternalLink = styled(ExternalLink)`
   color: ${({ theme }) => theme.white};
   transition: all 0.2s ease-in-out;
   text-transform: uppercase;
-  font-size: 16px;
-  font-family: 'Poppins', sans-serif;
+  font-size: 16px;  
   font-weight: 600;
   margin-bottom: 1.5rem;
   display: flex;
@@ -146,8 +136,7 @@ const HeaderExternalLink = styled(ExternalLink)`
 const SubExternalLink = styled(ExternalLink)`
   color: ${({ theme }) => theme.white};
   text-transform: uppercase;
-  font-size: 14px;
-  font-family: 'Poppins', sans-serif;
+  font-size: 14px;  
   font-weight: 500;
   opacity: 0.6;
   margin-bottom: 0.5rem;
@@ -171,6 +160,7 @@ const IconLink = styled.span`
 `
 const MoreLink = styled.span`
   display: flex;
+  align-items: center;
   cursor: pointer;
   color: ${({ theme }) => theme.white};
 `
@@ -195,9 +185,9 @@ const FooterContainer = styled.div`
 const FooterLinks = styled.div`
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-between;
-  margin-bottom: 30px;
-  margin-top: 3rem;
+  justify-content: space-around;
+  gap: 10px;
+  margin-bottom: 15px;
 `
 
 const FooterLogo = styled.div`
@@ -206,7 +196,7 @@ const FooterLogo = styled.div`
   align-items: center;
   text-transform: uppercase;
   font-size: 16px;
-
+  margin-top: 30px;
   span {
     opacity: 0.6;
   }
@@ -220,8 +210,7 @@ const FooterLogo = styled.div`
 const FooterExternalLink = styled(ExternalLink)`
   color: ${({ theme }) => theme.white};
   text-transform: uppercase;
-  font-size: 16px;
-  font-family: 'Poppins', sans-serif;
+  font-size: 16px;  
   font-weight: 600;
   display: flex;
   flex-direction: row;
@@ -270,59 +259,32 @@ export default function SideMenu() {
         <HeaderLinks>
           <StyledNavSvgLink id={`swap-nav-link`} to={'/home'} onClick={handleSideMenuOpen}>
             <IconLink>
-              {pathname.includes('home')?<HomeFillSvg />:<HomeSvg />}
+              {pathname.includes('home') ? <HomeFillSvg /> : <HomeSvg />}
               {/* <Icon icon="home" active={pathname === '/home'} /> */}
             </IconLink>
             <span className={pathname === '/home' ? 'active' : ''}>{t('Home')}</span>
           </StyledNavSvgLink>
           <StyledNavSvgLink id={`staking-nav-link`} to={'/stake'} onClick={handleSideMenuOpen}>
             <IconLink>
-              {pathname.includes('stake')?<StakeFillSvg />:<StakeSvg />}
-              {/* <Icon icon="market" active={pathname === '/stake'} /> */}
+              {pathname.includes('stake') ? <StakeFillSvg /> : <StakeSvg />}
             </IconLink>
             <span className={pathname === '/stake' ? 'active' : ''}>{t('Stake')}</span>
           </StyledNavSvgLink>
-          {/* <StyledNavLink id={`swap-nav-link`} to={'/swap'} onClick={handleSideMenuOpen}>
-            <IconLink>
-              <Icon icon="swap" active={pathname === '/swap'} />
-            </IconLink>
-            <span className={pathname === '/swap' ? 'active' : ''}>{t('Swap')}</span>
-          </StyledNavLink>
-          <StyledNavLink id={`transfer-nav-link`} to={'/transfer'} onClick={handleSideMenuOpen}>
-            <IconLink>
-              <Icon icon="bridges" active={pathname === '/transfer'} />
-            </IconLink>
-            <span className={pathname === '/transfer' ? 'active' : ''}>{t('Transfer')}</span>
-          </StyledNavLink>
-          <StyledNavLink id={`pools-nav-link`} to={'/pools'} onClick={handleSideMenuOpen}>
-            <IconLink>
-              <Icon icon="earn" active={pathname === '/pools'} />
-            </IconLink>
-            <span className={pathname === '/pools' ? 'active' : ''}>{t('Pools')}</span>
-          </StyledNavLink>
-          <HeaderExternalLink href={`https://charts.0.exchange`}>
-            <IconLink>
-              <Icon icon="charts" />
-            </IconLink>
-            {t('Charts')}
-          </HeaderExternalLink> */}
           <StyledNavSvgLink id={`pools-nav-link`} to={'/launchpad'} onClick={handleSideMenuOpen}>
-            <IconLink>              
-              {pathname.includes('launchpad')?<LaunchPadFillSvg />:<LaunchPadSvg />}
-              {/* <Icon icon="planet" active={pathname.includes('launchpad')} /> */}
+            <IconLink>
+              {pathname.includes('launchpad') ? <LaunchPadFillSvg /> : <LaunchPadSvg />}
             </IconLink>
             <span className={pathname.includes('launchpad') ? 'active' : ''}>{t('Launchpad')}</span>
           </StyledNavSvgLink>
           <StyledNavSvgLink id={`pools-nav-link`} to={'/ido'} onClick={handleSideMenuOpen}>
             <IconLink>
-              {pathname.includes('ido')?<IdoFillSvg />:<IdoSvg />}
-              {/* <Icon icon="ido" active={pathname.includes('ido')} /> */}
+              {pathname.includes('ido') ? <IdoFillSvg /> : <IdoSvg />}
             </IconLink>
             <span className={pathname.includes('ido') ? 'active' : ''}>{t('User Ido Tokens')}</span>
           </StyledNavSvgLink>
-          { chainId && (
+          {chainId && (
             <HeaderExternalLink href={'https://app.uniswap.org/#/swap?use=V2&inputCurrency=ETH&outputCurrency=' + SKYFI[chainId].address}>
-              <IconLink>              
+              <IconLink>
                 <BuySkyFiSvg />
               </IconLink>
               Buy SKYFI
@@ -332,7 +294,7 @@ export default function SideMenu() {
             <IconLink style={{ paddingTop: '4px' }}>
               <Icon icon="more" />
             </IconLink>
-            {t('More ...')}
+            {t('MORE ...')}
           </MoreLink>
           <SubLinks>
             <SubExternalLink href={'https://skylaunch.finance/'}>
@@ -345,59 +307,41 @@ export default function SideMenu() {
         </HeaderLinks>
         <FooterContainer>
           <FooterLinks>
-            {/* <FooterExternalLink href={'https://facebook.com/SkyLaunchDefi'} style={{ marginTop: '3rem' }}>
+            {/* <FooterExternalLink href={'https://linktr.ee/Skylaunch'} style={{ margin: '1px' }}>
               <FooterIconLink>
-                <FacebookSvg />
+                <img src={Linktree} alt="" width="33px" />
               </FooterIconLink>
-            </FooterExternalLink>
-            <FooterExternalLink href={'https://instagram.com/SkyLaunchDefi'} style={{ marginTop: '3rem' }}>
-              <FooterIconLink>
-                <InstagramSvg />
-              </FooterIconLink>
-            </FooterExternalLink>
-            <FooterExternalLink href={'https://twitter.com/skylaunchdefi'} style={{ marginTop: '3rem' }}>
-              <FooterIconLink>
-                <TwitterSvg />
-              </FooterIconLink>
-            </FooterExternalLink>
-            <FooterExternalLink href={'https://youtube.com/SkyLaunchDefi'} style={{ marginTop: '3rem' }}>
-              <FooterIconLink>
-                <YoutubeSvg />
-              </FooterIconLink>
-            </FooterExternalLink> */}            
-            <FooterExternalLink href={'https://linktr.ee/Skylaunch'} style={{ margin: '1px' }}>
-              <FooterIconLink>
-              <img src={Linktree} alt="" width="22px" />
-              </FooterIconLink>
-            </FooterExternalLink>
+            </FooterExternalLink> */}
             <FooterExternalLink href={'https://skylaunch.finance'} style={{ margin: '1px' }}>
               <FooterIconLink>
-              <img src={Website} alt="" width="22px" />
+                <img src={Website} alt="" width="33px" />
               </FooterIconLink>
             </FooterExternalLink>
             <FooterExternalLink href={'https://medium.com/skylaunch'} style={{ margin: '1px' }}>
               <FooterIconLink>
-              <img src={Medium} alt="" width="22px" />
+                <img src={Medium} alt="" width="33px" />
               </FooterIconLink>
             </FooterExternalLink>
             <FooterExternalLink href={'https://t.me/SkylaunchNews'} style={{ margin: '1px' }}>
               <FooterIconLink>
-              <img src={Annoucements} alt="" width="22px" />
+                <img src={Annoucements} alt="" width="33px" />
               </FooterIconLink>
             </FooterExternalLink>
+          </FooterLinks>
+          <FooterLinks>
             <FooterExternalLink href={'https://twitter.com/skylaunchdefi'} style={{ margin: '1px' }}>
               <FooterIconLink>
-              <img src={Twitter} alt="" width="22px" />
+                <img src={Twitter} alt="" width="33px" />
               </FooterIconLink>
             </FooterExternalLink>
             <FooterExternalLink href={'https://www.reddit.com/r/SkyLaunch/'} style={{ margin: '1px' }}>
               <FooterIconLink>
-              <img src={Reddit} alt="" width="22px" />
+                <img src={Reddit} alt="" width="33px" />
               </FooterIconLink>
             </FooterExternalLink>
             <FooterExternalLink href={'https://t.me/skylaunchchat'} style={{ margin: '1px' }}>
               <FooterIconLink>
-              <img src={Telegram} alt="" width="22px" />
+                <img src={Telegram} alt="" width="33px" />
               </FooterIconLink>
             </FooterExternalLink>
           </FooterLinks>

@@ -1,15 +1,13 @@
 import { JSBI, Pair, TokenAmount, ETHER_CURRENCIES } from '@skylaunch/sdk'
 import { BIG_INT_SECONDS_IN_WEEK, BIG_INT_ZERO } from '../../constants'
 import { ButtonOutlined, ButtonPrimary, ButtonSuccess, ButtonSecondary } from '../../components/Button'
-import { CardBGImage, CardNoise, CardSection, DataCard } from '../../components/pools/styled'
 import { ExternalLink, StyledInternalLink, TYPE, PageHeader, Title } from '../../theme'
-import React, { useCallback, useContext, useMemo, useState } from 'react'
+import React, { useCallback, useContext, useMemo, useState, useEffect } from 'react'
 import { RowBetween, RowCenter } from '../../components/Row'
 import styled, { ThemeContext } from 'styled-components'
 import { toV2LiquidityToken, useTrackedTokenPairs } from '../../state/user/hooks'
 import { useTokenBalance, useTokenBalancesWithLoadingIndicator } from '../../state/wallet/hooks'
 
-import { AutoColumn } from '../../components/Column'
 import Card from '../../components/Card'
 import ClaimRewardModal from '../../components/pools/ClaimRewardModal'
 import { CountUp } from 'use-count-up'
@@ -107,13 +105,14 @@ const Wrapper = styled.div`
   overflow: hidden;
   position: relative;
   ${({ theme }) => theme.mediaWidth.upToMedium`
-  border-radius: 16px;
-  padding: 16px 16px;
+    border-radius: 16px;
+    padding: 32px 16px;
 `};
 `
 const StatsWrapper = styled.div`
   display: flex;
   flex-wrap: wrap;
+  gap: 20px;
   align-items: center;
   padding: 2rem;
   background: rgba(0, 0, 0, 0.25);
@@ -223,10 +222,6 @@ const StyledTradelLink = styled(ExternalLink)`
   ${({ theme }) => theme.mediaWidth.upToMedium`
     margin-bottom: 10px;
 `};
-  // button {
-  //   background: rgba(30, 247, 231, 0.18);
-  //   border: 1px solid #1ef7e7;
-  // }
 `
 const StyledButtonsWrap = styled.div`
   display: flex;
@@ -234,8 +229,8 @@ const StyledButtonsWrap = styled.div`
   margin-left: auto;
   column-gap: 40px;
   ${({ theme }) => theme.mediaWidth.upToMedium`
-width: 100%;
-flex-direction: column;
+    width: 100%;
+    flex-direction: column;
 `};
 `
 export default function Manage({
@@ -411,7 +406,7 @@ export default function Manage({
             stakingInfo={stakingInfo}
           />
         </>
-      )}      
+      )}
       <PageHeader>
         <Title>Manage</Title>
       </PageHeader>
@@ -421,7 +416,7 @@ export default function Manage({
             <SymbolTitleWrapper>
               {isSingleSided
                 ? <SymbolTitleInner>
-                  <span style={{ marginLeft: '10px', marginRight: '10px' }}>/SKYFI Liquidity Mining</span>
+                  <span style={{ marginLeft: '10px', marginRight: '10px' }}>SKYFI Liquidity Mining</span>
                   <CurrencyLogo currency={currencyA ?? undefined} />
                 </SymbolTitleInner>
                 : <SymbolTitleInner>
@@ -447,7 +442,7 @@ export default function Manage({
                 <StatValue>
                   {valueOfTotalStakedAmountInUSDC
                     ? `$${valueOfTotalStakedAmountInUSDC.toFixed(0, { groupSeparator: ',' })}`
-                    : `${valueOfTotalStakedAmountInWETH?.toSignificant(4, { groupSeparator: ',' }) ?? '-'}`}
+                    : `${valueOfTotalStakedAmountInWETH?.toSignificant(4, { groupSeparator: ',' }) ?? '0 '}`}
                   <span>{symbol}</span>
                 </StatValue>
               </Stat>
@@ -465,18 +460,15 @@ export default function Manage({
               </Stat>
               <StyledButtonsWrap>
                 {stakingInfo?.rewardInfo?.tradeLink ?
-                    <StyledTradelLink className="trade-button-link" href={stakingInfo?.rewardInfo?.tradeLink}>
-                      {/* <ButtonOutlined className="add-liquidity-button">Trade</ButtonOutlined> */}
-                      <ButtonPrimary className="add-liquidity-button">Trade</ButtonPrimary>
-                    </StyledTradelLink> : <></>}
-
+                  <StyledTradelLink className="trade-button-link" href={stakingInfo?.rewardInfo?.tradeLink}>
+                    <ButtonPrimary className="add-liquidity-button">Trade</ButtonPrimary>
+                  </StyledTradelLink> : <></>}
                 {isSingleSided ? <></>
                   :
                   stakingInfo?.rewardInfo?.addLiquidityLink ?
-                    <ExternalLink href={stakingInfo?.rewardInfo?.addLiquidityLink}>
-                      {/* <ButtonOutlined className="add-liquidity-button">Add Liquidity</ButtonOutlined> */}
+                    <StyledTradelLink className="trade-button-link" href={stakingInfo?.rewardInfo?.addLiquidityLink}>
                       <ButtonSecondary className="add-liquidity-button">Add Liquidity</ButtonSecondary>
-                    </ExternalLink>
+                    </StyledTradelLink>
                     :
                     <StyledInternalLink
                       className="add-liquidity-link"
@@ -485,14 +477,12 @@ export default function Manage({
                         state: { stakingRewardAddress }
                       }}
                     >
-                      {/* <ButtonOutlined className="add-liquidity-button">Add Liquidity</ButtonOutlined> */}
                       <ButtonSecondary className="add-liquidity-button">Add Liquidity</ButtonSecondary>
                     </StyledInternalLink>}
                 {stakingInfo?.rewardInfo?.removeLiquidityLink ?
-                  <ExternalLink href={stakingInfo?.rewardInfo?.removeLiquidityLink}>
-                    {/* <ButtonOutlined className="add-liquidity-button">Remove Liquidity</ButtonOutlined> */}
+                  <StyledTradelLink className="trade-button-link" href={stakingInfo?.rewardInfo?.removeLiquidityLink}>
                     <ButtonSecondary className="add-liquidity-button">Remove Liquidity</ButtonSecondary>
-                  </ExternalLink>
+                  </StyledTradelLink>
                   : !userLiquidityUnstaked ? null
                     : userLiquidityUnstaked.equalTo('0') ? null
                       : isSingleSided ? null
@@ -555,7 +545,7 @@ export default function Manage({
                   <TYPE.white fontWeight={600} fontSize={[24, 32]} style={{ textOverflow: 'ellipsis' }}>
                     {/* {JSBI.toNumber(stakedAmount).toFixed(
                       Math.min(6, stakingInfo?.earnedAmount?.currency.decimals ?? 18)) ?? '-'} */}
-                      {stakingInfo?.totalStakedAmount.toFixed(2)}
+                    {stakingInfo?.totalStakedAmount.toFixed(2)}
 
                     <span style={{ opacity: '.8', marginLeft: '5px', fontSize: '16px' }}>
                       {isSingleSided ? `${currencyA?.symbol}` : `${stakingInfo?.rewardsTokenSymbol ? stakingInfo?.rewardsTokenSymbol : 'SKYFI '} ${currencyA?.symbol}-${currencyB?.symbol}`}
@@ -587,7 +577,7 @@ export default function Manage({
                                 {
                                   userLiquidityUnstaked?.toSignificant(
                                     Math.min(6, (stakingInfo && stakingInfo?.earnedAmount?.currency.decimals) || 0)).toString()
-                                }                                
+                                }
                                 <span style={{ opacity: '.8', marginLeft: '5px', fontSize: '16px' }}>{isSingleSided ? `${currencyA?.symbol} tokens` : `${stakingInfo?.rewardsTokenSymbol ? stakingInfo?.rewardsTokenSymbol : 'SKYFI '}  LP tokens`}</span>
                               </TYPE.white>
                               <ButtonPrimary

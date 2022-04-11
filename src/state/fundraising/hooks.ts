@@ -21,18 +21,7 @@ import formatEther from 'utils/formatEther'
 import { MaxUint256 } from '@ethersproject/constants'
 import Web3 from 'web3'
 import { useAddPopup } from 'state/application/hooks'
-
-export function useUserId(): AppState['fundraising']['userId'] {
-  return useSelector<AppState, AppState['fundraising']['userId']>(state => state.fundraising.userId)
-}
-
-export function useJwtToken(): AppState['fundraising']['JwtToken'] {
-  return useSelector<AppState, AppState['fundraising']['JwtToken']>(state => state.fundraising.JwtToken)
-}
-
-export function useSignedAccount(): AppState['fundraising']['signedAccount'] {
-  return useSelector<AppState, AppState['fundraising']['signedAccount']>(state => state.fundraising.signedAccount)
-}
+import { setIsClaimedNFT } from 'state/fundraising/actions'
 
 export function useIsLogging(): AppState['fundraising']['isLogging'] {
   return useSelector<AppState, AppState['fundraising']['isLogging']>(state => state.fundraising.isLogging)
@@ -40,6 +29,10 @@ export function useIsLogging(): AppState['fundraising']['isLogging'] {
 
 export function useIsFormSent(): AppState['fundraising']['isFormSent'] {
   return useSelector<AppState, AppState['fundraising']['isFormSent']>(state => state.fundraising.isFormSent)
+}
+
+export function useIsClaimedNFT(): AppState['fundraising']['isClaimedNFT'] {
+  return useSelector<AppState, AppState['fundraising']['isClaimedNFT']>(state => state.fundraising.isClaimedNFT)
 }
 
 export function useAddTxRevertedToast(): { addTxRevertedToast: (message: string) => void } {
@@ -96,6 +89,44 @@ export function usePoolAndUserInfoCallback()
   return { poolInfoCallback, userInfoCallback, countsOfPoolCallback }
 }
 
+export function useIdoDetailFromPool(): { getIdoDetailCallback: (IdoList:any[]) => Promise<any[]> } {
+  const { poolInfoCallback, countsOfPoolCallback } = usePoolAndUserInfoCallback()  
+  const getIdoDetailCallback = async function (IdoList: any[]) {
+    let list:any[]=[]
+    let countsOfPool = 0
+    await countsOfPoolCallback().then(res => {
+      countsOfPool = res
+    }).catch(error => { countsOfPool=0 })
+
+    await Promise.all(IdoList.map(async item => {
+      if (item.pid >= 0 && item.pid < countsOfPool) {
+        await poolInfoCallback(item.pid)
+          .then((poolInfo: PoolInfo | undefined) => {
+            if (poolInfo) {
+              let subscriptionStart = new Date(poolInfo.subscriptionStartTimestamp.toNumber() * 1000)
+              let fundingEnd = new Date(poolInfo.fundingEndTimestamp.toNumber() * 1000)
+              let targetRaise = formatEther(poolInfo.targetRaise, undefined, 2, true)
+              let price = formatEther(poolInfo.price, undefined, 4, false)
+              let temp = poolInfo.targetRaise.div(poolInfo.price)
+              let amount = temp.toNumber()
+              let tokenAmount="0"
+              if (amount >= 1000000) {
+                tokenAmount=(Math.round(amount/10000)/100).toString()+'M'
+              } else if (amount >= 1000) {
+                tokenAmount=(Math.round(amount/10000)/100).toString()+'K'
+              }
+              list.push({ ...item, launchDate: subscriptionStart, endDate: fundingEnd, targetRaise: targetRaise, totalAmount: tokenAmount, IdoPrice: price })
+            }
+          })
+          .catch(error => { })
+      }
+    }))
+    return list
+  }
+
+  return { getIdoDetailCallback }
+}
+
 export function useMaxAllocCallback(): { maxAllocCallback: (pid: number) => Promise<BigNumber | undefined> } {
   const { account, library, chainId } = useActiveWeb3React()
   const fundRaisingContract = useFundRaisingContract()
@@ -108,39 +139,27 @@ export function useMaxAllocCallback(): { maxAllocCallback: (pid: number) => Prom
   return { maxAllocCallback }
 }
 
-export function useUserNFTAllocCallback(): { NFTAllocCallback: () => Promise<BigNumber | undefined> } {
-  const { account, library, chainId } = useActiveWeb3React()
-  const skyNFTContract = useSkyNFTContract()
-  const NFTAllocCallback = async function () {
-    if (!skyNFTContract || !account) return BigNumber.from(0)
-    return skyNFTContract.userToAllocation(account).then((res: BigNumber) => {
-      return res
-    })
-  }
-  return { NFTAllocCallback }
-}
-
 export function useNFTDropClaimCallback(
   account: string | null | undefined
 ): {
-  NFTDropClaimCallback: () => Promise<string>,
+  NFTDropClaimCallback: (NFTAllocation: number) => Promise<TransactionResponse>,
 } {
   const { library, chainId } = useActiveWeb3React()
   const skyNFTContract = useSkyNFTContract()
   const addTransaction = useTransactionAdder()
 
-  const NFTDropClaimCallback = async function () {
+  const NFTDropClaimCallback = async function (NFTAllocation: number) {
     if (!account || !library || !chainId || !skyNFTContract) return
 
-    return skyNFTContract.estimateGas.claim().then(estimatedGasLimit => {
+    return skyNFTContract.estimateGas.mint(account, parseEther(NFTAllocation.toString(), 18)).then(estimatedGasLimit => {
       const gas = chainId === ChainId.AVALANCHE || chainId === ChainId.SMART_CHAIN ? BigNumber.from(350000) : estimatedGasLimit
       return skyNFTContract
-        .claim({ gasLimit: calculateGasMargin(gas) })
+        .mint(account, parseEther(NFTAllocation.toString(), 18), { gasLimit: calculateGasMargin(gas) })
         .then((response: TransactionResponse) => {
           addTransaction(response, {
             summary: `NFT Drop Claiming`
           })
-          return response.hash
+          return response
         })
     })
   }
@@ -154,7 +173,7 @@ export function useUserMultiplier(): BigNumber {
   useEffect(() => {
     const fetchUserMultiplier = async () => {
       if (fundRaisingContract) {
-        let res = await fundRaisingContract.getMultiplier(account)
+        let res = await fundRaisingContract.getMultiplier(account)  
         return res
       }
     }
@@ -184,7 +203,7 @@ export function usePendingRewards(pid: number): BigNumber {
     if (account && fundRaisingContract) {
       fetchUserPending().then(result => {
         setPending(result)
-      }).catch(console.error)
+      }).catch(error => {})
     } else {
       setPending(BigNumber.from(0))
     }
@@ -221,7 +240,6 @@ export function useTotalRewards(pid: number): BigNumber {
   const { account, library, chainId } = useActiveWeb3React()
   const fundRaisingContract = useFundRaisingContract()
   const [totalRewards, setTotalRewards] = useState(BigNumber.from(0))
-  const { slowRefresh, fastRefresh } = useRefresh()
 
   useEffect(() => {
     const fetchTotalRewards = async () => {
@@ -242,14 +260,46 @@ export function useTotalRewards(pid: number): BigNumber {
   return totalRewards
 }
 
-export function useNFTOwnerByIndex(account: string | null | undefined): { NFTOwnerByIndexCallback: () => Promise<number | undefined> } {
+export function useNFTOwnerByIndex(isOpen: boolean): number {
+  const { account, library, chainId } = useActiveWeb3React()
+  const testNFTContract = useSkyNFTContract()
+  const [tokenId, setTokenId] = useState(-1)
+  const { slowRefresh, middleRefresh, fastRefresh } = useRefresh()
+  const isClaimedNFT = useIsClaimedNFT()
+  const dispatch = useDispatch<AppDispatch>()
+
+  useEffect(() => {
+    const fetchNFTOwnerByIndex = async () => {
+      if (testNFTContract) {
+        let res = await testNFTContract.tokenOfOwnerByIndex(account, 0)
+        return res
+      }
+    }
+    if (account && testNFTContract) {
+      fetchNFTOwnerByIndex().then(result => {
+        if (result){
+          setTokenId(result.toNumber())
+          dispatch(setIsClaimedNFT({ isClaimedNFT: false }))
+        }else{
+          setTokenId(-1)
+        }
+      }).catch(error => { })
+    } else {
+      setTokenId(-1)
+    }
+  }, [account, testNFTContract, isClaimedNFT, isOpen])
+
+  return tokenId
+}
+
+export function useNFTOwnerByIndexCallback(account: string | null | undefined): { NFTOwnerByIndexCallback: () => Promise<BigNumber | undefined> } {
   const { library, chainId } = useActiveWeb3React()
   const testNFTContract = useSkyNFTContract()
   const NFTOwnerByIndexCallback = async function () {
     if (!testNFTContract || !account) return
     return testNFTContract.tokenOfOwnerByIndex(account, 0).then((tokenId: BigNumber) => {
-      return tokenId.toNumber()
-    })
+      return tokenId
+    }).catch((error: any)=> {})
   }
   return { NFTOwnerByIndexCallback }
 }
@@ -284,8 +334,8 @@ export function useFundAndRewardTokenCallback(account: string | null | undefined
 export function useSubscribeCallback(
   account: string | null | undefined
 ): {
-  subscribeCallback: (pid: number, claim: any) => Promise<string>,
-  subscribeWithNFTCallback: (pid: number, claim: any, NFTTokenId: number) => Promise<string>
+  subscribeCallback: (pid: number, claim: any) => Promise<TransactionResponse>,
+  subscribeWithNFTCallback: (pid: number, claim: any, NFTTokenId: number) => Promise<TransactionResponse>
 } {
   const { library, chainId } = useActiveWeb3React()
   const fundRaisingContract = useFundRaisingContract()
@@ -302,7 +352,7 @@ export function useSubscribeCallback(
           addTransaction(response, {
             summary: `Subscribing`
           })
-          return response.hash
+          return response
         })
     })
   }
@@ -318,7 +368,7 @@ export function useSubscribeCallback(
           addTransaction(response, {
             summary: `Subscribing`
           })
-          return response.hash
+          return response
         })
     })
   }
@@ -329,7 +379,7 @@ export function useSubscribeCallback(
 export function useClaimCallback(
   account: string | null | undefined
 ): {
-  claimCallback: (pid: number, symbol: string | undefined) => Promise<string>,
+  claimCallback: (pid: number, symbol: string | undefined) => Promise<TransactionResponse>,
   pendingCallback: (pid: number) => Promise<BigNumber>
 } {
   // get claim data for this account
@@ -353,7 +403,7 @@ export function useClaimCallback(
         addTransaction(response, {
           summary: `Claim accumulated ${symbol || ''} rewards`
         })
-        return response.hash
+        return response
       })
   }
   return { claimCallback, pendingCallback }
@@ -362,7 +412,7 @@ export function useClaimCallback(
 export function useFundApproveCallback(
   account: string | null | undefined
 ): {
-  fundApproveCallback: (pid: number, fundToken: Token, amount: BigNumber) => Promise<string>
+  fundApproveCallback: (pid: number, fundToken: Token, amount: BigNumber) => Promise<TransactionResponse>
 } {
   const { library, chainId } = useActiveWeb3React()
   const fundRaisingContract = useFundRaisingContract()
@@ -380,7 +430,7 @@ export function useFundApproveCallback(
             summary: 'Approve ' + fundToken?.symbol,
             approval: { tokenAddress: fundToken?.address, spender: fundRaisingContract.address }
           })
-          return response.hash
+          return response
         })
       })
     })
@@ -390,7 +440,7 @@ export function useFundApproveCallback(
 export function useFundItCallback(
   account: string | null | undefined
 ): {
-  fundItCallback: (pid: number, fundToken: Token, amount: number) => Promise<string>
+  fundItCallback: (pid: number, fundToken: Token, amount: number) => Promise<TransactionResponse>
 } {
   // get claim data for this account
   const { library, chainId } = useActiveWeb3React()
@@ -400,30 +450,30 @@ export function useFundItCallback(
   const fundItCallback = async function (pid: number, fundToken: Token, amount: number) {
     if (!account || !library || !chainId || !fundRaisingContract || !fundToken) return
     if (fundToken.address === ZERO_ADDRESS) {
-      return fundRaisingContract.estimateGas.fundSubscription(pid, parseEther(amount, fundToken?.decimals), {
-        value: parseEther(amount, fundToken?.decimals)
+      return fundRaisingContract.estimateGas.fundSubscription(pid, parseEther(amount.toString(), fundToken?.decimals), {
+        value: parseEther(amount.toString(), fundToken?.decimals)
       }).then(estimatedGasLimit => {
         const gas = chainId === ChainId.AVALANCHE || chainId === ChainId.SMART_CHAIN ? BigNumber.from(350000) : estimatedGasLimit
-        return fundRaisingContract.fundSubscription(pid, parseEther(amount, fundToken?.decimals), {
-          gasLimit: calculateGasMargin(gas), value: parseEther(amount, fundToken?.decimals)
+        return fundRaisingContract.fundSubscription(pid, parseEther(amount.toString(), fundToken?.decimals), {
+          gasLimit: calculateGasMargin(gas), value: parseEther(amount.toString(), fundToken?.decimals)
         }).then((response: TransactionResponse) => {
           addTransaction(response, {
             summary: `Funding ${amount} ${fundToken?.symbol}`
           })
-          return response.hash
+          return response
         })
       })
     } else {
-      return fundRaisingContract.estimateGas.fundSubscription(pid, parseEther(amount, fundToken?.decimals)).then(estimatedGas => {
-        return fundRaisingContract.estimateGas.fundSubscription(pid, parseEther(amount, fundToken?.decimals)).then(estimatedGasLimit => {
+      return fundRaisingContract.estimateGas.fundSubscription(pid, parseEther(amount.toString(), fundToken?.decimals)).then(estimatedGas => {
+        return fundRaisingContract.estimateGas.fundSubscription(pid, parseEther(amount.toString(), fundToken?.decimals)).then(estimatedGasLimit => {
           const gas = chainId === ChainId.AVALANCHE || chainId === ChainId.SMART_CHAIN ? BigNumber.from(350000) : estimatedGasLimit
-          return fundRaisingContract.fundSubscription(pid, parseEther(amount, fundToken?.decimals), {
+          return fundRaisingContract.fundSubscription(pid, parseEther(amount.toString(), fundToken?.decimals), {
             gasLimit: calculateGasMargin(gas)
           }).then((response: TransactionResponse) => {
             addTransaction(response, {
               summary: `Funding ${amount} ${fundToken?.symbol}`
             })
-            return response.hash
+            return response
           })
         })
       })
@@ -472,15 +522,18 @@ export function fetchKYClist(): Promise<any | null> {
     }))
 }
 
-export function useIsKYCed(): boolean {
+export function useKYCStatus(): { isKYCed: boolean, kyc_addresses: any } {
   const { account, library, chainId } = useActiveWeb3React()
   const [isKYCed, setIsKYCed] = useState(false)
+  const [kyc_addresses, setKYCaddresses] = useState<any>()
+  
   useEffect(() => {
     if (account) {
       try {
-        fetchKYClist().then(kyc_addresses => {
-          if (kyc_addresses?.kycRecords) {
-            const claim = kyc_addresses.kycRecords[account ? account : ZERO_ADDRESS]
+        fetchKYClist().then(res => {
+          if (res) setKYCaddresses(res)
+          if (res?.kycRecords) {
+            const claim = res.kycRecords[account ? account : ZERO_ADDRESS]
             if (claim) setIsKYCed(true)
             else setIsKYCed(false)
           } else {
@@ -494,7 +547,7 @@ export function useIsKYCed(): boolean {
       setIsKYCed(false)
     }
   }, [account])
-  return isKYCed
+  return { isKYCed, kyc_addresses }
 }
 
 export function getProgressPhase(poolInfo: any, blockTimestamp: BigNumber | undefined): any {

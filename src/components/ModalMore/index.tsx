@@ -21,12 +21,11 @@ const ModalContainer = styled.div`
   justify-content: center;
 `
 const MenuItem = styled(ExternalLink)`
-  color: #FFF;
+  color: #DDD;
   text-decoration: none;
   transition: all 0.2s ease-in-out;
   text-transform: uppercase;
-  font-size: 13px;
-  font-family: 'Poppins', sans-serif;
+  font-size: 13px;  
   font-weight: 600;
   width: 100%;
   margin-bottom: 1.5rem;
@@ -34,10 +33,12 @@ const MenuItem = styled(ExternalLink)`
   flex-direction: row;
   align-items: center;
   position: relative;
-  border-bottom: 0;
-  :hover {
-    color: white;
+  :focus {
     text-decoration: none;
+  }
+  :hover {
+    color: #FFF;
+    text-decoration: underline;
   }
   &::after {
     content: '';
@@ -45,7 +46,7 @@ const MenuItem = styled(ExternalLink)`
     height: 1px;
     background-color: rgba(255, 255, 255, 0.1);
     width: 100%;
-    top: 35px;
+    top: 32px;
     left: 0;
   }
   ${({ theme }) => theme.mediaWidth.upToExtraSmall`
@@ -53,8 +54,9 @@ const MenuItem = styled(ExternalLink)`
 `};
 `
 const IconLink = styled.span`
-  display: inline-block;
-  margin-right: 20px;
+  display: flex;
+  align-items: center
+  margin-right: 16px;
   text-decoration: none;
 `
 const Cross = styled.div`
@@ -90,7 +92,7 @@ export default function ModalMore({ isOpen, onDismiss }: ModalMoreProps) {
       <ModalContainer>
         <Cross onClick={onDismiss} />
 
-        <MenuItem href={`https://docs.gitbook.com/`}>
+        <MenuItem id="link" href="https://docs.gitbook.com/">
           <IconLink>
             <Book size={20} />
           </IconLink>
@@ -103,8 +105,7 @@ export default function ModalMore({ isOpen, onDismiss }: ModalMoreProps) {
           </IconLink>
           Home
         </MenuItem>
-
-        {/* <MenuItem id="link" href="https://skylaunch.medium.com"> */}
+        
         <MenuItem id="link" href="https://medium.com/skylaunch">
           <IconLink>
             <BookOpen size={20} />

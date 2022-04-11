@@ -134,7 +134,7 @@ export const SKYFI: { [chainId in ChainId]: Token } = {
 
 export const SKYFUNDRAISING_ADDRESS: { [chainId in ChainId]?: string } = {
   [ChainId.MAINNET]: ZERO_ADDRESS,
-  [ChainId.RINKEBY]: "0x9b9f49e7924bd2d05c00cc606662685f52b44299",  
+  [ChainId.RINKEBY]: "0xda351fdDC0B718300Dc80441289041950073d750",  
   [ChainId.ROPSTEN]: ZERO_ADDRESS,
   [ChainId.GÖRLI]: ZERO_ADDRESS,
   [ChainId.KOVAN]: ZERO_ADDRESS,
@@ -150,7 +150,7 @@ export const SKYFUNDRAISING_ADDRESS: { [chainId in ChainId]?: string } = {
 
 export const SKYNFTTOKEN_ADDRESS: { [chainId in ChainId]?: string } = {
   [ChainId.MAINNET]: ZERO_ADDRESS,
-  [ChainId.RINKEBY]: "0x293A828B47B3cEa3B9eF4773485289116dA18e75",
+  [ChainId.RINKEBY]: "0x814093120B9eaEE07926B33E6A9C64DC2bAED6b0",
   [ChainId.ROPSTEN]: ZERO_ADDRESS,
   [ChainId.GÖRLI]: ZERO_ADDRESS,
   [ChainId.KOVAN]: ZERO_ADDRESS,
@@ -444,3 +444,5 @@ export const NATIVE_TOKEN = {
   [ChainId.MATIC]: new Token(ChainId.MATIC, ZERO_ADDRESS, MATIC.decimals, MATIC.symbol, MATIC.name),
   [ChainId.HECO]: new Token(ChainId.HECO, ZERO_ADDRESS, HECO.decimals, HECO.symbol, HECO.name)
 }
+
+export const FIXED_FUNDING_DECIMALS = 3

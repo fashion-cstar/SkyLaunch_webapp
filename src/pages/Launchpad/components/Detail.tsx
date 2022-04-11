@@ -15,27 +15,25 @@ import moment from 'moment'
 import styled from 'styled-components'
 import { useParams } from 'react-router'
 import { IDO_LIST } from 'constants/idos'
-import { ButtonPrimary, ButtonSecondary } from 'components/Button'
-import { ExternalLink } from '../../../theme'
+import { ButtonPrimary } from 'components/Button'
 import FundModal from './FundModal'
 import SubscribeModal from './SubscribeModal'
 import ClaimModal from './ClaimModal'
 import NewStepper from 'components/NewStepper'
 import useCurrentBlockTimestamp from '../../../hooks/useCurrentBlockTimestamp'
-import { ZERO_ADDRESS, NATIVE_TOKEN } from '../../../constants'
+import { ZERO_ADDRESS, FIXED_FUNDING_DECIMALS } from '../../../constants'
 import { Token } from '@skylaunch/sdk'
 import { getContract } from '../../../utils'
 import formatEther from 'utils/formatEther'
-import { useFundRaisingContract, useTokenContract, useSkyNFTContract } from '../../../hooks/useContract'
+import { useFundRaisingContract, useSkyNFTContract } from '../../../hooks/useContract'
 import FundRaisingButtons from './FundRaisingButtons'
 import RemainingTimePanel from './RemainingTimePanel'
 import UserInfoPanel from './UserInfoPanel'
 import Circle from '../../../assets/images/blue-loader.svg'
 import { CustomLightSpinner } from '../../../theme'
 import { PoolInfo, UserInfo } from 'state/fundraising/actions'
-import { usePoolAndUserInfoCallback, useFundAndRewardTokenCallback, useMaxAllocCallback, getProgressPhase, fetchKYClist } from 'state/fundraising/hooks'
+import { usePoolAndUserInfoCallback, useFundAndRewardTokenCallback, useMaxAllocCallback, getProgressPhase, useKYCStatus } from 'state/fundraising/hooks'
 import ERC20_ABI from 'constants/abis/erc20.json'
-import parseEther from 'utils/parseEther'
 import { MaxUint256 } from '@ethersproject/constants'
 
 const IdoDetails = styled.div`
@@ -65,10 +63,22 @@ const BgWrapper = styled.div`
   `};
 `
 const Header = styled.div`
-  text-transform: uppercase;
+  
+`
+
+const HeaderContent = styled.div`
+  display: flex;
+  justify-content: space-between;
+  ${({ theme }) => theme.mediaWidth.upToSmall`  
+    flex-direction: column;
+    align-items: center;
+  `};
 `
 const Heading = styled.div`
   margin: 1rem 0;
+  font-weight: 500;
+  font-size: 20px;
+  text-transform: uppercase;
   ${({ theme }) => theme.mediaWidth.upToSmall`  
     text-align: center;
   `};
@@ -77,6 +87,9 @@ const Heading = styled.div`
 const Summary = styled.div`
   margin-bottom: 2rem;
   font-size: 14px;
+  line-height: 1.4;
+  font-weight: 300;
+  color: #c1c1c1;
   ${({ theme }) => theme.mediaWidth.upToSmall`
     font-size: 12px;
     text-align: center;
@@ -84,8 +97,7 @@ const Summary = styled.div`
 `
 
 const SocialLinks = styled.div`
-  display: flex;
-  margin-top: 1rem;
+  display: flex;  
 `
 
 const SocialIcon = styled.div`
@@ -93,7 +105,8 @@ const SocialIcon = styled.div`
   font-size: 1.4rem;
   display: flex;
   position: relative;
-  padding: 0.4rem 0.8rem 0.4rem 0;
+  padding: 0.4rem;
+  justify-content: center;
   &:hover .tooltip {
     visibility: visible;
     opacity: 1;
@@ -175,7 +188,9 @@ const SeedItemTitle = styled.p`
   align-items: flex-end;
   height: 70px;
   margin: 0;
-  font-weight: 600;  
+  font-weight: 500;  
+  font-size: 12px;
+  color: #c0c0c0;
   ${({ theme }) => theme.mediaWidth.upToSmall`    
     width: 100%;
     display: block;
@@ -185,6 +200,9 @@ const SeedItemTitle = styled.p`
 
 const SeedItemValue = styled.p`
   margin: 15px 0 20px;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 500;  
   ${({ theme }) => theme.mediaWidth.upToSmall`    
     margin: 0;
   `};
@@ -194,8 +212,6 @@ const ButtonsGroup = styled.div`
 `
 const LinksGroupContainer = styled.div`
   display: flex;
-  // flex-direction: column;
-  // align-items: center;
   justify-content: center;  
 `
 const LinksGroupContent = styled.div`
@@ -248,13 +264,11 @@ const StepperContainer = styled.div`
     mask-composite: exclude; 
   }
   .MuiStepLabel-label.Mui-completed {
-    color: white !important;
-    font-family: Poppins;
+    color: white !important;    
     font-size: 12px;
   }
   .MuiStepLabel-label.Mui-active {
-    color: #bdbdbd !important;
-    font-family: Poppins;
+    color: #bdbdbd !important;    
     font-size: 12px;
   }
 
@@ -269,8 +283,7 @@ const StepperContainer = styled.div`
 `
 const StepperContainerLabel = styled.span`
   display: inline-block;
-  font-size: 16px;
-  font-family: Poppins;
+  font-size: 16px;  
   font-weight: 400;
   color: white;
   padding-bottom: 15px;
@@ -294,6 +307,14 @@ const FundButtonContainer = styled.div`
 `}; 
 `
 
+const SkyFiLink = styled.a`
+  font-weight: 300;
+  font-size: 16px;
+  color: #fff;
+  text-decoration: none;
+  text-transform: uppercase;
+`
+
 export default function DetailComponent() {
   const { idoURL } = useParams<{ idoURL: string }>()
   const [idoData, setIdoData] = useState<any>()
@@ -310,13 +331,11 @@ export default function DetailComponent() {
   const [fundToken, setFundToken] = useState<Token | undefined>()
   const [rewardToken, setRewardToken] = useState<Token | undefined>()
   const blockTimestamp = useCurrentBlockTimestamp()
-  const [kyc_addresses, setKYCaddresses] = useState<any>()
-  const IdoListComplete = IDO_LIST // fetch this list from the server  
   const [poolInfoData, setPoolInfoData] = useState<PoolInfo | undefined>()
   const [userInfoData, setUserInfoData] = useState<UserInfo | undefined>()
   const [countsOfPool, setCountsOfPool] = useState(0)
-  const [maxAlloc, setMaxAlloc] = useState(0)
-  const [isKYCed, setIsKYCed] = useState(false)
+  const [maxAlloc, setMaxAlloc] = useState<BigNumber>(BigNumber.from(0))
+  const { isKYCed, kyc_addresses } = useKYCStatus()
   const [isSubscribed, setIsSubscribed] = useState(false)
   const [isFunded, setIsFunded] = useState(false)
   const [progressPhase, setProgressPhase] = useState(0)
@@ -348,20 +367,24 @@ export default function DetailComponent() {
           setPoolInfoData(undefined)
         })
     }
-  }, [poolInfoCallback, pid, countsOfPool, account])
+  }, [pid, countsOfPool, account])
+
+  const readUserInfoData = () => {
+    userInfoCallback(pid)
+      .then(userInfo => {
+        if (userInfo) setUserInfoData(userInfo)
+        else setUserInfoData(undefined)
+      })
+      .catch(error => {
+        setUserInfoData(undefined)
+      })
+  }
 
   useEffect(() => {
     if (pid >= 0 && pid < countsOfPool && account) {
-      userInfoCallback(pid)
-        .then(userInfo => {
-          if (userInfo) setUserInfoData(userInfo)
-          else setUserInfoData(undefined)
-        })
-        .catch(error => {
-          setUserInfoData(undefined)
-        })
+      readUserInfoData()
     }
-  }, [userInfoCallback, pid, countsOfPool, account])
+  }, [pid, countsOfPool, account])
 
   useEffect(() => {
     if (poolInfoData) {
@@ -385,15 +408,12 @@ export default function DetailComponent() {
 
   useEffect(() => {
     if (userInfoData && kyc_addresses) {
-      const claim = kyc_addresses.kycRecords[account ? account : ZERO_ADDRESS]
-      if (claim) setIsKYCed(true)
-      else setIsKYCed(false)
       if (checkSubscribed(userInfoData)) setIsSubscribed(true)
       else setIsSubscribed(false)
       if (userInfoData['fundingAmount'].gt(BigNumber.from(0))) setIsFunded(true)
       else setIsFunded(false)
     }
-  }, [userInfoData, kyc_addresses])
+  }, [userInfoData, kyc_addresses, isKYCed])
 
   async function setupVestingRewards() {
     if (fundRaisingContract && library && fundToken && kyc_addresses) {
@@ -456,20 +476,15 @@ export default function DetailComponent() {
   }
 
   useEffect(() => {
-    fetchKYClist().then(res => {
-      if (res) setKYCaddresses(res)
-    })
-  }, [])
-
-  useEffect(() => {
     if (poolInfoData && userInfoData && fundToken && pid >= 0 && isSubscribed) {
       maxAllocCallback(pid)
         .then(maxalloc => {
-          if (maxalloc) setMaxAlloc(formatEther(maxalloc, fundToken, 0))
-          else setMaxAlloc(0)
+          if (maxalloc) setMaxAlloc(maxalloc)
+          else setMaxAlloc(BigNumber.from(0))
         })
         .catch((error: any) => {
-          setMaxAlloc(0)
+          console.log(error)
+          setMaxAlloc(BigNumber.from(0))
         })
     }
     if (pid >= 0 && poolInfoData && userInfoData) updateProgressAndRemainTime(BigNumber.from(Math.floor(Date.now() / 1000)), false)
@@ -484,8 +499,6 @@ export default function DetailComponent() {
   useEffect(() => {
     if (!poolInfoData && !userInfoData) {
       setIdoData(IDO_LIST.find(item => item.idoURL === idoURL))
-      // const isIDOURL = (element:any) => element.idoURL===idoURL
-      // setPid(IdoListComplete.findIndex(isIDOURL))           
     }
   }, [idoURL, poolInfoData, userInfoData])
 
@@ -519,19 +532,16 @@ export default function DetailComponent() {
     return []
   }, [idoData])
 
-  const resetCollectedRewards = (amount: BigNumber) => {
-    let userInfo: any = { ...userInfoData, collectedRewards: amount }
-    setUserInfoData(userInfo)
+  const resetCollectedRewards = () => {
+    readUserInfoData()
   }
 
-  const resetIsSubscribe = (value: boolean) => {
-    setIsSubscribed(value)
+  const resetIsSubscribe = () => {
+    readUserInfoData()
   }
 
-  const resetFundState = (isfund: boolean, fundamount: BigNumber) => {
-    setIsFunded(isfund)
-    let userInfo: any = { ...userInfoData, fundingAmount: fundamount }
-    setUserInfoData(userInfo)
+  const resetFundState = () => {
+    readUserInfoData()
   }
 
   const openSubscribeModal = () => {
@@ -558,7 +568,20 @@ export default function DetailComponent() {
           <HeroWrapper src={idoData?.hero} />
           <BgWrapper>
             <Header>
-              <Heading>Project Summary</Heading>
+              <HeaderContent>
+                <Heading>Project Summary</Heading>
+                <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                  <SkyFiLink href={idoData?.siteUrl} target="_blank">{idoData?.siteUrl}</SkyFiLink>
+                  <SocialLinks>
+                    {socialMediaLinks.map(iconDetails => (
+                      <SocialIcon key={iconDetails.url} onClick={() => window.open(iconDetails.url)}>
+                        {iconDetails.icon}
+                        <Tooltip className="tooltip">{iconDetails.type}</Tooltip>
+                      </SocialIcon>
+                    ))}
+                  </SocialLinks>
+                </div>
+              </HeaderContent>
               <Summary>
                 {idoData?.description ?? ''}
               </Summary>
@@ -587,18 +610,9 @@ export default function DetailComponent() {
                       <LinksGroupContent>
                         <ButtonsGroup>
                           {idoData?.whiteListUrl && (
-                            <ButtonPrimary width="120px" padding="5px 20px" onClick={() => goToSite(idoData.whiteListUrl)}>WHITEPAPER</ButtonPrimary>
+                            <ButtonPrimary width="140px" padding="7px 20px" onClick={() => goToSite(idoData.whiteListUrl)}>WHITEPAPER</ButtonPrimary>
                           )}
                         </ButtonsGroup>
-                        <SocialLinks>
-                          {socialMediaLinks.map(iconDetails => (
-                            <SocialIcon key={iconDetails.url} onClick={() => window.open(iconDetails.url)}>
-                              {iconDetails.icon}
-                              <Tooltip className="tooltip">{iconDetails.type}</Tooltip>
-                            </SocialIcon>
-                          ))}
-                        </SocialLinks>
-                        <ExternalLink href={idoData?.siteUrl}>{idoData?.siteUrl}</ExternalLink>
                       </LinksGroupContent>
                     </LinksGroupContainer>
                     <ProgressContainer>
@@ -613,8 +627,8 @@ export default function DetailComponent() {
                         <NewStepper activeStep={activeStep} />
                         {remainSecs > 0 && (<RemainingTimePanel secs={remainSecs} />)}
                         {isFunded && (<UserInfoPanel multiplier={userInfoData ? userInfoData.multiplier.toNumber() : 0}
-                          fundingAmount={userInfoData && fundToken ? formatEther(userInfoData.fundingAmount, fundToken, 3) : 0}
-                          collectedRewards={userInfoData && rewardToken ? formatEther(userInfoData.collectedRewards, rewardToken, 3) : 0}
+                          fundingAmount={userInfoData && fundToken ? formatEther(userInfoData.fundingAmount, fundToken.decimals, FIXED_FUNDING_DECIMALS, true) : '0'}
+                          collectedRewards={userInfoData && rewardToken ? formatEther(userInfoData.collectedRewards, rewardToken.decimals, 3, true) : '0'}
                           fundTokenSymbol={fundToken ? fundToken.symbol : ''}
                           rewardTokenSymbol={rewardToken ? rewardToken.symbol : ''}
                           progressPhase={progressPhase} />)}

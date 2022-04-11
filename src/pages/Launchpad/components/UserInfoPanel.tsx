@@ -18,7 +18,8 @@ const HypotheticalRewardRate = styled.div<{ dim: boolean }>`
   1font-size: 14px;
 `
 
-const UserInfoPanel = ({ multiplier, fundingAmount, collectedRewards, fundTokenSymbol, rewardTokenSymbol, progressPhase }: { multiplier?: number, fundingAmount?: number, collectedRewards?:number, fundTokenSymbol?: string, rewardTokenSymbol?: string, progressPhase:number }) => {
+const UserInfoPanel = ({ multiplier, fundingAmount, collectedRewards, fundTokenSymbol, rewardTokenSymbol, progressPhase }: 
+    { multiplier?: number, fundingAmount?: string | undefined, collectedRewards?:string | undefined, fundTokenSymbol?: string, rewardTokenSymbol?: string, progressPhase:number }) => {
    
     return (
         <>

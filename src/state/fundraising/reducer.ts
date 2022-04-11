@@ -12,11 +12,12 @@ import {
   setProgressPhase,
   setPoolID,
   setMaxAlloc,
-  setUserId,
-  setJwtToken,
-  setSignedAccount,
+  // setUserId,
+  // setJwtToken,
+  // setSignedAccount,
   setIsLogging,
-  setIsFormSent
+  setIsFormSent,
+  setIsClaimedNFT
 } from './actions'
 
 export interface FundRaisingState {
@@ -28,11 +29,9 @@ export interface FundRaisingState {
   progressPhase: number
   poolID: number
   maxAlloc: number
-  userId: string
-  JwtToken: string
-  signedAccount: string
   isLogging: boolean
   isFormSent: boolean
+  isClaimedNFT: boolean
 }
 
 const initialState: FundRaisingState = {
@@ -44,11 +43,12 @@ const initialState: FundRaisingState = {
   progressPhase: 0,
   poolID: 0,
   maxAlloc: 0,
-  userId: '',
-  JwtToken: '',
-  signedAccount: '',
+  // userId: '',
+  // JwtToken: '',
+  // signedAccount: '',
   isLogging: false,
-  isFormSent: false
+  isFormSent: false,
+  isClaimedNFT: false
 }
 
 export default createReducer<FundRaisingState>(initialState, builder =>
@@ -101,24 +101,6 @@ export default createReducer<FundRaisingState>(initialState, builder =>
         maxAlloc
       }
     })
-    .addCase(setUserId, (state, { payload: { userId } }) => {
-      return {
-        ...state,
-        userId
-      }
-    })
-    .addCase(setJwtToken, (state, { payload: { JwtToken } }) => {
-      return {
-        ...state,
-        JwtToken
-      }
-    })
-    .addCase(setSignedAccount, (state, { payload: { signedAccount } }) => {
-      return {
-        ...state,
-        signedAccount
-      }
-    })
     .addCase(setIsLogging, (state, { payload: { isLogging } }) => {
       return {
         ...state,
@@ -131,4 +113,10 @@ export default createReducer<FundRaisingState>(initialState, builder =>
         isFormSent
       }
     }) 
+    .addCase(setIsClaimedNFT, (state, { payload: { isClaimedNFT } }) => {
+      return {
+        ...state,
+        isClaimedNFT
+      }
+    })
 )

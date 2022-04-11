@@ -20,7 +20,6 @@ margin-left: auto;
 margin-right: auto;
 `
 const SwapWrap = styled.div`
-font-family: Poppins;
 position: relative;
 width: 400px;
 max-width: 100%;

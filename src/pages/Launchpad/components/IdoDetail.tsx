@@ -191,11 +191,11 @@ export default function IdoDetailComponent() {
       <g>
         <defs>
           <linearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stop-color="#9384db" />
-            <stop offset="100%" stop-color="#d59582" />
+            <stop offset="0%" stopColor="#9384db" />
+            <stop offset="100%" stopColor="#d59582" />
           </linearGradient>
         </defs>
-        <path d={`M${sx},${sy}L${mx},${my}L${ex+delta},${ey}`} stroke="url(#gradient)" fill="none" />
+        <path d={`M${sx},${sy}L${mx},${my}L${ex + delta},${ey}`} stroke="url(#gradient)" fill="none" />
         <circle cx={sx} cy={sy} r={4} fill="#1c1c1c" stroke="url(#gradient)" />
         <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} dy={-3} textAnchor={textAnchor} fill="#fff">{label}</text>
         <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} dy={18} textAnchor={textAnchor} fill="#fff">
@@ -215,12 +215,12 @@ export default function IdoDetailComponent() {
               <HeadingDate>May 06, 2022</HeadingDate>
               <HeadingTime>09:00PM</HeadingTime>
             </HeadingContainer>
-            <ButtonSecondary style={{ width: '120px', padding: '5px 0', textTransform: 'uppercase' }}>Participate</ButtonSecondary>
+            {/* <ButtonSecondary style={{ width: '120px', padding: '5px 0', textTransform: 'uppercase' }}>Participate</ButtonSecondary> */}
           </Header>
           <ContractContainer>
             <p>Contracts</p>
             <ContractInfo>
-              <div style={{display: "flex"}}>
+              <div style={{ display: "flex", alignItems: "center" }}>
                 <BlockchainLogo size="28px" blockchain={'BNB'} />
                 <p>Binance Smart Chain</p>
               </div>

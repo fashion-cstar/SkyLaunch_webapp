@@ -5,7 +5,7 @@ import styled from 'styled-components'
 import { Token } from '@skylaunch/sdk'
 import { Contract } from '@ethersproject/contracts'
 import { ButtonConfirmed, ButtonError } from 'components/Button'
-import { useTransactionAdder } from 'state/transactions/hooks'
+import { TransactionResponse } from '@ethersproject/providers'
 import { LoadingView, SubmittedView } from 'components/ModalViews'
 import { CloseIcon, TYPE } from '../../../theme'
 import { RowBetween, RowCenter } from '../../../components/Row'
@@ -29,7 +29,7 @@ import ProgressCircles from 'components/ProgressSteps'
 import { UserInfo } from 'state/fundraising/actions'
 import { useFundItCallback, useFundApproveCallback, useAddTxRevertedToast, useMaxAllocCallback, useTokenAllowanceCallback } from 'state/fundraising/hooks'
 import { useAddPopup } from 'state/application/hooks'
-import { SKYFUNDRAISING_ADDRESS } from 'constants/index'
+import { SKYFUNDRAISING_ADDRESS, FIXED_FUNDING_DECIMALS } from 'constants/index'
 
 const ContentWrapper = styled(AutoColumn)`
   width: 100%;
@@ -55,7 +55,7 @@ interface FundModalProps {
   userInfoData: UserInfo,
   fundToken: Token | undefined,
   onDismiss: () => void,
-  resetFundState: (isfund: boolean, fundamount: BigNumber) => void
+  resetFundState: () => void
 }
 
 export default function FundModal({ isOpen, pid, userInfoData, fundToken, onDismiss, resetFundState }: FundModalProps) {
@@ -63,13 +63,13 @@ export default function FundModal({ isOpen, pid, userInfoData, fundToken, onDism
   const [attempting, setAttempting] = useState(false)
   const { library, account, chainId } = useActiveWeb3React()
   const [amount, setFundAmount] = useState(0)
-  const [accountBalance, setAccountBalance] = useState(0)
+  const [accountBalance, setAccountBalance] = useState<BigNumber>(BigNumber.from(0))
   const [isApproved, setIsApproved] = useState(false)
   const [isFunded, setFunded] = useState(false)
   const userEthBalance = useETHBalances(account ? [account] : [], chainId)?.[account ?? '']
-  const [ethBalance, setEthBalance] = useState(0)
+  const [ethBalance, setEthBalance] = useState<BigNumber>(BigNumber.from(0))
   const [typedValue, setTypedValue] = useState('')
-  const [maxFunding, setMaxFunding] = useState(0)
+  const [maxFunding, setMaxFunding] = useState<BigNumber>(BigNumber.from(0))
   const [userMaxAlloc, setUserMaxAlloc] = useState(BigNumber.from(0))
   const { fundItCallback } = useFundItCallback(account)
   const { fundApproveCallback } = useFundApproveCallback(account)
@@ -119,28 +119,29 @@ export default function FundModal({ isOpen, pid, userInfoData, fundToken, onDism
 
   useEffect(() => {
     fundStatus()
-  }, [fundToken, ethBalance, isFunded])
+  }, [fundToken, ethBalance, isFunded, account])
 
   useEffect(() => {
-    const bal = userEthBalance?.toSignificant(returnBalanceNum(userEthBalance, 4), { groupSeparator: ',' }) || 0
-    setEthBalance(Number(bal))
+    if (userEthBalance) {
+      if (!ethBalance.eq(parseEther(userEthBalance.toExact(), userEthBalance?.currency.decimals))){      
+        setEthBalance(parseEther(userEthBalance.toExact(), userEthBalance?.currency.decimals))
+      }
+    }
   }, [userEthBalance])
 
   useEffect(() => {
     if (userInfoData && fundToken) {
-      let _amount = formatEther(userInfoData.fundingAmount, fundToken, 4)
-      _amount = formatEther(userMaxAlloc, fundToken, 3) - _amount
-      if (_amount > accountBalance) _amount = accountBalance
+      let _amount: BigNumber = userInfoData.fundingAmount
+      _amount = userMaxAlloc.sub(_amount)
+      if (_amount.gt(accountBalance)) _amount = accountBalance
+      if (_amount.lt(0)) _amount=BigNumber.from(0)
       setMaxFunding(_amount)
     }
   }, [userInfoData, userMaxAlloc, fundToken, accountBalance])
 
   const checkAllowance = (_fundToken: Token | undefined, _amount: number, _userAllowance: BigNumber) => {
     if (_fundToken) {
-      console.log(formatEther(_userAllowance, _fundToken, 4))
-      console.log(_amount)
-
-      if (_userAllowance.gte(parseEther(_amount, _fundToken?.decimals))) {
+      if (_userAllowance.gte(parseEther(_amount.toString(), _fundToken?.decimals))) {
         setIsApproved(true)
       } else {
         setIsApproved(false)
@@ -148,18 +149,30 @@ export default function FundModal({ isOpen, pid, userInfoData, fundToken, onDism
     }
   }
 
-  async function onApprove() {
-    if (amount <= maxFunding) {
-      if (fundToken !== undefined) {
+  async function onApprove() {    
+    if (fundToken) {
+      if (parseEther(amount.toString(), fundToken.decimals).lte(maxFunding)) {
         setIsWalletApproving(true)
         if (fundToken.address === ZERO_ADDRESS) {
           setIsApproved(true)
           setIsWalletApproving(false)
         } else {
           try {
-            fundApproveCallback(pid, fundToken, userMaxAlloc).then((hash: string) => {
-              if (hash) setIsApproved(true)
-              setIsWalletApproving(false)
+            fundApproveCallback(pid, fundToken, userMaxAlloc).then((tx: TransactionResponse) => {
+              tx.wait().then((_: any) => {
+                setIsApproved(true)
+                console.log("succesApproved")
+                setIsWalletApproving(false)
+              }).catch(error => {
+                console.log(error)
+                let err: any = error
+                if (err?.message) addTxRevertedToast(err?.message)
+                if (err?.error) {
+                  if (err?.error?.message) addTxRevertedToast(err?.error?.message)
+                }
+                wrappedOnDismiss()
+                setIsWalletApproving(false)
+              })
             }).catch((error: any) => {
               let err: any = error
               if (err?.message) addTxRevertedToast(err?.message)
@@ -174,62 +187,53 @@ export default function FundModal({ isOpen, pid, userInfoData, fundToken, onDism
             console.debug('Failed to approve token', error)
           }
         }
+      } else {
+        handleMax()
       }
-    } else {
-      handleMax()
     }
     return null;
   }
 
   const successFunding = () => {
-    if (fundToken) {
-      let _amount = formatEther(userInfoData.fundingAmount, fundToken, 4)
-      resetFundState(true, parseEther(amount + _amount, fundToken?.decimals))
-      fundStatus()
-    }
+    resetFundState()
+    fundStatus()
   }
 
-  async function onFundIt() {
-    if (amount <= maxFunding) {
-      if (fundToken && account && chainId) {
-        let res = await tokenAllowanceCallback(account, SKYFUNDRAISING_ADDRESS[chainId], fundToken.address)
-        if (res) {
-          try {
-            if (res.gte(parseEther(amount, fundToken.decimals))) {
-              console.log(res)
-              try {
-                setAttempting(true)
-                fundItCallback(pid, fundToken, amount).then((hash: string) => {
-                  if (hash) {
-                    setHash(hash)
-                    successFunding()
-                  } else {
-                    setAttempting(false)
-                  }
-                }).catch(error => {
-                  setAttempting(false)
-                  let err: any = error
-                  if (err?.message) addTxRevertedToast(err?.message)
-                  if (err?.error) {
-                    if (err?.error?.message) addTxRevertedToast(err?.error?.message)
-                  }
-                  wrappedOnDismiss()
-                })
-              } catch (error) {
-                setAttempting(false)
-                console.log(error)
+  async function onFundIt() {    
+    if (fundToken && account && chainId) {
+      if (parseEther(amount.toString(), fundToken.decimals).lte(maxFunding)) {
+        try {
+          setAttempting(true)
+          fundItCallback(pid, fundToken, amount).then((tx: TransactionResponse) => {
+            tx.wait().then((_: any) => {
+              setHash(tx.hash)
+              successFunding()
+            }).catch(error => {
+              setAttempting(false)
+              let err: any = error
+              if (err?.message) addTxRevertedToast(err?.message)
+              if (err?.error) {
+                if (err?.error?.message) addTxRevertedToast(err?.error?.message)
               }
-            } else {
-              onFundIt()
+              wrappedOnDismiss()
+            })
+          }).catch(error => {
+            setAttempting(false)
+            let err: any = error
+            if (err?.message) addTxRevertedToast(err?.message)
+            if (err?.error) {
+              if (err?.error?.message) addTxRevertedToast(err?.error?.message)
             }
-          } catch (ex) {
-            onFundIt()
-          }
+            wrappedOnDismiss()
+          })
+        } catch (error) {
+          setAttempting(false)
+          console.log(error)
         }
+      }else {
+        handleMax()
       }
-    } else {
-      handleMax()
-    }
+    } 
     return null;
   }
 
@@ -237,36 +241,34 @@ export default function FundModal({ isOpen, pid, userInfoData, fundToken, onDism
     if (!account) return null
     if (fundToken !== undefined) {
       if (fundToken.address === ZERO_ADDRESS) {
-        setAccountBalance(Number(ethBalance))
+        setAccountBalance(ethBalance)
         setIsApproved(true)
       } else {
         if (!library) return null
         let tokenContract: Contract = getContract(fundToken?.address, ERC20_ABI, library, account ? account : ZERO_ADDRESS)
-        let tokenBalance: BigNumber = await tokenContract.balanceOf(account ? account : ZERO_ADDRESS)
-        let bal = formatEther(tokenBalance, fundToken, 4)
-        setAccountBalance(bal)
+        let tokenBalance: BigNumber = await tokenContract.balanceOf(account ? account : ZERO_ADDRESS)        
+        setAccountBalance(tokenBalance)
       }
     }
     return null
   }
 
   const onUserInput = useCallback((typedValue: string) => {
-    setFundAmount(Number(typedValue))
-    setTypedValue(typedValue)
-    if (Number(typedValue) > maxFunding || Number(typedValue) <= 0) {
-      setIsOverMax(true)
-    } else {
-      setIsOverMax(false)
-      checkAllowance(fundToken, Number(typedValue), userAllowance)
+    if (fundToken){
+      setFundAmount(Number(typedValue))
+      setTypedValue(typedValue)    
+      if (parseEther(Number(typedValue).toString(), fundToken.decimals).gt(maxFunding) || Number(typedValue) <= 0) {
+        setIsOverMax(true)
+      } else {
+        setIsOverMax(false)
+        checkAllowance(fundToken, Number(typedValue), userAllowance)
+      }
     }
   }, [fundToken, amount, userAllowance])
 
-  const handleMax = useCallback(() => {
-    // let maxAmountInput = maxAlloc
-    // if (accountBalance<maxAmountInput) maxAmountInput=accountBalance
-    // maxAmountInput && onUserInput(maxAmountInput.toString())
-    onUserInput(maxFunding.toString())
-  }, [onUserInput, maxFunding, accountBalance])
+  const handleMax = useCallback(() => {    
+    if (fundToken) onUserInput(formatEther(maxFunding, fundToken.decimals, FIXED_FUNDING_DECIMALS, false))
+  }, [onUserInput, maxFunding, accountBalance, fundToken])
 
   return (
     <Modal isOpen={isOpen} onDismiss={wrappedOnDismiss} maxHeight={90}>
@@ -280,13 +282,13 @@ export default function FundModal({ isOpen, pid, userInfoData, fundToken, onDism
         </RowCenter>
         <FundingInputPanel value={typedValue} onUserInput={onUserInput} onMax={handleMax} />
         <BalanceContainer>
-          <HypotheticalRewardRate dim={accountBalance ? false : true}>
+          <HypotheticalRewardRate dim={accountBalance.gt(0) ? false : true}>
             <div>
               <TYPE.black fontWeight={600}>{fundToken ? fundToken.name : ''}{' '}Balance</TYPE.black>
             </div>
 
             <TYPE.black>
-              {accountBalance ? accountBalance : 0}{' '}{fundToken ? fundToken.symbol : ''}
+            {accountBalance && fundToken ? formatEther(accountBalance, fundToken.decimals,FIXED_FUNDING_DECIMALS, true) : 0}{' '}{fundToken ? fundToken.symbol : ''}
             </TYPE.black>
           </HypotheticalRewardRate>
           {userInfoData && fundToken && (<HypotheticalRewardRate dim={userInfoData.fundingAmount.gt(0) ? false : true}>
@@ -295,7 +297,7 @@ export default function FundModal({ isOpen, pid, userInfoData, fundToken, onDism
             </div>
 
             <TYPE.black>
-              {userInfoData ? formatEther(userInfoData.fundingAmount, fundToken, 4) : 0}{' '}{fundToken ? fundToken.symbol : ''}
+              {userInfoData ? formatEther(userInfoData.fundingAmount, fundToken.decimals, FIXED_FUNDING_DECIMALS, true) : 0}{' '}{fundToken ? fundToken.symbol : ''}
             </TYPE.black>
           </HypotheticalRewardRate>)}
           <HypotheticalRewardRate dim={userInfoData ? false : true}>
@@ -307,13 +309,13 @@ export default function FundModal({ isOpen, pid, userInfoData, fundToken, onDism
               {userInfoData ? userInfoData.multiplier.toNumber() : 0}
             </TYPE.black>
           </HypotheticalRewardRate>
-          {fundToken && (<HypotheticalRewardRate dim={formatEther(userMaxAlloc, fundToken, 3) ? false : true}>
+          {fundToken && (<HypotheticalRewardRate dim={userMaxAlloc.gt(0) ? false : true}>
             <div>
               <TYPE.black fontWeight={600}>Max Allocation</TYPE.black>
             </div>
 
             <TYPE.black>
-              {userMaxAlloc && userInfoData ? formatEther(userMaxAlloc.sub(userInfoData.fundingAmount), fundToken, 3) : 0}{' '}{fundToken.symbol}
+              {userMaxAlloc.gt(0) && userInfoData ? formatEther(userMaxAlloc.sub(userInfoData.fundingAmount), fundToken.decimals, FIXED_FUNDING_DECIMALS, true) : 0}{' '}{fundToken.symbol}
             </TYPE.black>
           </HypotheticalRewardRate>)}
         </BalanceContainer>
@@ -321,14 +323,14 @@ export default function FundModal({ isOpen, pid, userInfoData, fundToken, onDism
           <ButtonConfirmed
             mr="0.5rem"
             onClick={onApprove}
-            confirmed={isApproved}
-            disabled={!fundToken || isApproved || !accountBalance || isWalletApproving || isOverMax}
+            // confirmed={isApproved}
+            disabled={!fundToken || isApproved || !accountBalance.gt(0) || isWalletApproving || isOverMax}
           >
             Approve
           </ButtonConfirmed>
           <ButtonConfirmed
-            disabled={!fundToken || isFunded || !accountBalance || !isApproved || isOverMax}
-            confirmed={isFunded}
+            disabled={!fundToken || isFunded || !accountBalance.gt(0) || !isApproved || isOverMax}
+            // confirmed={isFunded}
             onClick={onFundIt}
           >
             Fund it

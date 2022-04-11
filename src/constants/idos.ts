@@ -8,12 +8,12 @@ export const IDO_LIST = [
     hero: '/images/idos/skyfi_hero.png',
     tierName: '-', // if no tier, leave blank
     tierLogo: null, // if you include this image, it will override the tierName
-    launchDate: new Date('Apr 01, 2022 21:00:00'),
+    launchDate: new Date('Apr 02, 2022 21:00:00'),
     endDate: new Date('Apr 06, 2022 21:00:00'),
-    totalRaise: '$150,000',
-    totalAmount: '1.5M',
-    allocationMin: 'TBD',
-    allocationMax: 'TBD',
+    totalRaise: '$200,000',
+    totalAmount: '6M',
+    allocationMin: 'NA',
+    allocationMax: '10,000',
     allocationCurrency: 'ETH',
     description: 'Skyfi - Find friends, join communities, and share content. Skyfi brings old and new friends together around your passion for gaming. The Wasder IDO token sale will be May 06, 2021 on 0.exchange. If you received a whitelist allocation, please KYC above to be approved for the IDO.',
     distributionDate: new Date('May 06, 2021 21:00:00'),
@@ -22,7 +22,7 @@ export const IDO_LIST = [
     buttonSectionEnabled: true,
     whiteListUrl: 'https://docs.google.com/spreadsheets/d/16N4S_VqEfN04hfsfz4SIqZdH-jGqyJynCfZ6bjMBhaE/edit?usp=sharing',
     network: 4,
-    pid: 0,
+    pid: 16,
     seed: {
       tokenAllocation: '10,000,000',
       totalTokenPercent: '10%',
@@ -85,10 +85,10 @@ export const IDO_LIST = [
     hero: '/images/idos/wasder_hero.png',
     tierName: '-', // if no tier, leave blank
     tierLogo: null, // if you include this image, it will override the tierName
-    launchDate: new Date('May 06, 2022 21:00:00'),
+    launchDate: new Date('Apr 07, 2022 21:00:00'),
     endDate: new Date('May 06, 2022 21:00:00'),
     totalRaise: '$150,000',
-    totalAmount: '1.5M',
+    totalAmount: '6.8M',
     allocationMin: 'TBD',
     allocationMax: 'TBD',
     allocationCurrency: 'USDT',
@@ -99,7 +99,7 @@ export const IDO_LIST = [
     buttonSectionEnabled: true,
     whiteListUrl: 'https://docs.google.com/spreadsheets/d/16N4S_VqEfN04hfsfz4SIqZdH-jGqyJynCfZ6bjMBhaE/edit?usp=sharing',
     network: 4,
-    pid: 3,
+    pid: 25,
     seed: {
       tokenAllocation: '10,000,000',
       totalTokenPercent: '10%',
@@ -175,7 +175,7 @@ export const IDO_LIST = [
     buttonSectionEnabled: false,
     whiteListUrl: '',
     network: 4,
-    pid: 1,
+    pid: 21,
     seed: {
       tokenAllocation: '10,000,000',
       totalTokenPercent: '10%',
@@ -314,257 +314,5 @@ for Grow products and earn loyalty benefits.`,
         url: 'https://grow-official.medium.com/'
       },
     ]
-  },
-  //   {
-  //     idoURL: 'grow1',
-  //     logo: '/images/idos/grow-logo.svg',
-  //     siteUrl: 'www.wasder.com',
-  //     tierName: '', // if no tier, leave blank
-  //     tierLogo: null, // if you include this image, it will override the tierName
-  //     launchDate:  new Date('May 06, 2022 21:00:00'),
-  //     endDate: new Date('May 06, 2022 21:00:00'),
-  //     //endDate: new Date(1622457706780),
-  //     totalRaise: 'TBD',
-  //     totalAmount: '1M',
-  //     allocationMin: 'TBD',
-  //     allocationMax: 'TBD',
-  //     allocationCurrency: 'BUSD',
-  //     description: `GROW Token is the portal to enable operation of equitable medicinal cannabis cultivation through decentralized sharing.
-  // Users will be able to interact with the platform to claim cultivation rewards, access their prescriptions, pay
-  // for Grow products and earn loyalty benefits.`,
-  //     distributionDate: new Date('June 01, 2021 13:00:00'),
-  //     allocationWinningAmount: '$200',
-  //     buttonSectionEnabled: true,
-  //     whiteListUrl: 'https://docs.google.com/spreadsheets/d/1v1By-TTQxs-sBHcyOh3LV_u5SqFSm5h3732pAioE_Vo/edit?usp=sharing',
-  //     kycURL: `https://verify-with.blockpass.org/?clientId=GROW_IDO_KYC&serviceName=IDO%20KYC&env=prod`,
-  //     pid: 3,
-  //     network: 4,
-  //     seed: {
-  //       tokenAllocation: '10,000,000',
-  //       totalTokenPercent: '10%',
-  //       tokenPrice: '$0.035',
-  //       totalRaised: '$350,000',
-  //       lockPeriod: 6,
-  //       vestingPeriod: 6,
-  //       tgePercent: '0%',
-  //       closedDate: new Date('Feb 28, 2021')
-  //     },
-  //     tokenAllocation : [
-  //       {
-  //         label: 'Investors',
-  //         value: 300
-  //       },
-  //       {
-  //         label: 'Staking Incentives',
-  //         value: 300
-  //       },
-  //       {
-  //         label: 'Liquidity Provision',
-  //         value: 300
-  //       },
-  //       {
-  //         label: 'Treasury',
-  //         value: 300
-  //       },
-  //       {
-  //         label: 'Patnership & Advisors',
-  //         value: 300
-  //       },
-  //       {
-  //         label: 'Team',
-  //         value: 300
-  //       },
-  //       {
-  //         label: 'Marketing',
-  //         value: 300
-  //       },
-  //       {
-  //         label: 'Ecosystem Fund',
-  //         value: 300
-  //       }
-  //     ],
-  //     socials: [
-  //       {
-  //         type: 'TELEGRAM',
-  //         url: 'https://t.me/GROWCommunity'
-  //       },
-  //       {
-  //         type: 'WEBSITE',
-  //         url: 'https://grow.house/'
-  //       },
-  //       {
-  //         type: 'MEDIUM',
-  //         url: 'https://grow-official.medium.com/'
-  //       },
-  //     ]
-  //   },
-
-
-  //   {
-  //     idoURL: 'grow2',
-  //     logo: '/images/idos/grow-logo.svg',
-  //     siteUrl: 'www.wasder.com',
-  //     tierName: '', // if no tier, leave blank
-  //     tierLogo: null, // if you include this image, it will override the tierName
-  //     launchDate:  new Date('May 06, 2022 21:00:00'),
-  //     endDate: new Date('May 06, 2022 21:00:00'),
-  //     //endDate: new Date(1622457706780),
-  //     totalRaise: 'TBD',
-  //     totalAmount: '1M',
-  //     allocationMin: 'TBD',
-  //     allocationMax: 'TBD',
-  //     allocationCurrency: 'BUSD',
-  //     description: `GROW Token is the portal to enable operation of equitable medicinal cannabis cultivation through decentralized sharing.
-  // Users will be able to interact with the platform to claim cultivation rewards, access their prescriptions, pay
-  // for Grow products and earn loyalty benefits.`,
-  //     distributionDate: new Date('June 01, 2021 13:00:00'),
-  //     allocationWinningAmount: '$200',
-  //     buttonSectionEnabled: true,
-  //     whiteListUrl: 'https://docs.google.com/spreadsheets/d/1v1By-TTQxs-sBHcyOh3LV_u5SqFSm5h3732pAioE_Vo/edit?usp=sharing',
-  //     kycURL: `https://verify-with.blockpass.org/?clientId=GROW_IDO_KYC&serviceName=IDO%20KYC&env=prod`,
-  //     pid: 4,
-  //     network: 4,
-  //     seed: {
-  //       tokenAllocation: '10,000,000',
-  //       totalTokenPercent: '10%',
-  //       tokenPrice: '$0.035',
-  //       totalRaised: '$350,000',
-  //       lockPeriod: 6,
-  //       vestingPeriod: 6,
-  //       tgePercent: '0%',
-  //       closedDate: new Date('Feb 28, 2021')
-  //     },
-  //     tokenAllocation : [
-  //       {
-  //         label: 'Investors',
-  //         value: 300
-  //       },
-  //       {
-  //         label: 'Staking Incentives',
-  //         value: 300
-  //       },
-  //       {
-  //         label: 'Liquidity Provision',
-  //         value: 300
-  //       },
-  //       {
-  //         label: 'Treasury',
-  //         value: 300
-  //       },
-  //       {
-  //         label: 'Patnership & Advisors',
-  //         value: 300
-  //       },
-  //       {
-  //         label: 'Team',
-  //         value: 300
-  //       },
-  //       {
-  //         label: 'Marketing',
-  //         value: 300
-  //       },
-  //       {
-  //         label: 'Ecosystem Fund',
-  //         value: 300
-  //       }
-  //     ],
-  //     socials: [
-  //       {
-  //         type: 'TELEGRAM',
-  //         url: 'https://t.me/GROWCommunity'
-  //       },
-  //       {
-  //         type: 'WEBSITE',
-  //         url: 'https://grow.house/'
-  //       },
-  //       {
-  //         type: 'MEDIUM',
-  //         url: 'https://grow-official.medium.com/'
-  //       },
-  //     ]
-  //   },
-
-  //   {
-  //     idoURL: 'grow3',
-  //     logo: '/images/idos/grow-logo.svg',
-  //     siteUrl: 'www.wasder.com',
-  //     tierName: '', // if no tier, leave blank
-  //     tierLogo: null, // if you include this image, it will override the tierName
-  //     launchDate:  new Date('May 06, 2021 21:00:00'),
-  //     endDate: new Date('May 06, 2021 21:00:00'),
-  //     //endDate: new Date(1622457706780),
-  //     totalRaise: 'TBD',
-  //     totalAmount: '1M',
-  //     allocationMin: 'TBD',
-  //     allocationMax: 'TBD',
-  //     allocationCurrency: 'BUSD',
-  //     description: `GROW Token is the portal to enable operation of equitable medicinal cannabis cultivation through decentralized sharing.
-  // Users will be able to interact with the platform to claim cultivation rewards, access their prescriptions, pay
-  // for Grow products and earn loyalty benefits.`,
-  //     distributionDate: new Date('June 01, 2021 13:00:00'),
-  //     allocationWinningAmount: '$200',
-  //     buttonSectionEnabled: true,
-  //     whiteListUrl: 'https://docs.google.com/spreadsheets/d/1v1By-TTQxs-sBHcyOh3LV_u5SqFSm5h3732pAioE_Vo/edit?usp=sharing',
-  //     kycURL: `https://verify-with.blockpass.org/?clientId=GROW_IDO_KYC&serviceName=IDO%20KYC&env=prod`,
-  //     pid: 0,
-  //     network: 1,
-  //     seed: {
-  //       tokenAllocation: '10,000,000',
-  //       totalTokenPercent: '10%',
-  //       tokenPrice: '$0.035',
-  //       totalRaised: '$350,000',
-  //       lockPeriod: 6,
-  //       vestingPeriod: 6,
-  //       tgePercent: '0%',
-  //       closedDate: new Date('Feb 28, 2021')
-  //     },
-  //     tokenAllocation : [
-  //       {
-  //         label: 'Investors',
-  //         value: 300
-  //       },
-  //       {
-  //         label: 'Staking Incentives',
-  //         value: 300
-  //       },
-  //       {
-  //         label: 'Liquidity Provision',
-  //         value: 300
-  //       },
-  //       {
-  //         label: 'Treasury',
-  //         value: 300
-  //       },
-  //       {
-  //         label: 'Patnership & Advisors',
-  //         value: 300
-  //       },
-  //       {
-  //         label: 'Team',
-  //         value: 300
-  //       },
-  //       {
-  //         label: 'Marketing',
-  //         value: 300
-  //       },
-  //       {
-  //         label: 'Ecosystem Fund',
-  //         value: 300
-  //       }
-  //     ],
-  //     socials: [
-  //       {
-  //         type: 'TELEGRAM',
-  //         url: 'https://t.me/GROWCommunity'
-  //       },
-  //       {
-  //         type: 'WEBSITE',
-  //         url: 'https://grow.house/'
-  //       },
-  //       {
-  //         type: 'MEDIUM',
-  //         url: 'https://grow-official.medium.com/'
-  //       },
-  //     ]
-  //   }
+  }
 ]

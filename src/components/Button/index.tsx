@@ -1,6 +1,6 @@
 import { ButtonProps, Button as RebassButton } from 'rebass/styled-components'
 import { darken, lighten } from 'polished'
-
+import { StyledInternalLink, TYPE } from '../../theme'
 import { ChevronDown } from 'react-feather'
 import React from 'react'
 import { RowBetween } from '../Row'
@@ -13,14 +13,13 @@ const Base = styled(RebassButton)<{
   altDisabledStyle?: boolean
   textTransform?: string
 }>`
-  padding: ${({ padding }) => (padding ? padding : '12px 24px')};
+  padding: ${({ padding }) => (padding ? padding : '12px 15px')};
   width: ${({ width }) => (width ? width : '100%')};
   text-transform: ${({ textTransform }) => (textTransform ? textTransform : textTransform)};
   font-weight: 500;
   text-align: center;
   border-radius: ${({ borderRadius }) => borderRadius ? borderRadius :  '44px'};
   outline: none;
-  border: 1px solid transparent;
   color: white;
   text-decoration: none;
   display: flex;
@@ -70,7 +69,6 @@ export const ButtonPrimary = styled(Base)<{ isPointer?: boolean }>`
     color: ${({ theme }) => theme.text1};
     cursor: ${({ isPointer }) => (isPointer ? 'pointer' : 'auto')};
     box-shadow: none;
-    border: 1px solid transparent;
     outline: none;
     opacity: ${({ altDisabledStyle }) => (altDisabledStyle ? '0.7' : '.7')};
   }
@@ -82,21 +80,21 @@ export const ButtonSecondary = styled(Base)`
   color: #000;
   font-size: 15px;
   font-weight: 600;
-  background: linear-gradient(to right, #FF9F81, #FFCABA);
+  background: linear-gradient(to right, #9384DB, #D49584);
   &:hover .tooltip {
     visibility: visible;
     opacity: 1;
   }
   &:focus {
     box-shadow: 0 0 0 1pt ${({ theme }) => theme.primary4};
-    border: 1px solid ${({ theme }) => theme.primary3};
+    // border: 1px solid ${({ theme }) => theme.primary3};
   }
   &:hover {
-    border: 1px solid ${({ theme }) => theme.primary3};
+    // border: 1px solid ${({ theme }) => theme.primary3};
   }
   &:active {
     box-shadow: 0 0 0 1pt ${({ theme }) => theme.primary4};
-    border: 1px solid ${({ theme }) => theme.primary3};
+    // border: 1px solid ${({ theme }) => theme.primary3};
   }
   &:disabled {
     opacity: 50%;

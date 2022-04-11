@@ -140,14 +140,14 @@ export default function StakingModal({ isOpen, onDismiss, stakingInfo, userLiqui
   const isSingleSided = stakingInfo.tokens[0] === stakingInfo.tokens[1];
   if (!isSingleSided) {
     dummyPair = new Pair(new TokenAmount(stakingInfo.tokens[0], '0'), new TokenAmount(stakingInfo.tokens[1], '0'));
-    if(chainId)
+    if (chainId)
       pairAddress = LPTokens[chainId].address;
     else
       pairAddress = ZERO_ADDRESS;
   } else {
     pairAddress = stakingInfo?.stakedAmount?.token.address;
   }
-  
+
   const pairContract = usePairContract(pairAddress);
 
   // approval data for stake
@@ -239,8 +239,8 @@ export default function StakingModal({ isOpen, onDismiss, stakingInfo, userLiqui
   const handleMax = useCallback(() => {
     maxAmountInput && onUserInput(
       maxAmountInput
-      ?.toSignificant(Math.min(4, stakingInfo?.earnedAmount?.currency.decimals))
-      )
+        ?.toSignificant(Math.min(4, stakingInfo?.earnedAmount?.currency.decimals))
+    )
   }, [maxAmountInput, onUserInput])
 
   async function onAttemptToApprove() {
@@ -319,13 +319,13 @@ export default function StakingModal({ isOpen, onDismiss, stakingInfo, userLiqui
   return (
     <Modal isOpen={isOpen} onDismiss={wrappedOnDismiss} maxHeight={90}>
       {!attempting && !hash && (
-        <ContentWrapper gap="lg">
+        <ContentWrapper gap="md">
           <RowBetween>
             <DoubleCurrencyLogo currency0={dummyPair?.token0} currency1={dummyPair?.token1} size={32} />
             <CloseIcon onClick={wrappedOnDismiss} />
           </RowBetween>
           <RowCenter>
-            <TYPE.mediumHeader>Deposit { isSingleSided ? stakingInfo.tokens[0].symbol : dummyPair?.token0.symbol + '-' + dummyPair?.token1.symbol}</TYPE.mediumHeader>
+            <TYPE.mediumHeader>Deposit {isSingleSided ? stakingInfo.tokens[0].symbol : dummyPair?.token0.symbol + '-' + dummyPair?.token1.symbol}</TYPE.mediumHeader>
           </RowCenter>
           <CurrencyInputPanel
             value={typedValue}
@@ -352,7 +352,7 @@ export default function StakingModal({ isOpen, onDismiss, stakingInfo, userLiqui
             </div>
 
             <TYPE.black>
-              { hypotheticalScoreBoost.toNumber() }
+              {hypotheticalScoreBoost.toNumber()}
             </TYPE.black>
           </HypotheticalScoreBoost>
 
@@ -363,8 +363,8 @@ export default function StakingModal({ isOpen, onDismiss, stakingInfo, userLiqui
 
             <TYPE.black>
               {hypotheticalRewardRate
-              .divide(stakingInfo?.rewardInfo?.rewardsMultiplier ? stakingInfo?.rewardInfo?.rewardsMultiplier : 1)
-              .toSignificant(4, { groupSeparator: ',' })}{' '}
+                .divide(stakingInfo?.rewardInfo?.rewardsMultiplier ? stakingInfo?.rewardInfo?.rewardsMultiplier : 1)
+                .toSignificant(4, { groupSeparator: ',' })}{' '}
               {stakingInfo?.rewardsTokenSymbol ?? 'SKYFI'} / week
             </TYPE.black>
           </HypotheticalRewardRate>

@@ -21,13 +21,14 @@ const LogoWrapper = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  max-width: 130px;    
+  height: 100%;
+  max-width: 250px;      
   img {    
     max-width: 100%;
   }  
 `
 const InfoSection = styled.div<{ width?: any }>`  
-  padding: 20px 15px;   
+  padding: 10px 15px;   
 `
 export default function UpcomingIdoRow({ idoInfo, idoIndex}: { idoInfo: any, idoIndex: number }) {
   return (

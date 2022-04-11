@@ -32,7 +32,6 @@ const Select = styled.select`
   border: none;
   width: 150px;
   height: 48px;
-  font-family: Poppins;
   font-style: normal;
   font-weight: 600;
   font-size: 13px;
@@ -48,7 +47,6 @@ const DropDownBoxArrow = styled.div`
   transform: translateY(-50%);
 `
 const Option = styled.option`
-font-family: Poppins;
 font-style: normal;
 font-weight: 600;
 font-size: 13px;

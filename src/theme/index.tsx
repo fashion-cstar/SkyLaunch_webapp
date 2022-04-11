@@ -182,13 +182,14 @@ export const TYPE = {
 }
 
 export const FixedGlobalStyle = createGlobalStyle`
+
 html, input, textarea, button {
   font-family: 'Poppins', sans-serif;
   font-display: fallback !important;
 }
 @supports (font-variation-settings: normal) {
   html, input, textarea, button {
-    font-family: 'Poppins', sans-serif;
+    font-family: 'Poppins', sans-serif
   }
 }
 
@@ -221,7 +222,7 @@ html {
 }
 h1,h2,h3,h4,h5{
   margin: 0px;
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Poppins', sans-serif
 }
 h1{
   font-weight: 900;
@@ -244,20 +245,20 @@ export const Title = styled.div`
   width: 100%;
   font-size: 70px;
   font-weight: 600;
+  margin-bottom: 40px;
 ${({ theme }) => theme.mediaWidth.upToMedium`
   text-align: center;
   font-size: 50px;
   font-weight: 500;
   margin-top: 10px;
-  margin-bottom: 0px;
+  margin-bottom: 10px;
 `};
 `
 
 export const PageHeader = styled.div`
   width: 100%;
-  padding: 0px 64px;
+  padding: 0px 60px;
   // min-height: 165px;
-  margin-top: -20px;
   text-transform: uppercase;
   background-color: #1C1C1C;
   box-shadow: 0 0 5px 1px #101010;

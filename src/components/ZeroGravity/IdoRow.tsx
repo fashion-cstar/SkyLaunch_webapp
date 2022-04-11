@@ -18,18 +18,19 @@ const RowContainer = styled.div`
   min-height: 120px;  
   position: relative;  
   ::after {
-    border: 2px solid #9485DA;
+    background: linear-gradient(to right, #9384DC, #D49583);
+    height: 2px;
     content: '';
-    width: calc(100% - 150px);
+    width: calc(100% - 160px);
     position: absolute;
     bottom: 0;
-    left: 130px;
+    left: 140px;
     right: 0;
   }
 
   :last-child {
     ::after {
-      border: 0 !important;
+      height: 0 !important;
     }
   }
 
@@ -37,7 +38,7 @@ const RowContainer = styled.div`
     flex-direction: column;
 
     ::after {
-      border: 0 !important;
+      height: 0 !important;
     }
   `};
 `
@@ -48,24 +49,26 @@ const LogoWrapper = styled.div`
   align-items: center;
   min-width: 160px;  
   width: 160px;
-  padding: 0px 10px 0px 15px;  
+  padding: 0px 0px 0px 20px;  
   img {    
     max-height: 120px;
     width: 100%;
   }
   ${({ theme }) => theme.mediaWidth.upToMedium`
+    padding: 0px; 
     margin-bottom: 1rem;
     margin-top: 1rem;
   `};
 `
 const ButtonSection = styled.div`
-  min-width: 110px; 
-  width: 110px;
-  padding: 5px; 
+  min-width: 120px; 
+  width: 120px;
+  padding: 5px 2px; 
   display: flex;  
   align-items: center;  
-  justify-content: center;  
+  justify-content: start;  
   ${({ theme }) => theme.mediaWidth.upToMedium`
+    justify-content: center;
     &.mobile-hidden {
       display: none;
     }
@@ -122,13 +125,13 @@ export default function IdoRow({ idoInfo, idoIndex}: { idoInfo: any, idoIndex: n
           <div style={{textAlign: 'center'}}>{moment(idoInfo.launchDate).fromNow()}</div>
         </InfoSection>
         <InfoSection className="mobile-hidden" width={17}>
-          <div style={{textAlign: 'center'}}>{idoInfo.totalRaise}</div>
+          <div style={{textAlign: 'center'}}>${idoInfo.targetRaise}</div>
         </InfoSection>
         <InfoSection className="mobile-hidden" width={16}>
           <div style={{textAlign: 'center'}}>{idoInfo.totalAmount}</div>
         </InfoSection>
         <InfoSection className="mobile-hidden" width={17}>
-          <div style={{textAlign: 'center'}}>{idoInfo.allocationMin}</div>
+          <div style={{textAlign: 'center'}}>${idoInfo.IdoPrice}</div>
         </InfoSection>
         <InfoSection className="mobile-hidden" width={17}>
           <div style={{textAlign: 'center'}}>{idoInfo.allocationMax}</div>

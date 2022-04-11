@@ -344,7 +344,7 @@ export default function CurrencyInputPanel({
                           ?.toSignificant(returnBalanceNum(selectedCurrencyBalance, 6), {
                           groupSeparator: ','
                         })}`
-                      : ''}
+                      : (customBalanceText ?? 'Balance: ') + '0'}
                   </TYPE.body>
                 )}
               </RowBetweenTransfer>

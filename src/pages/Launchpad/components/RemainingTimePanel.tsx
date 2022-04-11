@@ -7,17 +7,18 @@ const Container = styled.div`
     align-items: center;
     justify-content: space-between;
     padding: 0 40px;
+    margin-top: 10px;
     `
 
 const TContainer = styled.div`
     display: flex;
     align-items: center;
     flex-direction: column;    
-    padding: 0 40px;
+    padding: 10px 40px;
     width: 50px;
     border: 1px solid #222222;
     ${({ theme }) => theme.mediaWidth.upToMedium`
-        padding: 0 20px;
+        padding: 0 30px;
     `};
     `
 const NumBox = styled.div`
@@ -56,19 +57,19 @@ const RemainingTimePanel = ({ secs }: { secs?: number }) => {
             <Container>
                 <TContainer>
                     <NumBox>{days}</NumBox>
-                    <SynBox>DD</SynBox>
+                    <SynBox>Days</SynBox>
                 </TContainer>
                 <TContainer>
                     <NumBox>{hours}</NumBox>
-                    <SynBox>HH</SynBox>
+                    <SynBox>Hours</SynBox>
                 </TContainer>
                 <TContainer>
                     <NumBox>{minutes}</NumBox>
-                    <SynBox>MM</SynBox>
+                    <SynBox>Minutes</SynBox>
                 </TContainer>
                 <TContainer>
                     <NumBox>{seconds}</NumBox>
-                    <SynBox>SS</SynBox>
+                    <SynBox>Seconds</SynBox>
                 </TContainer>
             </Container>
         </>

@@ -23,7 +23,7 @@ import { usePoolAndUserInfoCallback } from 'state/fundraising/hooks'
 
 const HeaderFrame = styled.div`
   display: grid;
-  padding: 0px 64px;
+  padding: 0px 60px;
   grid-template-columns: 1fr 0px;
   align-items: center;
   width: 100%;
@@ -47,7 +47,7 @@ const HideSmall = styled.span`
   `};
 `
 const HeaderControls = styled.div`
-  padding: 0px 19px;
+  padding: 0px 0px;
   display: flex;
   // align-items: end;
   align-items: end;
@@ -89,18 +89,18 @@ const AccountElement = styled.div<{ active: boolean }>`
     border: 1px solid blue;
   }
 `
-const NetworkCard = styled(YellowCard)`
+const NetworkCard = styled.div`
   position: relative;
-  padding-top: 5px;
   padding-left: 50px;
   width: 230px;
   height: 36px;
   letter-spacing: 0.05em;
   color: #ffffff;
   background: #000;
+  display: flex;
+  align-items: center;  
   border-radius: 54px;
   transition: all 0.2s ease-in-out;
-  font-family: Poppins;
   font-size: 16px;
   text-transform: uppercase;
   margin-right: 20px;
@@ -124,8 +124,7 @@ const NetworkCard = styled(YellowCard)`
     cursor: pointer;
   }
 `
-const BalanceText = styled(Text)`
-  font-family: Poppins;
+const BalanceText = styled(Text)`  
   font-weight: 600;
   font-size: 14px;
   line-height: 80%;
@@ -155,7 +154,7 @@ const ArrowDropWrap = styled.span`
   top: 1px;
 `
 const NotConnectedWrap = styled.div`
-  padding: 22px 19px;
+  padding: 22px 0px;
   display: flex;
   align-items: center;
   justify-self: flex-end;
@@ -247,7 +246,7 @@ const NetworkSwitcher = () => {
           <NetworkCard title={NETWORK_LABELS[chainId]}>
             <BlockchainLogoWrap>
               <BlockchainLogo size="22px" blockchain={chainId ? NETWORK_LABELS[chainId] : 'Ethereum'} />
-            </BlockchainLogoWrap>
+            </BlockchainLogoWrap>            
             <span>{NETWORK_LABELS[chainId]}</span>
             <ArrowDropWrap>
               <img src={ArrowDropdown} alt="ArrowDropdown" />

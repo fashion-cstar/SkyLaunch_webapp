@@ -34,9 +34,7 @@ export const setIsFunded = createAction<{ isFunded: boolean }>('fundraising/setI
 export const setProgressPhase = createAction<{ progressPhase: number }>('fundraising/setProgressPhase')
 export const setPoolID = createAction<{ poolID: number }>('fundraising/setPoolID')
 export const setMaxAlloc = createAction<{ maxAlloc: number }>('fundraising/setMaxAlloc')
-// export const setRemainSecs = createAction<{ remainSecs: number }>('fundraising/setRemainSecs')
-export const setUserId = createAction<{ userId: string }>('fundraising/setUserId')
-export const setJwtToken = createAction<{ JwtToken: string }>('fundraising/setJwtToken')
-export const setSignedAccount = createAction<{ signedAccount: string }>('fundraising/setSignedAccount')
+export const setIsClaimedNFT = createAction<{ isClaimedNFT: boolean }>('fundraising/isClaimedNFT')
+
 export const setIsLogging = createAction<{ isLogging: boolean }>('fundraising/setIsLogging')
 export const setIsFormSent = createAction<{ isFormSent: boolean }>('fundraising/setIsFormSent')

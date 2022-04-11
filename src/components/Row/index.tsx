@@ -21,7 +21,7 @@ export const RowBetween = styled(Row)`
 `
 
 export const RowCenter = styled(Row)`
-  justify-content: center;
+  justify-content: center;  
 `
 
 export const RowFlat = styled.div`

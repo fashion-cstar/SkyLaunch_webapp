@@ -8,11 +8,11 @@ import { ButtonError } from 'components/Button'
 import Modal from 'components/Modal'
 import { RowBetween, RowCenter } from 'components/Row'
 import styled from 'styled-components'
-import { useTransactionAdder } from 'state/transactions/hooks'
+import { TransactionResponse } from '@ethersproject/providers'
 import { BigNumber } from 'ethers'
-import Radio from '@mui/material/Radio';
-import RadioGroup from '@mui/material/RadioGroup';
-import FormControlLabel from '@mui/material/FormControlLabel';
+import Radio from '@mui/material/Radio'
+import RadioGroup from '@mui/material/RadioGroup'
+import FormControlLabel from '@mui/material/FormControlLabel'
 import { ZERO_ADDRESS } from '../../../constants'
 import { useActiveWeb3React } from '../../../hooks'
 import { useSubscribeCallback, useNFTOwnerByIndex, useAddTxRevertedToast, useUserMultiplier } from 'state/fundraising/hooks'
@@ -36,7 +36,7 @@ interface ClaimModalProps {
   pid: number,
   kyc_addresses: any,
   onDismiss: () => void,
-  resetIsSubscribe: (value: boolean) => void
+  resetIsSubscribe: () => void
 }
 
 export default function SubscribeModal({ isOpen, pid, kyc_addresses, onDismiss, resetIsSubscribe }: ClaimModalProps) {
@@ -44,8 +44,7 @@ export default function SubscribeModal({ isOpen, pid, kyc_addresses, onDismiss, 
   const [hash, setHash] = useState<string | undefined>()
   const [attempting, setAttempting] = useState(false)
   const { library, account, chainId } = useActiveWeb3React()
-  const [NFTTokenId, setNFTTokenId] = useState(-1)
-  const { NFTOwnerByIndexCallback } = useNFTOwnerByIndex(account)
+  const NFTTokenId = useNFTOwnerByIndex(isOpen)
   const { subscribeCallback, subscribeWithNFTCallback } = useSubscribeCallback(account)
   const { addTxRevertedToast } = useAddTxRevertedToast()
   const userMultiplier = useUserMultiplier()
@@ -74,28 +73,30 @@ export default function SubscribeModal({ isOpen, pid, kyc_addresses, onDismiss, 
   }, [userMultiplier])
 
   useEffect(() => {
-    NFTOwnerByIndexCallback()
-      .then(tokenId => {
-        if (tokenId) {
-          setNFTTokenId(tokenId)
-        }
-      })
-      .catch(error => {
-        setNFTTokenId(-1)
-      })
-  }, [])
+    if (multiplier > 0) {
+      setValue(1)
+    } else if (NFTTokenId >= 0) {
+      setValue(2)
+    }
+  }, [NFTTokenId, multiplier])
 
   async function onSubscribe() {
     try {
       setAttempting(true)
       const claim = kyc_addresses.kycRecords[account ? account : ZERO_ADDRESS];
-      subscribeCallback(pid, claim).then((hash: string) => {
-        if (hash) {
-          setHash(hash)
-          resetIsSubscribe(true)
-        } else {
+      subscribeCallback(pid, claim).then((tx: TransactionResponse) => {
+        tx.wait().then((_: any) => {
+          setHash(tx.hash)
+          resetIsSubscribe()
+        }).catch(error => {
           setAttempting(false)
-        }
+          let err: any = error
+          if (err?.message) addTxRevertedToast(err?.message)
+          if (err?.error) {
+            if (err?.error?.message) addTxRevertedToast(err?.error?.message)
+          }
+          wrappedOnDismiss()
+        })
       }).catch(error => {
         setAttempting(false)
         let err: any = error
@@ -115,13 +116,20 @@ export default function SubscribeModal({ isOpen, pid, kyc_addresses, onDismiss, 
     try {
       setAttempting(true)
       const claim = kyc_addresses.kycRecords[account ? account : ZERO_ADDRESS];
-      subscribeWithNFTCallback(pid, claim, NFTTokenId).then((hash: string) => {
-        if (hash) {
-          setHash(hash)
-          resetIsSubscribe(true)
-        } else {
+      subscribeWithNFTCallback(pid, claim, NFTTokenId).then((tx: TransactionResponse) => {
+        tx.wait().then((_: any) => {
+          setHash(tx.hash)
+          console.log("succesSubscribing")
+          resetIsSubscribe()
+        }).catch(error => {
           setAttempting(false)
-        }
+          let err: any = error
+          if (err?.message) addTxRevertedToast(err?.message)
+          if (err?.error) {
+            if (err?.error?.message) addTxRevertedToast(err?.error?.message)
+          }
+          wrappedOnDismiss()
+        })
       }).catch(error => {
         setAttempting(false)
         let err: any = error
@@ -154,7 +162,7 @@ export default function SubscribeModal({ isOpen, pid, kyc_addresses, onDismiss, 
             <TYPE.mediumHeader>Subscribe</TYPE.mediumHeader>
             <CloseIcon onClick={wrappedOnDismiss} />
           </RowBetween>
-          {multiplier > 0 && (
+          {(multiplier > 0 || NFTTokenId >= 0) && (
             <RowCenter>
               <RadioGroup
                 aria-labelledby="demo-controlled-radio-buttons-group"
@@ -162,12 +170,12 @@ export default function SubscribeModal({ isOpen, pid, kyc_addresses, onDismiss, 
                 value={subscribeType}
                 onChange={handleChange}
               >
-                <FormControlLabel value={1} control={<Radio />} label="Subscribe" />
-                <FormControlLabel value={2} control={<Radio />} label="Subscribe with Utility NFT" disabled={NFTTokenId === -1} />
+                <FormControlLabel value={1} control={<Radio sx={{ color: "#10487E", '&.Mui-disabled': { color: "#505050" } }} />} label={<span style={{ fontFamily: 'Poppins', color: multiplier <= 0?"#707070":"#eee" }}>Subscribe</span>} disabled={multiplier <= 0} />
+                <FormControlLabel value={2} control={<Radio sx={{ color: "#10487E", '&.Mui-disabled': { color: "#505050" } }} />} label={<span style={{ fontFamily: 'Poppins', color: NFTTokenId === -1?"#707070":"#eee"  }}>Subscribe with Utility NFT</span>} disabled={NFTTokenId === -1} />
               </RadioGroup>
             </RowCenter>
           )}
-          {multiplier <= 0 && (
+          {(multiplier <= 0 && NFTTokenId === -1) && (
             <div>
               <TYPE.black>
                 Your Score is 0
@@ -177,7 +185,7 @@ export default function SubscribeModal({ isOpen, pid, kyc_addresses, onDismiss, 
               </LinkStakingPage>
             </div>
           )}
-          <ButtonError onClick={handleSubscribe} disabled={multiplier > 0 ? false : true}>
+          <ButtonError onClick={handleSubscribe} disabled={(multiplier || NFTTokenId >= 0) > 0 ? false : true}>
             Subscribe
           </ButtonError>
         </ContentWrapper>

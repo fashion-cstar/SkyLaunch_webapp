@@ -118,11 +118,12 @@ export function useToken(tokenAddress?: string): Token | undefined | null {
 }
 
 export function useCurrency(currencyId: string | undefined): Currency | null | undefined {
-  const isNativeCurrency = ETHER_NAMES_CURRENCIES.includes(String(currencyId?.toUpperCase()))
+  let ether_Names = ETHER_CURRENCIES.map(item => item.name?.toUpperCase())
+  const isNativeCurrency = ether_Names.includes(String(currencyId?.toUpperCase()))
+  // const isNativeCurrency = ETHER_NAMES_CURRENCIES.includes(String(currencyId?.toUpperCase()))
   const token = useToken(isNativeCurrency ? undefined : currencyId)
 
-  if (isNativeCurrency) {
-    console.log(ETHER_CURRENCIES)
+  if (isNativeCurrency) {    
     return ETHER_CURRENCIES.find((curr: Currency) => curr.name === String(currencyId))
   }
   else {

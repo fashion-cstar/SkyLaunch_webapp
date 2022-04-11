@@ -105,14 +105,19 @@ export function useStakingInfoTop(
   const totalPoolTokens = useTotalSupply(stakingTokenPair?.liquidityToken)
 
   const getAPR = (individualRewardRateYearly: TokenAmount, stakedAmount: TokenAmount): BigNumber => {
-    if (isSingleSided) {
-      const value = stakedAmount.toFixed(0) == "0" ? "10000" : stakedAmount.toFixed(0);
-      return BigNumber.from(JSBI.multiply(JSBI.divide(JSBI.BigInt(individualRewardRateYearly.toFixed(0)), JSBI.BigInt(value)), JSBI.BigInt(100)).toString());
+    if (isSingleSided) {      
+      const value = stakedAmount.toFixed(0) == "0" ? "10000" : stakedAmount.toFixed(0);      
+      // return BigNumber.from(JSBI.multiply(JSBI.divide(JSBI.BigInt(individualRewardRateYearly.toFixed(0)), JSBI.BigInt(value)), JSBI.BigInt(100)).toString());
+      return BigNumber.from(JSBI.divide(JSBI.multiply(JSBI.BigInt(individualRewardRateYearly.toFixed(0)), JSBI.BigInt(100)), JSBI.BigInt(value)).toString())
     }
     else {
-      let lpValue = stakingTokenPair?.getLiquidityValue(stakingInfo?.rewardRate?.token, totalPoolTokens!, stakedAmount, false)
+      let lpValue
+      try{
+        lpValue = stakingTokenPair?.getLiquidityValue(stakingInfo?.rewardRate?.token, totalPoolTokens!, stakedAmount, false)
+      }catch(error){}
       const value = lpValue == undefined ? "10000" : lpValue.toFixed(0);
-      return BigNumber.from(JSBI.multiply(JSBI.divide(JSBI.BigInt(individualRewardRateYearly.toFixed(0)), JSBI.BigInt(value)), JSBI.BigInt(100)).toString());
+      // return BigNumber.from(JSBI.multiply(JSBI.divide(JSBI.BigInt(individualRewardRateYearly.toFixed(0)), JSBI.BigInt(value)), JSBI.BigInt(100)).toString());
+      return BigNumber.from(JSBI.divide(JSBI.multiply(JSBI.BigInt(individualRewardRateYearly.toFixed(0)), JSBI.BigInt(100)), JSBI.BigInt(value)).toString())
     }
   }
 

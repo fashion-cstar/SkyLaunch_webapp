@@ -97,10 +97,10 @@ const InfoSection = styled.div<{ width?: any }>`
 `
 export default function UserIdoRow({ logo, network, pid }: { logo: string, network: number, pid: number }) {
   const { library, account, chainId } = useActiveWeb3React()
-  const [totalTokens, setTotalTokens] = useState(0)
-  const [claimedTokens, setClaimedTokens] = useState(0)
-  const [leftTokens, setLeftTokens] = useState(0)
-  const [amountToClaim, setAmountToClaim] = useState(0)
+  const [totalTokens, setTotalTokens] = useState<BigNumber>(BigNumber.from(0))
+  const [claimedTokens, setClaimedTokens] = useState<BigNumber>(BigNumber.from(0))
+  const [leftTokens, setLeftTokens] = useState<BigNumber>(BigNumber.from(0))
+  const [amountToClaim, setAmountToClaim] = useState<BigNumber>(BigNumber.from(0))
   const [showClaimModal, setShowClaimModal] = useState(false)
   const [countsOfPool, setCountsOfPool] = useState(0)
   const [poolInfoData, setPoolInfoData] = useState<PoolInfo | undefined>()
@@ -138,16 +138,20 @@ export default function UserIdoRow({ logo, network, pid }: { logo: string, netwo
     }
   }, [poolInfoCallback, pid, countsOfPool, account])
 
+  const readUserInfoData = () => {
+    userInfoCallback(pid)
+      .then(userInfo => {
+        if (userInfo) setUserInfoData(userInfo)
+        else setUserInfoData(undefined)
+      })
+      .catch(error => {
+        setUserInfoData(undefined)
+      })
+  }
+
   useEffect(() => {
     if (pid >= 0 && pid < countsOfPool && account) {
-      userInfoCallback(pid)
-        .then(userInfo => {
-          if (userInfo) setUserInfoData(userInfo)
-          else setUserInfoData(undefined)
-        })
-        .catch(error => {
-          setUserInfoData(undefined)
-        })
+      readUserInfoData()
     }
   }, [userInfoCallback, pid, countsOfPool, account])
 
@@ -167,14 +171,12 @@ export default function UserIdoRow({ logo, network, pid }: { logo: string, netwo
   }, [poolInfoData])
 
   useEffect(() => {
-    if (rewardToken) {
-      setAmountToClaim(formatEther(userPendingRewards, rewardToken, 2))
-    }
-  }, [userPendingRewards, rewardToken])
+    setAmountToClaim(userPendingRewards)
+  }, [userPendingRewards])
 
   useEffect(() => {
-    if (totalTokens > 0) {
-      let left = Math.round((totalTokens - amountToClaim - claimedTokens) * 100) / 100
+    if (totalTokens.gt(0)) {      
+      let left=totalTokens.sub(amountToClaim).sub(claimedTokens)
       setLeftTokens(left)
     }
   }, [totalTokens, claimedTokens, amountToClaim])
@@ -182,45 +184,40 @@ export default function UserIdoRow({ logo, network, pid }: { logo: string, netwo
   useEffect(() => {
     if (network === chainId) {
       if (userInfoData && poolInfoData && rewardToken) {
-        if (userInfoData?.fundingAmount.gt(0)) {          
+        if (userInfoData?.fundingAmount.gt(0)) {
+          if (poolInfoData?.rewardsCliffEndTime.gt(0)) {
+            setCliffEndTime((new Date(poolInfoData?.rewardsCliffEndTime.toNumber() * 1000)).toLocaleString('en-GB', { timeZone: 'UTC' }))
+          }
           if (poolInfoData?.rewardsStartTime.gt(0) && poolInfoData?.rewardsCliffEndTime.lte(BigNumber.from(Math.floor(Date.now() / 1000)))) {
             if (userTotalRewards.gt(0)) {
-              setTotalTokens(formatEther(userTotalRewards, rewardToken, 2))
+              setTotalTokens(userTotalRewards)
             }
-            setClaimedTokens(formatEther(userInfoData.collectedRewards, rewardToken, 2))
+            setClaimedTokens(userInfoData.collectedRewards)
             setUserIdoType(1) //claim
           } else {
             setUserIdoType(2)
-            if (poolInfoData?.rewardsCliffEndTime.gt(0)){
-              setCliffEndTime((new Date(poolInfoData?.rewardsCliffEndTime.toNumber() * 1000)).toLocaleString('en-GB', { timeZone: 'UTC' }))
-            }
             if (userTotalRewards.gt(0)) {
-              setTotalTokens(formatEther(userTotalRewards, rewardToken, 2))
-              setLeftTokens(formatEther(userTotalRewards, rewardToken, 2))
+              setTotalTokens(userTotalRewards)
+              setLeftTokens(userTotalRewards)
             }
-            setClaimedTokens(0)
-            setAmountToClaim(0)
+            setClaimedTokens(BigNumber.from(0))
+            setAmountToClaim(BigNumber.from(0))
           }
         }
       } else {
         setUserIdoType(0)
-        setTotalTokens(0)
-        setClaimedTokens(0)
-        setLeftTokens(0)
-        setAmountToClaim(0)
+        setTotalTokens(BigNumber.from(0))
+        setClaimedTokens(BigNumber.from(0))
+        setLeftTokens(BigNumber.from(0))
+        setAmountToClaim(BigNumber.from(0))
       }
     } else {
       setUserIdoType(3)
     }
   }, [userInfoData, poolInfoData, userTotalRewards, rewardToken])
 
-  const resetCollectedRewards = (amount: BigNumber) => {
-    if (rewardToken) {
-      let left = Math.round((totalTokens - formatEther(amount, rewardToken, 2)) * 100) / 100
-      setClaimedTokens(formatEther(amount, rewardToken, 2))
-      setAmountToClaim(0)
-      setLeftTokens(left)
-    }
+  const resetCollectedRewards = () => {
+    readUserInfoData()
   }
 
   const openClaimModal = async () => {
@@ -241,7 +238,7 @@ export default function UserIdoRow({ logo, network, pid }: { logo: string, netwo
           pid={pid} userInfoData={userInfoData} rewardToken={rewardToken}
           fundToken={fundToken} />)}
         <ButtonSection>
-          {userIdoType === 1 ? (<ButtonPrimary style={{ width: '150px', fontSize: "14px", padding: "0px 5px", height: '30px', textTransform: 'uppercase' }} onClick={openClaimModal}>Claim</ButtonPrimary>) :
+          {userIdoType === 1 ? (<ButtonPrimary style={{ width: '150px', fontSize: "14px", padding: "0px 5px", height: '30px', textTransform: 'uppercase' }} onClick={openClaimModal} disabled={!userPendingRewards.gt(0)}>{userPendingRewards.gt(0) ? 'Claim' : 'Claimed'}</ButtonPrimary>) :
             userIdoType === 2 ? (<ButtonIdoNotingtoClaim style={{ width: '150px', fontSize: "14px", padding: "0px 5px", height: '30px', textTransform: 'uppercase' }} disabled>Nothing to Claim</ButtonIdoNotingtoClaim>) :
               (<ButtonSecondary style={{ width: '150px', fontSize: "14px", padding: "0px 5px", height: '30px', textTransform: 'uppercase' }} onClick={toggleWalletModal}>Change Network</ButtonSecondary>)
           }
@@ -251,19 +248,19 @@ export default function UserIdoRow({ logo, network, pid }: { logo: string, netwo
         </LogoWrapper>
         <TableContainer>
           <InfoSection className="mobile-hidden" width={20}>
-            <div style={{ textAlign: 'center' }}>{totalTokens ? totalTokens : '--'}</div>
+            <div style={{ textAlign: 'center' }}>{totalTokens.gt(0) && rewardToken ? formatEther(totalTokens, rewardToken.decimals, 2, true) : '--'}</div>
           </InfoSection>
           <InfoSection className="mobile-hidden" width={20}>
-            <div style={{ textAlign: 'center' }}>{claimedTokens ? claimedTokens : '--'}</div>
+            <div style={{ textAlign: 'center' }}>{claimedTokens.gt(0) && rewardToken ? formatEther(claimedTokens, rewardToken.decimals, 2, true) : '--'}</div>
           </InfoSection>
           <InfoSection className="mobile-hidden" width={20}>
-            <div style={{ textAlign: 'center' }}>{leftTokens ? leftTokens : '--'}</div>
+            <div style={{ textAlign: 'center' }}>{leftTokens.gt(0) && rewardToken ? formatEther(leftTokens, rewardToken.decimals, 2, true) : '--'}</div>
           </InfoSection>
           <InfoSection className="mobile-hidden" width={20}>
-            <div style={{ textAlign: 'center' }}>{amountToClaim ? amountToClaim : '--'}</div>
+            <div style={{ textAlign: 'center' }}>{amountToClaim.gt(0) && rewardToken ? formatEther(amountToClaim, rewardToken.decimals, 2, true) : '--'}</div>
           </InfoSection>
           <InfoSection className="mobile-hidden" width={20}>
-            {userIdoType === 2 && <div style={{ textAlign: 'right' }}>{cliffEndTime}</div>}
+            <div style={{ textAlign: 'center', fontSize: '14px' }}>{cliffEndTime}</div>
           </InfoSection>
         </TableContainer>
       </RowContainer>}

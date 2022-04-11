@@ -1,9 +1,8 @@
 import React, { useCallback, useState } from 'react'
 import styled from 'styled-components'
-import { ChevronDown } from 'react-feather'
 import Row from 'components/Row'
 import BubbleBase from './../BubbleBase'
-import ZeroLogo from '../../assets/images/0-icon.png'
+import { ChevronDown } from 'react-feather'
 import MetaMaskIcon from '../../assets/images/metamask-icon.svg'
 import OutsideLink from '../../assets/images/outside-link.svg'
 import { ButtonOutlined, ButtonPrimary, ButtonSecondary } from './../Button'
@@ -19,66 +18,176 @@ import StakingModal from 'components/pools/StakingModal'
 import { useActiveWeb3React } from 'hooks'
 import { useWalletModalToggle } from 'state/application/hooks'
 import { getEtherscanLink } from 'utils'
-import { useRewardsContractInfo } from 'stats/queries/useRewardsContractInfoQuery'
 import { Token, TokenAmount } from '@skylaunch/sdk'
 import { useTokenBalance } from 'state/wallet/hooks'
 import { getCurrencyLogoImage } from 'components/CurrencyLogo'
 import ClaimRewardModal from '../../components/pools/ClaimRewardModal'
 import { useStakingInfoTop } from 'state/pools/hooks'
 import { currencyId } from 'utils/currencyId'
-import { StyledInternalLink, TYPE } from '../../theme'
+import { Link } from 'react-router-dom'
 import SettingIcon from '../Settings/SettingIcon'
+import { ReactComponent as SkyFiSvg } from './../../assets/svg/SkyFi.svg'
 
 const moment = require('moment')
 
 const StakingCardStyled = styled.div`
-  width: 352px;
+  width: 450px;
   position: relative;
   height: fit-content;
-  margin-bottom: 20px;
+  margin-bottom: 20px;  
 `
 const CardContainer = styled.div`
-  background: rgba(28, 28, 28, 0.54);
-  box-shadow: inset 2px 2px 2px 4px rgb(255 255 255 / 10%);
-  backdrop-filter: blur(28px);
-  border-radius: 20px;
-`
-const Header = styled.header`
-  // background: rgba(28, 28, 28, 0.54);
-  // box-shadow: inset 2px 2px 5px rgb(255 255 255 / 10%);
+  // box-shadow: inset 2px 2px 2px 4px rgb(255 255 255 / 10%);
   // backdrop-filter: blur(28px);
-  // border-top-right-radius: 20px;
-  // border-top-left-radius: 20px;
-  min-height: 60px;  
-  padding: 24px;
+  border-radius: 20px;
+  background: linear-gradient(#101010, #101010) padding-box, 
+  linear-gradient(to right, #329D9C, #7BE495);
+  background-origin: padding-box, border-box;
+  background-repeat: no-repeat;
+  border: 3px solid transparent;
+  padding: 2rem;
 `
 
-const Title = styled.h3`
-  font-weight: 600;
-  line-height: 1.5;
-  font-size: 20px;
-`
-const Description = styled.p`
-  font-size: 15px;
-  font-weight: 600;
-  color: #a7b1f4;
-  margin-bottom: 0;
+const HarvestContent = styled.div`
+  display: flex;
+  gap: 10px;
+  margin-top: 30px;
+  justify-content: space-between;
 `
 
-const Score = styled.p`
-  font-size: 15px;
-  font-weight: 600;
-  color: #a7b1f4;
-  margin-bottom: 0;
-  float:right;
+const HarvestColumn = styled.div`
+  min-width: 100px;
+  display: flex;
+  flex-direction: column;  
+`
+
+const AprColumn = styled(HarvestColumn)`
+  align-items: start;
+`
+
+const EarnedColumn = styled(HarvestColumn)`
+  align-items: center;
+`
+
+const ScoreColumn = styled(HarvestColumn)`
+  align-items: end;
+`
+
+const HeaderContent = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin-top: 12px;
+`
+
+const Header = styled.h2`
+  font-weight: 500;
+  font-size: 35px;
+  color: #fff;
+  text-transform: uppercase;
 `
 
 const LogoWrapper = styled.div`
-  width: 50px;
-  height: 50px;
-  img {
-    max-width: 100%;
-  }
+  width: 60px;
+  height: 60px;  
+`
+
+const Title = styled.h3`
+  font-weight: 500;
+  font-size: 15px;
+  color: #919191;
+  margin: 0px;
+  text-transform: uppercase;
+`
+const Apr = styled.p`
+  font-size: 25px;
+  font-weight: 500;
+  color: #fff;
+  margin-top: 12px;
+`
+
+const Earned = styled.p`
+  font-size: 25px;
+  font-weight: 500;
+  color: #fff;
+  margin-top: 12px;
+  margin-bottom: 0px;
+`
+
+const Score = styled.p`
+  font-size: 25px;
+  font-weight: 500;
+  color: #fff;
+  margin-top: 12px;
+`
+
+const ButtonContent = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  margin-top: 3rem;
+`
+
+const ButtonWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3rem;
+`
+
+const DetailsContent = styled.div`  
+  background-color: #79E295;
+  background-image: linear-gradient(45deg, #79E295, #349F9C);
+  background-size: 100%;
+  -webkit-background-clip: text;
+  -moz-background-clip: text;
+  -webkit-text-fill-color: transparent; 
+  -moz-text-fill-color: transparent;
+
+  font-size: 18px;
+  font-weight: 400;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  text-transform: uppercase;
+`
+
+const DetailsIcon = styled.div`  
+  border-radius: 50%;
+  background: linear-gradient(#101010, #101010) padding-box, 
+  linear-gradient(45deg, #79E295, #349F9C);
+  background-origin: padding-box, border-box;
+  background-repeat: no-repeat;
+  border: 1px solid transparent;
+  width: 20px;
+  height: 20px;
+`
+
+const ManageContent = styled.div`    
+  background-color: #9384DB;
+  background-image: linear-gradient(45deg, #9384DB, #D49584);
+  background-size: 100%;
+  -webkit-background-clip: text;
+  -moz-background-clip: text;
+  -webkit-text-fill-color: transparent; 
+  -moz-text-fill-color: transparent;
+
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-size: 18px;
+  font-weight: 400;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-transform: uppercase;
+`
+
+export const StyledManageLink = styled(Link)`
+  text-decoration: none;
+  cursor: pointer; 
 `
 
 const IconWrapper = styled.div`
@@ -100,50 +209,15 @@ const CenterWrap = styled.div`
   border-bottom: 1px solid #FF9F81;
 `
 
-const TextApr = styled.h3`
-  color: #a7b1f4;
-  font-weight: 500;
-  1font-size: 14px;
-`
-const QuestionWrap = styled.div`
-  display: flex;
-`
-
-const TextEarned = styled.h4`
-  font-size: 12px;
-  margin-top: 25px;
-  margin-bottom: 5px;
-`
-
-const SmallNumberEarn = styled(TextApr)`
-  font-size: 10px;
-`
-
-const EarnButton = styled(ButtonPrimary)`
-  width: 100px;
-  border-radius: 12px;
-  font-size: 17px;
+const SmallNumberEarn = styled.p`
+  font-size: 15px;
+  font-weight: 300;
+  color: #fff;
+  margin-top: 12px;
 `
 
 const BottomWrap = styled(CenterWrap)`
   border-bottom: none;
-`
-
-const ManualButton = styled(ButtonSecondary)`
-  cursor: default;
-  width: 80px;
-  font-size: 10px;
-  padding: 7px;
-  border: 1px solid #a7b1f4;
-  background: none;
-  :hover {
-    border-color: #a7b1f4;
-  }
-`
-
-const FlexBottom = styled(Flex)`
-  gap: 0.7rem;
-  width: 110px;
 `
 
 const ArrayWrap = styled.div<{ showDetails: boolean }>`
@@ -152,7 +226,7 @@ const ArrayWrap = styled.div<{ showDetails: boolean }>`
 `
 
 const DetailsWrap = styled(BottomWrap)`
-  padding: 0 24px 24px;
+  padding: 20px 24px 0px 24px;
 `
 
 const FlexEnd = styled.div`
@@ -170,28 +244,6 @@ const FlexEnd = styled.div`
     :hover {
       color: white;
     }
-  }
-`
-
-const ManageButton = styled(StyledInternalLink)`
-  postion: absolute;
-  width: 140px;
-  padding: 0.25rem;
-  text-decoration: none !important;
-  position: absolute;
-  right: 0;
-  top: 410px;
-  margin-left: auto;
-  margin-right: auto;
-  text-align: center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #6752f7;
-  transition: all 0.2s ease-in-out;
-  &:hover {
-    color: #6752f7;
-    filter: brightness(1.2);
   }
 `
 
@@ -298,9 +350,6 @@ const StakingCard = ({ stakingInfoTop, account, chainId }: { stakingInfoTop: Sta
     }
   }
 
-  console.log("stakingInfo");
-  console.log(stakingInfo.rewardRateWeekly.toFixed(2));
-
   return (
     <StakingCardStyled>
       {claimRewardStaking && (
@@ -323,104 +372,98 @@ const StakingCard = ({ stakingInfoTop, account, chainId }: { stakingInfoTop: Sta
       <StakingRoiModal open={openRoiModal} setOpen={setOpenRoiModal} />
       <BubbleBase />
       <CardContainer>
-      <Header>
-        <Flex>
-          <div>
-            <Title>Staking</Title>
-            <Description>
-              {tokenName}
-            </Description>
-          </div>
-          <div>
-            <Title>Your Score</Title>
-            <Score>
-              {stakingInfo.userScore?.toNumber()}
-            </Score>
-          </div>
-        </Flex>
-      </Header>
-      <CenterWrap>
-        <Flex>
-          <div onMouseEnter={() => setTooltipShow(true)} onMouseLeave={() => setTooltipShow(false)}>
-            <Tooltip text="This pool’s rewards aren’t compounded automatically, so we show APR" show={tooltipShow}>
-              <TextApr>APR</TextApr>
-            </Tooltip>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <TextApr>{apr.toNumber()}%</TextApr>
-            <div style={{ marginLeft: '10px', cursor: 'pointer' }} onClick={() => setOpenRoiModal(true)}>
-              <Icon icon="alien" color="#a7b1f4" />
+        <HeaderContent>
+          {/* <LogoWrapper src="./images/" />    */}
+          <LogoWrapper>
+            <SkyFiSvg />
+          </LogoWrapper>
+          <Header>
+            {tokenName}
+          </Header>
+        </HeaderContent>
+        <HarvestContent>
+          <AprColumn>
+            <div onMouseEnter={() => setTooltipShow(true)} onMouseLeave={() => setTooltipShow(false)}>
+              <Tooltip text="This pool’s rewards aren’t compounded automatically, so we show APR" show={tooltipShow}>
+                <Title>Apr</Title>
+              </Tooltip>
             </div>
-          </div>
-        </Flex>
-        <TextEarned>SKYFI EARNED</TextEarned>
-        <Flex>
-          <div>
-            <TextApr>{stakingInfo?.earnedAmount.toFixed(2)}</TextApr>
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <Apr>{apr.toNumber()}%</Apr>
+              {/* <div style={{ marginLeft: '10px', cursor: 'pointer' }} onClick={() => setOpenRoiModal(true)}>
+                <Icon icon="alien" color="#a7b1f4" />
+              </div> */}
+            </div>
+          </AprColumn>
+          <EarnedColumn>
+            <Title>Earned</Title>
+            <Earned>{stakingInfo?.earnedAmount.toFixed(2)}</Earned>
             <SmallNumberEarn>~0 USD</SmallNumberEarn>
-          </div>         
-          <EarnButton className="launch-button green" onClick={() => handleHarvest(stakingInfo)}>HARVEST</EarnButton>
-        </Flex>
-        <TextEarned>STAKE {tokenName}</TextEarned>
-        <Flex>
+          </EarnedColumn>
+          <ScoreColumn>
+            <Title>Your Score</Title>
+            <Score>{stakingInfo.userScore?.toNumber()}</Score>
+          </ScoreColumn>
+        </HarvestContent>
+        <ButtonContent>
+          <ButtonWrapper>
+            <ButtonPrimary width="200px" onClick={handleEnableClick}>STAKE</ButtonPrimary>
+            <DetailsContent onClick={() => setShowDetails(!showDetails)}>
+              {/* <DetailsIcon><span style={{color: "#fff"}}>...</span></DetailsIcon> */}
+              <ArrayWrap showDetails={showDetails}>
+                <ChevronDown size="20" color="#79E295" />
+              </ArrayWrap>
+              <div>{showDetails ? 'Hide' : 'Details'}</div>
+            </DetailsContent>
+          </ButtonWrapper>
+          <ButtonWrapper>
+            <ButtonSecondary width="150px" onClick={() => handleHarvest(stakingInfo)}>HARVEST</ButtonSecondary>
+            <StyledManageLink
+              to={{
+                pathname: `/manage/${currencyId(currency0)}/${currencyId(currency1)}`,
+                state: { stakingRewardAddress }
+              }}>
+              <ManageContent>
+                <div style={{ width: "20px", height: "20px" }}><SettingIcon stroke="#9384DB" /></div>
+                <div>Manage</div>
+              </ManageContent>
+            </StyledManageLink>
+          </ButtonWrapper>
+        </ButtonContent>
+        {showDetails && (
+          <DetailsWrap>
+            <Flex>
+              <h5>Total staked:</h5>
+              <h5>{stakingInfo?.totalStakedAmount.toFixed(2)} {tokenName}</h5>
+            </Flex>
+            <Flex>
+              <h5>End:</h5>
+              <h5>{moment(stakingInfo?.periodFinish).fromNow()}</h5>
+            </Flex>
+            {chainId && (
+              <FlexEnd>
+                <a href={getEtherscanLink(chainId, stakingInfo.stakingRewardAddress, 'address')} target="_blank">View Contract</a>
+                <IconWrapper>
+                  <img src={OutsideLink} alt="MetaMask icon" />
+                </IconWrapper>
+              </FlexEnd>
+            )}
+            {stakingInfo?.stakedAmount?.token && isMetaMask && (
+              <>
 
-          <ManageButton
-            to={{
-              pathname: `/manage/${currencyId(currency0)}/${currencyId(currency1)}`,
-              state: { stakingRewardAddress }
-            }}
-          >
-            <span style={{ marginRight: '10px', color: "#FF9F81" }}>Manage</span>
-            <SettingIcon stroke="#FF9F81" />
-          </ManageButton>
-        </Flex>
-        <ButtonSecondary
-          onClick={handleEnableClick}>ENABLE</ButtonSecondary>
-      </CenterWrap>
-      <BottomWrap>
-        <Flex>
-          <Flex style={{ width: '90px', cursor: 'pointer' }} onClick={() => setShowDetails(!showDetails)}>
-            <h4>{showDetails ? 'Hide' : 'Details'}</h4>
-            <ArrayWrap showDetails={showDetails}>
-              <ChevronDown size="24" />
-            </ArrayWrap>
-          </Flex>
-        </Flex>
-      </BottomWrap>
-      </CardContainer>
-      {showDetails && (
-        <DetailsWrap>
-          <Flex>
-            <h5>Total staked:</h5>
-            <h5>{stakingInfo?.totalStakedAmount.toFixed(2)} {tokenName}</h5>
-          </Flex>
-          <Flex>
-            <h5>End:</h5>
-            <h5>{moment(stakingInfo?.periodFinish).fromNow()}</h5>
-          </Flex>
-          {chainId && (
+              </>
+            )}
             <FlexEnd>
-              <a href={getEtherscanLink(chainId, stakingInfo.stakingRewardAddress, 'address')} target="_blank">View Contract</a>
+              <a onClick={() => { onClickAddToken(stakingInfo?.stakedAmount?.token) }}>
+                Add to Metamask
+              </a>
               <IconWrapper>
-                <img src={OutsideLink} alt="MetaMask icon" />
+                <img src={MetaMaskIcon} alt="MetaMask icon" />
               </IconWrapper>
             </FlexEnd>
-          )}
-          {stakingInfo?.stakedAmount?.token && isMetaMask && (
-            <>
-
-            </>
-          )}
-          <FlexEnd>
-            <a onClick={() => { onClickAddToken(stakingInfo?.stakedAmount?.token) }}>
-              Add to Metamask
-            </a>
-            <IconWrapper>
-              <img src={MetaMaskIcon} alt="MetaMask icon" />
-            </IconWrapper>
-          </FlexEnd>
-        </DetailsWrap>
-      )}
+          </DetailsWrap>
+        )}
+      </CardContainer>
     </StakingCardStyled>
   )
 }

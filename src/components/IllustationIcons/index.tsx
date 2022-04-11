@@ -55,8 +55,8 @@ export const SuccessIllustation = () => {
           gradientUnits="userSpaceOnUse"
           gradientTransform="translate(102.013 76.5063) rotate(54.3653) scale(143.395 221.975)"
         >
-          <stop offset="0.187019" stop-color="#6752F7" />
-          <stop offset="1" stop-color="#BD30FF" />
+          <stop offset="0.187019" stopColor="#6752F7" />
+          <stop offset="1" stopColor="#BD30FF" />
         </radialGradient>
       </defs>
     </svg>
@@ -139,8 +139,8 @@ export const ErrorIllustratiton = () => {
           gradientUnits="userSpaceOnUse"
           gradientTransform="translate(102.013 80.5063) rotate(54.3653) scale(143.395 221.975)"
         >
-          <stop offset="0.187019" stop-color="#FF426F" />
-          <stop offset="1" stop-color="#FF30D1" />
+          <stop offset="0.187019" stopColor="#FF426F" />
+          <stop offset="1" stopColor="#FF30D1" />
         </radialGradient>
       </defs>
     </svg>
