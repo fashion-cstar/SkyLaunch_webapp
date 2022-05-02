@@ -68,16 +68,22 @@ export default function CurrencyLogo({
   size?: string
   style?: React.CSSProperties
 }) {
-  const getTokenLogoURL = (chain: string, address: string) => {
-    return `https://raw.githubusercontent.com/zeroexchange/bridge-tokens/main/${chain}-tokens/${address}/logo.png`    
+  // const getTokenLogoURL = (chain: string, address: string) => {
+  //   console.log(`https://raw.githubusercontent.com/zeroexchange/bridge-tokens/main/${chain}-tokens/${address}/logo.png`)
+  //   return `https://raw.githubusercontent.com/zeroexchange/bridge-tokens/main/${chain}-tokens/${address}/logo.png`    
+  // }
+  const getTokenLogoURL = (chain: string, symbol: string) => {    
+    return `https://github.com/SkyLaunchFinance/assets/${chain.toLowerCase()}-tokens/${symbol.toUpperCase()}_logo.png`    
   }
+
   const uriLocations = useHttpLocations(currency instanceof WrappedTokenInfo ? currency.logoURI : undefined)
   const srcs: string[] = useMemo(() => {
     if (currency === ETHER) return []
     if (currency && currency.symbol === 'ZERO') return []
     if (currency instanceof Token) {
-      // find logos on ETH address for non-ETH assets
+      // find logos on ETH address for non-ETH assets      
       let logoAddress = currency.address
+      let symbol = currency.symbol??''
       const allConfigTokens: any = []
       crosschainConfig.chains.map(chain => {
         chain.tokens.map(token => {
@@ -92,14 +98,17 @@ export default function CurrencyLogo({
         (token: any) => token?.assetBase === chosenToken?.assetBase
       )
       if (ethToken) {
-        logoAddress = ethToken.address
+        logoAddress = ethToken.address        
+        symbol = ethToken.symbol??''
       }
 
       if (currency instanceof WrappedTokenInfo) {
-        return [...uriLocations, getTokenLogoURL(chainName, logoAddress)]
+        // return [...uriLocations, getTokenLogoURL(chainName, logoAddress)]
+        return [...uriLocations, getTokenLogoURL(chainName, symbol)]
       }
 
-      return [getTokenLogoURL(chainName, logoAddress)]
+      // return [getTokenLogoURL(chainName, logoAddress)]
+      return [getTokenLogoURL(chainName, symbol)]
     }
     return []
   }, [currency, uriLocations])

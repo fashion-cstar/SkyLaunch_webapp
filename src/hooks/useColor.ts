@@ -21,7 +21,8 @@ async function getColorFromToken(token: Token): Promise<string | null> {
   } else {
     const chosenTokenChainName = crosschainConfig.chains.find(chain => chain.tokens.find(t => t.address === token.address))?.name
     const chainName = !chosenTokenChainName ? 'ethereum': (chosenTokenChainName === 'Smart Chain' ) ? 'binance': chosenTokenChainName.toLowerCase()
-    path = `https://raw.githubusercontent.com/zeroexchange/bridge-tokens/main/${chainName}-tokens/${token.address}/logo.png`
+    // path = `https://raw.githubusercontent.com/zeroexchange/bridge-tokens/main/${chainName}-tokens/${token.address}/logo.png`
+    path = `https://github.com/SkyLaunchFinance/assets/${chainName.toLowerCase()}-tokens/${token.symbol?.toUpperCase()}_logo.png`
   }
 
   return Vibrant.from(path)

@@ -165,7 +165,7 @@ export default function WalletModal({
   }, [setWalletView, active, error, connector, walletModalOpen, activePrevious, connectorPrevious])
 
   const tryActivation = async (connector: AbstractConnector | undefined) => {
-    let name = ''
+    let name = ''    
     Object.keys(SUPPORTED_WALLETS).map(key => {
       if (connector === SUPPORTED_WALLETS[key].connector) {
         return (name = SUPPORTED_WALLETS[key].name)
@@ -183,9 +183,9 @@ export default function WalletModal({
 
     connector &&
       activate(connector, undefined, true).catch(error => {
-        if (error instanceof UnsupportedChainIdError) {
+        if (error instanceof UnsupportedChainIdError) {          
           activate(connector) // a little janky...can't use setError because the connector isn't set
-        } else {
+        } else {          
           setPendingError(true)
         }
       })
@@ -345,7 +345,7 @@ export default function WalletModal({
               tryActivation={tryActivation}
             />
           ) : (
-            <OptionGrid>{getOptions()}</OptionGrid>
+            <OptionGrid>{getOptions()}</OptionGrid>            
           )}
           {walletView !== WALLET_VIEWS.PENDING && (
             <Blurb>
