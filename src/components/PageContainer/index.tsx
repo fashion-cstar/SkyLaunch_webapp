@@ -3,9 +3,9 @@ import React, { ReactNode } from 'react'
 import styled from 'styled-components'
 
 const PageWrapper = styled.div`
-  max-width: 1240px;
+  // max-width: 1240px;
   width: 100%;
-  padding: 0 20px;
+  padding: 0 30px;
   margin: 0 auto;
   margin-top: 1rem;
   margin-bottom: 3rem;

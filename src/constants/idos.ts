@@ -2,9 +2,11 @@
 
 export const IDO_LIST = [
   {
-    idoURL: 'skyfi',
+    name: 'skylaunch',
+    idoURL: 'skyfi',    
     siteUrl: 'www.skyfi.com',
     logo: '/images/idos/skyfi-logo.png',
+    icon: '/images/idos/skyfi-icon.png',
     hero: '/images/idos/skyfi_hero.png',
     tierName: '-', // if no tier, leave blank
     tierLogo: null, // if you include this image, it will override the tierName
@@ -79,9 +81,11 @@ export const IDO_LIST = [
     ]
   },
   {
+    name: 'wasder',
     idoURL: 'wasder',
     siteUrl: 'www.wasder.com',
     logo: '/images/idos/wasder-logo.png',
+    icon: '/images/idos/wasder-icon.png',
     hero: '/images/idos/wasder_hero.png',
     tierName: '-', // if no tier, leave blank
     tierLogo: null, // if you include this image, it will override the tierName
@@ -156,9 +160,11 @@ export const IDO_LIST = [
     ]
   },
   {
+    name: 'wise',
     idoURL: 'wise',
     siteUrl: 'www.wasder.com',
     logo: '/images/idos/wise-logo-text.png',
+    icon: '/images/idos/wise-icon.png',
     hero: '/images/idos/wise_hero.png',
     tierName: '', // if no tier, leave blank
     tierLogo: null, // if you include this image, it will override the tierName
@@ -232,8 +238,10 @@ export const IDO_LIST = [
     ]
   },
   {
+    name: 'grow',
     idoURL: 'grow',
     logo: '/images/idos/grow-logo.svg',
+    icon: '/images/idos/wise-icon.png',
     hero: '/images/idos/grow_hero.png',
     siteUrl: 'www.wasder.com',
     tierName: '', // if no tier, leave blank

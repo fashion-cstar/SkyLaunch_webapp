@@ -151,13 +151,12 @@ const LaunchPadTitle = styled.div`
   width: 100%;
   font-size: 70px;
   font-weight: 600;
-  margin-bottom: 10px;
 ${({ theme }) => theme.mediaWidth.upToMedium`
   text-align: center;
   font-size: 50px;
   font-weight: 500;
   margin-top: 10px;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
 `};
 `
 
@@ -219,6 +218,7 @@ export default function ZeroGravityList() {
           <MenuTabs
             tabs={tabs}
             active={activeTab}
+            separated={false}
             onChange={onHandleChangeTab}
           />
         </HeaderContainer>

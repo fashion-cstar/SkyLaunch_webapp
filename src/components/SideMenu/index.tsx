@@ -80,12 +80,19 @@ const StyledNavLink = styled(NavLink).attrs({
   text-decoration: none;
   color: ${({ theme }) => theme.white};
   width: fit-content;
-  font-weight: 600;
+  font-weight: 300;
   transition: all 0.2s ease-in-out;  
   margin-bottom: 1.5rem;
   span {
     &.active {
-      color: ${({ theme }) => theme.skyGreenLight};
+      font-weight: 700;       
+      background-color: #79E295;
+      background-image: linear-gradient(45deg, #79E295, #349F9C);
+      background-size: 100%;
+      -webkit-background-clip: text;
+      -moz-background-clip: text;
+      -webkit-text-fill-color: transparent; 
+      -moz-text-fill-color: transparent;
     }
   }
 `
@@ -98,14 +105,21 @@ const StyledNavSvgLink = styled(NavLink)`
   font-size: 16px;
   text-decoration: none;
   color: ${({ theme }) => theme.white};  
-  font-weight: 600;  
+  font-weight: 300;  
   transition: all 0.2s ease-in-out;    
   margin-bottom: 1.5rem;
   display: flex;
   flex-direction: row;  
   span {    
     &.active {
-      color: ${({ theme }) => theme.skyGreenLight};
+      font-weight: 700;       
+      background-color: #79E295;
+      background-image: linear-gradient(45deg, #79E295, #349F9C);
+      background-size: 100%;
+      -webkit-background-clip: text;
+      -moz-background-clip: text;
+      -webkit-text-fill-color: transparent; 
+      -moz-text-fill-color: transparent;
     }
   }
   svg {
@@ -118,7 +132,7 @@ const HeaderExternalLink = styled(ExternalLink)`
   transition: all 0.2s ease-in-out;
   text-transform: uppercase;
   font-size: 16px;  
-  font-weight: 600;
+  font-weight: 300;
   margin-bottom: 1.5rem;
   display: flex;
   flex-direction: row;
@@ -137,7 +151,7 @@ const SubExternalLink = styled(ExternalLink)`
   color: ${({ theme }) => theme.white};
   text-transform: uppercase;
   font-size: 14px;  
-  font-weight: 500;
+  font-weight: 300;
   opacity: 0.6;
   margin-bottom: 0.5rem;
   display: flex;
@@ -162,6 +176,8 @@ const MoreLink = styled.span`
   display: flex;
   align-items: center;
   cursor: pointer;
+  font-size: 16px;  
+  font-weight: 300;
   color: ${({ theme }) => theme.white};
 `
 const Title = styled.a`

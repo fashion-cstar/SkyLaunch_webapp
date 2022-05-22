@@ -8,24 +8,12 @@ import BlockchainLogo from '../../../components/BlockchainLogo'
 
 import { PieChart, Pie, Sector, Cell, ResponsiveContainer } from 'recharts';
 
-const IdoDetails = styled.div`
-  display: flex;
-  align-items: start;
-  justify-content: space-between;  
-  margin-top: 2rem;
-  margin-bottom: 2rem;
-`
-
-const BgWrapper = styled.div`
-  background: #1c1c1c;
-  box-shadow: 0 0 5px 1px #101010;
-  border-radius: 15px;
+const BgWrapper = styled.div`  
   padding: 30px 60px;
-  width: 100%;
-  position: relative;
-  ${({ theme }) => theme.mediaWidth.upToMedium`
-    border-radius: 16px;
-    padding: 20px;
+  width: 100%;  
+  border-radius: 15px;
+  ${({ theme }) => theme.mediaWidth.upToSmall`  
+    padding: 30px 20px;
   `};
 `
 const Header = styled.div`
@@ -207,106 +195,104 @@ export default function IdoDetailComponent() {
 
   return (
     <>
-      <IdoDetails>
-        <BgWrapper>
-          <Header>
-            <HeadingContainer>
-              <Heading>IDO Details</Heading>
-              <HeadingDate>May 06, 2022</HeadingDate>
-              <HeadingTime>09:00PM</HeadingTime>
-            </HeadingContainer>
-            {/* <ButtonSecondary style={{ width: '120px', padding: '5px 0', textTransform: 'uppercase' }}>Participate</ButtonSecondary> */}
-          </Header>
-          <ContractContainer>
-            <p>Contracts</p>
-            <ContractInfo>
-              <div style={{ display: "flex", alignItems: "center" }}>
-                <BlockchainLogo size="28px" blockchain={'BNB'} />
-                <p>Binance Smart Chain</p>
-              </div>
-              <AddressContainer>0xf67932d8c28227c586d971b6b51749d35dc03558</AddressContainer>
-            </ContractInfo>
-          </ContractContainer>
-          <SeedSection>
-            <SeedItem>
-              <SeedItemTitle>Token Allocation</SeedItemTitle>
-              <SeedItemValue>{idoData?.seed?.tokenAllocation}</SeedItemValue>
-            </SeedItem>
-            <SeedItem>
-              <SeedItemTitle>% Of Total Tokens</SeedItemTitle>
-              <SeedItemValue>{idoData?.seed?.totalTokenPercent}</SeedItemValue>
-            </SeedItem>
-            <SeedItem>
-              <SeedItemTitle>Token Price</SeedItemTitle>
-              <SeedItemValue>{idoData?.seed?.tokenPrice}</SeedItemValue>
-            </SeedItem>
-            <SeedItem>
-              <SeedItemTitle>Total Raised</SeedItemTitle>
-              <SeedItemValue>{idoData?.seed?.totalRaised}</SeedItemValue>
-            </SeedItem>
-            <SeedItem>
-              <SeedItemTitle>Lockup Period</SeedItemTitle>
-              <SeedItemValue>{idoData?.seed?.lockPeriod}</SeedItemValue>
-            </SeedItem>
-            <SeedItem>
-              <SeedItemTitle>Vesting Period Post Lockup(M)</SeedItemTitle>
-              <SeedItemValue>{idoData?.seed?.vestingPeriod}</SeedItemValue>
-            </SeedItem>
-            <SeedItem>
-              <SeedItemTitle>% At TGE</SeedItemTitle>
-              <SeedItemValue>{idoData?.seed?.tgePercent}</SeedItemValue>
-            </SeedItem>
-            <SeedItem>
-              <SeedItemTitle>Minimum Alloc</SeedItemTitle>
-              <SeedItemValue>{idoData?.seed?.allocationMin}</SeedItemValue>
-            </SeedItem>
-          </SeedSection>
-          <GraphContainer>
-            <ResponsiveContainer width="100%" height={350}>
-              <PieChart width={350} height={350}>
-                <Pie
-                  data={idoData?.tokenAllocation}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={renderCustomizedLabel}
-                  innerRadius={25}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {data.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-              </PieChart>
-            </ResponsiveContainer>
-            <ResponsiveContainer width="100%" height={350}>
-              <PieChart width={350} height={350}>
-                <Pie
-                  data={idoData?.tokenAllocation}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={renderCustomizedLabel}
-                  innerRadius={25}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {data.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-              </PieChart>
-            </ResponsiveContainer>
-          </GraphContainer>
-          <GuideContainer>
-            <GuideTitle>How to participate</GuideTitle>
-            <GuideContent>{idoData?.description}</GuideContent>
-          </GuideContainer>
-        </BgWrapper>
-      </IdoDetails>
+      <BgWrapper>
+        <Header>
+          <HeadingContainer>
+            <Heading>IDO Details</Heading>
+            <HeadingDate>May 06, 2022</HeadingDate>
+            <HeadingTime>09:00PM</HeadingTime>
+          </HeadingContainer>
+          {/* <ButtonSecondary style={{ width: '120px', padding: '5px 0', textTransform: 'uppercase' }}>Participate</ButtonSecondary> */}
+        </Header>
+        <ContractContainer>
+          <p>Contracts</p>
+          <ContractInfo>
+            <div style={{ display: "flex", alignItems: "center" }}>
+              <BlockchainLogo size="28px" blockchain={'BNB'} />
+              <p>Binance Smart Chain</p>
+            </div>
+            <AddressContainer>0xf67932d8c28227c586d971b6b51749d35dc03558</AddressContainer>
+          </ContractInfo>
+        </ContractContainer>
+        <SeedSection>
+          <SeedItem>
+            <SeedItemTitle>Token Allocation</SeedItemTitle>
+            <SeedItemValue>{idoData?.seed?.tokenAllocation}</SeedItemValue>
+          </SeedItem>
+          <SeedItem>
+            <SeedItemTitle>% Of Total Tokens</SeedItemTitle>
+            <SeedItemValue>{idoData?.seed?.totalTokenPercent}</SeedItemValue>
+          </SeedItem>
+          <SeedItem>
+            <SeedItemTitle>Token Price</SeedItemTitle>
+            <SeedItemValue>{idoData?.seed?.tokenPrice}</SeedItemValue>
+          </SeedItem>
+          <SeedItem>
+            <SeedItemTitle>Total Raised</SeedItemTitle>
+            <SeedItemValue>{idoData?.seed?.totalRaised}</SeedItemValue>
+          </SeedItem>
+          <SeedItem>
+            <SeedItemTitle>Lockup Period</SeedItemTitle>
+            <SeedItemValue>{idoData?.seed?.lockPeriod}</SeedItemValue>
+          </SeedItem>
+          <SeedItem>
+            <SeedItemTitle>Vesting Period Post Lockup(M)</SeedItemTitle>
+            <SeedItemValue>{idoData?.seed?.vestingPeriod}</SeedItemValue>
+          </SeedItem>
+          <SeedItem>
+            <SeedItemTitle>% At TGE</SeedItemTitle>
+            <SeedItemValue>{idoData?.seed?.tgePercent}</SeedItemValue>
+          </SeedItem>
+          <SeedItem>
+            <SeedItemTitle>Minimum Alloc</SeedItemTitle>
+            <SeedItemValue>{idoData?.seed?.allocationMin}</SeedItemValue>
+          </SeedItem>
+        </SeedSection>
+        <GraphContainer>
+          <ResponsiveContainer width="100%" height={350}>
+            <PieChart width={350} height={350}>
+              <Pie
+                data={idoData?.tokenAllocation}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={renderCustomizedLabel}
+                innerRadius={25}
+                outerRadius={80}
+                fill="#8884d8"
+                dataKey="value"
+              >
+                {data.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+            </PieChart>
+          </ResponsiveContainer>
+          <ResponsiveContainer width="100%" height={350}>
+            <PieChart width={350} height={350}>
+              <Pie
+                data={idoData?.tokenAllocation}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={renderCustomizedLabel}
+                innerRadius={25}
+                outerRadius={80}
+                fill="#8884d8"
+                dataKey="value"
+              >
+                {data.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+            </PieChart>
+          </ResponsiveContainer>
+        </GraphContainer>
+        <GuideContainer>
+          <GuideTitle>How to participate</GuideTitle>
+          <GuideContent>{idoData?.description}</GuideContent>
+        </GuideContainer>
+      </BgWrapper>
     </>
   )
 }

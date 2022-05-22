@@ -4,7 +4,6 @@ import styled from 'styled-components'
 import ArrowDropdown from './../../assets/svg/dropdown_arrow.svg'
 import BlockchainLogo from '../BlockchainLogo'
 import { CHAIN_LABELS } from '../../constants'
-import { ChainId } from '@skylaunch/sdk'
 import ClaimModal from '../claim/ClaimModal'
 import NFTClaimModal from '../NFTClaim/NFTClaimModal'
 import CrossChainModal from 'components/CrossChainModal'
@@ -13,13 +12,11 @@ import PlainPopup from 'components/Popups/PlainPopup'
 import { PopupContent } from 'state/application/actions'
 import { Text } from 'rebass'
 import Web3Status from '../Web3Status'
-import { YellowCard } from '../Card'
-import ZeroLogo from '../../assets/images/zero-logo-text.png'
 import { useActiveWeb3React } from '../../hooks'
 import { useCrosschainState } from 'state/crosschain/hooks'
 import { useETHBalances } from '../../state/wallet/hooks'
 import { ButtonPrimary } from '../Button'
-import { usePoolAndUserInfoCallback } from 'state/fundraising/hooks'
+import { NETWORK_LABELS, NETWORK_SYMBOLS } from 'utils/getNetworkDetails'
 
 const HeaderFrame = styled.div`
   display: grid;
@@ -178,35 +175,6 @@ const NotConnectedWrap = styled.div`
     left: 0px;    
   `};
 `
-
-const NETWORK_LABELS: { [chainId in ChainId]?: string } = {
-  [ChainId.RINKEBY]: 'Rinkeby',
-  [ChainId.ROPSTEN]: 'Ropsten',
-  [ChainId.GÖRLI]: 'Görli',
-  [ChainId.KOVAN]: 'Kovan',
-  [ChainId.FUJI]: 'Avalanche',
-  [ChainId.AVALANCHE]: 'Avalanche',
-  [ChainId.SMART_CHAIN]: 'SmartChain',
-  [ChainId.SMART_CHAIN_TEST]: 'SmartChain',
-  [ChainId.MOONBASE_ALPHA]: 'Moonbeam',
-  [ChainId.MUMBAI]: 'Mumbai',
-  [ChainId.MAINNET]: 'Ethereum',
-  [ChainId.MATIC]: 'Polygon',
-  [ChainId.HECO]: 'HECO'
-}
-
-const NETWORK_SYMBOLS: any = {
-  Ethereum: 'ETH',
-  Rinkeby: 'ETH',
-  Ropsten: 'ETH',
-  Görli: 'ETH',
-  Kovan: 'ETH',
-  Avalanche: 'AVAX',
-  SmartChain: 'BNB',
-  Moonbeam: 'DEV',
-  Polygon: 'MATIC',
-  HECO: 'HT'
-}
 
 const popupContent: PopupContent = {
   simpleAnnounce: {

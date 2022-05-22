@@ -2,8 +2,6 @@ import { FaDiscord, FaMedium, FaTelegramPlane, FaTwitter } from 'react-icons/fa'
 import { BiWorld } from 'react-icons/bi'
 
 import React, { useEffect, useMemo, useState, useCallback } from 'react'
-import { useDispatch } from 'react-redux'
-import { AppDispatch } from '../../../state'
 import { useActiveWeb3React } from '../../../hooks'
 import { BigNumber } from '@ethersproject/bignumber'
 import { ChainId } from '@skylaunch/sdk'
@@ -15,7 +13,7 @@ import moment from 'moment'
 import styled from 'styled-components'
 import { useParams } from 'react-router'
 import { IDO_LIST } from 'constants/idos'
-import { ButtonPrimary } from 'components/Button'
+import { ButtonPrimary, ButtonSecondary } from 'components/Button'
 import FundModal from './FundModal'
 import SubscribeModal from './SubscribeModal'
 import ClaimModal from './ClaimModal'
@@ -35,25 +33,9 @@ import { PoolInfo, UserInfo } from 'state/fundraising/actions'
 import { usePoolAndUserInfoCallback, useFundAndRewardTokenCallback, useMaxAllocCallback, getProgressPhase, useKYCStatus } from 'state/fundraising/hooks'
 import ERC20_ABI from 'constants/abis/erc20.json'
 import { MaxUint256 } from '@ethersproject/constants'
+import { NETWORK_LABELS, NETWORK_NAMES } from 'utils/getNetworkDetails'
+import BlockchainLogo from 'components/BlockchainLogo'
 
-const IdoDetails = styled.div`
-  display: flex;
-  align-items: start;
-  justify-content: space-between;  
-  margin-top: 2rem;
-  margin-bottom: 2rem;
-  border-radius: 15px;
-  background: #1c1c1c;
-`
-
-const PoolDetails = styled.div`
-  width: 100%;
-  border-radius: 15px;
-`
-const HeroWrapper = styled.img`  
-  width: 100%;    
-  border-radius: 15px 15px 0px 0px;
-`
 const BgWrapper = styled.div`  
   padding: 30px 60px;
   width: 100%;  
@@ -62,16 +44,21 @@ const BgWrapper = styled.div`
     padding: 30px 20px;
   `};
 `
-const Header = styled.div`
-  
-`
-
 const HeaderContent = styled.div`
-  display: flex;
+  display: flex;  
   justify-content: space-between;
   ${({ theme }) => theme.mediaWidth.upToSmall`  
     flex-direction: column;
     align-items: center;
+  `};
+`
+const ListSection = styled.ul`
+  font-size: 14px;
+  color: #b0b0b0;
+  line-height: 1.4;
+  font-weight: 200;
+  ${({ theme }) => theme.mediaWidth.upToSmall`
+    font-size: 12px;  
   `};
 `
 const Heading = styled.div`
@@ -83,23 +70,30 @@ const Heading = styled.div`
     text-align: center;
   `};
 `
-
 const Summary = styled.div`
   margin-bottom: 2rem;
   font-size: 14px;
   line-height: 1.4;
-  font-weight: 300;
+  font-weight: 200;
   color: #c1c1c1;
   ${({ theme }) => theme.mediaWidth.upToSmall`
     font-size: 12px;
     text-align: center;
   `};
 `
-
+const RequirementsSummary = styled.div`
+  font-size: 14px;
+  line-height: 1.4;
+  font-weight: 200;
+  color: #c1c1c1;
+  ${({ theme }) => theme.mediaWidth.upToSmall`
+    font-size: 12px;
+    text-align: center;
+  `};
+`
 const SocialLinks = styled.div`
   display: flex;  
 `
-
 const SocialIcon = styled.div`
   cursor: pointer;
   font-size: 1.4rem;
@@ -140,35 +134,34 @@ const Tooltip = styled.div`
     border-color: #555 transparent transparent transparent;
   }
 `
-
-const SeedContent = styled.div`
-  margin-top: 50px;
+const SeedContent = styled.div`  
+  padding-top:8px;
   text-transform: uppercase;
 `
-
 const SeedTitle = styled.div`
   font-weight: 600;
   ${({ theme }) => theme.mediaWidth.upToSmall`
     text-align: center;
   `};
 `
-
 const SeedInfo = styled.div`
   margin-top: 10px;
+  font-weight: 300;
+  font-size: 16px;
   ${({ theme }) => theme.mediaWidth.upToSmall`
     text-align: center;
   `};
 `
-
 const SeedSection = styled.div`
   display: flex;
   flex-wrap: wrap;  
   ${({ theme }) => theme.mediaWidth.upToSmall`
     flex-wrap: nowrap;
+    align-items: center;
+    width: 100%;
     flex-direction: column;
   `};
 `
-
 const SeedItem = styled.div`
   width: 20%;
   margin-right: 5%;
@@ -176,17 +169,18 @@ const SeedItem = styled.div`
     margin-top: 20px;
     width: 80%;
     display: flex;
+    margin-right: 0;
     justify-content: space-between;
+    align-items: center;
   `};
   ${({ theme }) => theme.mediaWidth.upToExtraSmall`
     width: 100%;    
   `};
 `
-
 const SeedItemTitle = styled.p`
   display: flex;
   align-items: flex-end;
-  height: 70px;
+  height: 50px;
   margin: 0;
   font-weight: 500;  
   font-size: 12px;
@@ -194,12 +188,11 @@ const SeedItemTitle = styled.p`
   ${({ theme }) => theme.mediaWidth.upToSmall`    
     width: 100%;
     display: block;
-    height: 30px;
+    height: auto;
   `};
 `
-
 const SeedItemValue = styled.p`
-  margin: 15px 0 20px;
+  margin: 15px 0px;
   color: #fff;
   font-size: 18px;
   font-weight: 500;  
@@ -241,7 +234,6 @@ const ProgressContainer = styled.div`
     align-items: center;
   `};
 `
-
 const StepperContainer = styled.div`
   position: relative;
   padding: 15px 20px;
@@ -289,14 +281,12 @@ const StepperContainerLabel = styled.span`
   padding-bottom: 15px;
   padding-left: 5px;
 `
-
 const CenterWrap = styled.div`
   display: flex;
   justify-content: center;
   width: 100%;
   margin: 1rem 0;
 `
-
 const FundButtonContainer = styled.div`
   width: 100%;
   display: flex;
@@ -306,7 +296,6 @@ const FundButtonContainer = styled.div`
     margin: 0px 0px 20px 0px;
 `}; 
 `
-
 const SkyFiLink = styled.a`
   font-weight: 300;
   font-size: 16px;
@@ -563,117 +552,142 @@ export default function DetailComponent() {
 
   return (
     <>
-      <IdoDetails>
-        <PoolDetails>
-          <HeroWrapper src={idoData?.hero} />
-          <BgWrapper>
-            <Header>
-              <HeaderContent>
-                <Heading>Project Summary</Heading>
-                <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-                  <SkyFiLink href={idoData?.siteUrl} target="_blank">{idoData?.siteUrl}</SkyFiLink>
-                  <SocialLinks>
-                    {socialMediaLinks.map(iconDetails => (
-                      <SocialIcon key={iconDetails.url} onClick={() => window.open(iconDetails.url)}>
-                        {iconDetails.icon}
-                        <Tooltip className="tooltip">{iconDetails.type}</Tooltip>
-                      </SocialIcon>
-                    ))}
-                  </SocialLinks>
-                </div>
-              </HeaderContent>
-              <Summary>
-                {idoData?.description ?? ''}
-              </Summary>
-            </Header>
-            {poolInfoData && userInfoData && isKYCed && !isSubscribed && testNFTContract && progressPhase == 1 && (<SubscribeModal
-              isOpen={showSubscribeModal} onDismiss={() => setShowSubscribeModal(false)}
-              pid={pid} kyc_addresses={kyc_addresses} resetIsSubscribe={resetIsSubscribe} />)}
+      <BgWrapper>
+        <div>
+          <Heading>Staking Requirements</Heading>
+          <HeaderContent>
+            <div>
+              <RequirementsSummary>
+                To get involved in project staking, please make sure you have completed the following requirements:
+              </RequirementsSummary>
+              <ListSection>
+                <li>Connect your wallet and have the required network, <span style={{ color: '#FFF' }}>Binance Smart Chain</span> selected.</li>
+                <li>Create a free account and <span style={{ color: '#FFF' }}>Sign In</span>.</li>
+                <li>Complete your <span style={{ color: '#FFF' }}>KYC and be approved</span>.</li>
+              </ListSection>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', flexDirection: 'column', gap: '16px' }}>
+              <ButtonPrimary width="180px" padding="7px 20px">CREATE ACCOUNT</ButtonPrimary>
+              <ButtonSecondary width="180px" padding="7px 20px">SIGN IN</ButtonSecondary>
+            </div>
+          </HeaderContent>
+        </div>
+        <hr style={{ width: '100%', border: '1px solid #808080', margin: '20px 0px' }} />
+        <div>
+          <HeaderContent>
+            <Heading>Project Summary</Heading>
+            <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+              <SkyFiLink href={idoData?.siteUrl} target="_blank">{idoData?.siteUrl}</SkyFiLink>
+              <SocialLinks>
+                {socialMediaLinks.map(iconDetails => (
+                  <SocialIcon key={iconDetails.url} onClick={() => window.open(iconDetails.url)}>
+                    {iconDetails.icon}
+                    <Tooltip className="tooltip">{iconDetails.type}</Tooltip>
+                  </SocialIcon>
+                ))}
+              </SocialLinks>
+            </div>
+          </HeaderContent>
+          <Summary>
+            {idoData?.description ?? ''}
+          </Summary>
+        </div>
+        {poolInfoData && userInfoData && isKYCed && !isSubscribed && testNFTContract && progressPhase == 1 && (<SubscribeModal
+          isOpen={showSubscribeModal} onDismiss={() => setShowSubscribeModal(false)}
+          pid={pid} kyc_addresses={kyc_addresses} resetIsSubscribe={resetIsSubscribe} />)}
 
-            {poolInfoData && userInfoData && isSubscribed && progressPhase == 2 && (<FundModal
-              isOpen={showFundModal} onDismiss={() => setShowFundModal(false)} resetFundState={resetFundState}
-              pid={pid} userInfoData={userInfoData} fundToken={fundToken} />)}
+        {poolInfoData && userInfoData && isSubscribed && progressPhase == 2 && (<FundModal
+          isOpen={showFundModal} onDismiss={() => setShowFundModal(false)} resetFundState={resetFundState}
+          pid={pid} userInfoData={userInfoData} fundToken={fundToken} />)}
 
-            {poolInfoData && userInfoData && isFunded && (<ClaimModal resetCollectedRewards={resetCollectedRewards}
-              isOpen={showClaimModal} onDismiss={() => setShowClaimModal(false)}
-              pid={pid} userInfoData={userInfoData} rewardToken={rewardToken} fundToken={fundToken} />)}
+        {poolInfoData && userInfoData && isFunded && (<ClaimModal resetCollectedRewards={resetCollectedRewards}
+          isOpen={showClaimModal} onDismiss={() => setShowClaimModal(false)}
+          pid={pid} userInfoData={userInfoData} rewardToken={rewardToken} fundToken={fundToken} />)}
 
-            {account && kyc_addresses && (
-              <ComponentBoxContainer>
-                {!(readyFundRaising && poolInfoData && userInfoData) ? (
-                  <CenterWrap>
-                    <CustomLightSpinner src={Circle} alt="loader" size={'90px'} />
-                  </CenterWrap>
-                ) : (
-                  <>
-                    <LinksGroupContainer>
-                      <LinksGroupContent>
-                        <ButtonsGroup>
-                          {idoData?.whiteListUrl && (
-                            <ButtonPrimary width="140px" padding="7px 20px" onClick={() => goToSite(idoData.whiteListUrl)}>WHITEPAPER</ButtonPrimary>
-                          )}
-                        </ButtonsGroup>
-                      </LinksGroupContent>
-                    </LinksGroupContainer>
-                    <ProgressContainer>
-                      <FundButtonContainer>
-                        {(poolInfoData && userInfoData) ?
-                          <>
-                            <FundRaisingButtons isKYCed={isKYCed} isSubscribed={isSubscribed} progressPhase={progressPhase} fundToken={fundToken} userInfoData={userInfoData} maxAlloc={maxAlloc} idoURL={idoURL} openSubscribeModal={openSubscribeModal} openFundModal={openFundModal} openClaimModal={openClaimModal} />
-                          </> : <></>}
-                      </FundButtonContainer>
-                      <StepperContainer>
-                        <StepperContainerLabel>PROGRESS</StepperContainerLabel>
-                        <NewStepper activeStep={activeStep} />
-                        {remainSecs > 0 && (<RemainingTimePanel secs={remainSecs} />)}
-                        {isFunded && (<UserInfoPanel multiplier={userInfoData ? userInfoData.multiplier.toNumber() : 0}
-                          fundingAmount={userInfoData && fundToken ? formatEther(userInfoData.fundingAmount, fundToken.decimals, FIXED_FUNDING_DECIMALS, true) : '0'}
-                          collectedRewards={userInfoData && rewardToken ? formatEther(userInfoData.collectedRewards, rewardToken.decimals, 3, true) : '0'}
-                          fundTokenSymbol={fundToken ? fundToken.symbol : ''}
-                          rewardTokenSymbol={rewardToken ? rewardToken.symbol : ''}
-                          progressPhase={progressPhase} />)}
-                      </StepperContainer>
-                      {/* <ButtonPrimary width="120px" padding="5px 20px" onClick={() => setupVestingRewards()}>setupVestingRewards</ButtonPrimary> */}
-                    </ProgressContainer>
-                  </>)}
-              </ComponentBoxContainer>)}
-            <SeedContent>
-              <SeedTitle>Seed Round</SeedTitle>
-              <SeedInfo>Seed Round Closed On {moment(idoData?.seed?.closedDate).format('lll')}</SeedInfo>
-              <SeedSection>
-                <SeedItem>
-                  <SeedItemTitle>Token Allocation</SeedItemTitle>
-                  <SeedItemValue>{idoData?.seed?.tokenAllocation}</SeedItemValue>
-                </SeedItem>
-                <SeedItem>
-                  <SeedItemTitle>% Of Total Tokens</SeedItemTitle>
-                  <SeedItemValue>{idoData?.seed?.totalTokenPercent}</SeedItemValue>
-                </SeedItem>
-                <SeedItem>
-                  <SeedItemTitle>Token Price</SeedItemTitle>
-                  <SeedItemValue>{idoData?.seed?.tokenPrice}</SeedItemValue>
-                </SeedItem>
-                <SeedItem>
-                  <SeedItemTitle>Total Raised</SeedItemTitle>
-                  <SeedItemValue>{idoData?.seed?.totalRaised}</SeedItemValue>
-                </SeedItem>
-                <SeedItem>
-                  <SeedItemTitle>Lockup Period</SeedItemTitle>
-                  <SeedItemValue>{idoData?.seed?.lockPeriod}</SeedItemValue>
-                </SeedItem>
-                <SeedItem>
-                  <SeedItemTitle>Vesting Period Post Lockup(M)</SeedItemTitle>
-                  <SeedItemValue>{idoData?.seed?.vestingPeriod}</SeedItemValue>
-                </SeedItem>
-                <SeedItem>
-                  <SeedItemTitle>% At TGE</SeedItemTitle>
-                  <SeedItemValue>{idoData?.seed?.tgePercent}</SeedItemValue>
-                </SeedItem>
-              </SeedSection>
-            </SeedContent>
-          </BgWrapper>
-        </PoolDetails>
-      </IdoDetails>
+        {account && kyc_addresses && (
+          <ComponentBoxContainer>
+            {!(readyFundRaising && poolInfoData && userInfoData) ? (
+              <CenterWrap>
+                <CustomLightSpinner src={Circle} alt="loader" size={'90px'} />
+              </CenterWrap>
+            ) : (
+              <>
+                <LinksGroupContainer>
+                  <LinksGroupContent>
+                    <ButtonsGroup>
+                      {idoData?.whiteListUrl && (
+                        <ButtonPrimary width="140px" padding="7px 20px" onClick={() => goToSite(idoData.whiteListUrl)}>WHITEPAPER</ButtonPrimary>
+                      )}
+                    </ButtonsGroup>
+                  </LinksGroupContent>
+                </LinksGroupContainer>
+                <ProgressContainer>
+                  <FundButtonContainer>
+                    {(poolInfoData && userInfoData) ?
+                      <>
+                        <FundRaisingButtons isKYCed={isKYCed} isSubscribed={isSubscribed} progressPhase={progressPhase} fundToken={fundToken} userInfoData={userInfoData} maxAlloc={maxAlloc} idoURL={idoURL} openSubscribeModal={openSubscribeModal} openFundModal={openFundModal} openClaimModal={openClaimModal} />
+                      </> : <></>}
+                  </FundButtonContainer>
+                  <StepperContainer>
+                    <StepperContainerLabel>PROGRESS</StepperContainerLabel>
+                    <NewStepper activeStep={activeStep} />
+                    {remainSecs > 0 && (<RemainingTimePanel secs={remainSecs} />)}
+                    {isFunded && (<UserInfoPanel multiplier={userInfoData ? userInfoData.multiplier.toNumber() : 0}
+                      fundingAmount={userInfoData && fundToken ? formatEther(userInfoData.fundingAmount, fundToken.decimals, FIXED_FUNDING_DECIMALS, true) : '0'}
+                      collectedRewards={userInfoData && rewardToken ? formatEther(userInfoData.collectedRewards, rewardToken.decimals, 3, true) : '0'}
+                      fundTokenSymbol={fundToken ? fundToken.symbol : ''}
+                      rewardTokenSymbol={rewardToken ? rewardToken.symbol : ''}
+                      progressPhase={progressPhase} />)}
+                  </StepperContainer>
+                  {/* <ButtonPrimary width="120px" padding="5px 20px" onClick={() => setupVestingRewards()}>setupVestingRewards</ButtonPrimary> */}
+                </ProgressContainer>
+              </>)}
+          </ComponentBoxContainer>)}
+        <hr style={{ width: '100%', border: '1px solid #808080', margin: '20px 0px' }} />
+        <SeedContent>
+          <div>
+            <Heading>Seed Round</Heading>
+            <SeedInfo>Seed Round Closed On {moment(idoData?.seed?.closedDate).format('lll')}</SeedInfo>
+          </div>
+          <SeedSection>
+            <SeedItem>
+              <SeedItemTitle>Token Allocation</SeedItemTitle>
+              <SeedItemValue>{idoData?.seed?.tokenAllocation}</SeedItemValue>
+            </SeedItem>
+            <SeedItem>
+              <SeedItemTitle>% Of Total Tokens</SeedItemTitle>
+              <SeedItemValue>{idoData?.seed?.totalTokenPercent}</SeedItemValue>
+            </SeedItem>
+            <SeedItem>
+              <SeedItemTitle>Token Price</SeedItemTitle>
+              <SeedItemValue>{idoData?.seed?.tokenPrice}</SeedItemValue>
+            </SeedItem>
+            <SeedItem>
+              <SeedItemTitle>Total Raised</SeedItemTitle>
+              <SeedItemValue>{idoData?.seed?.totalRaised}</SeedItemValue>
+            </SeedItem>
+            <SeedItem>
+              <SeedItemTitle>Lockup Period</SeedItemTitle>
+              <SeedItemValue>{idoData?.seed?.lockPeriod}</SeedItemValue>
+            </SeedItem>
+            <SeedItem>
+              <SeedItemTitle>Vesting Period Post Lockup(M)</SeedItemTitle>
+              <SeedItemValue>{idoData?.seed?.vestingPeriod}</SeedItemValue>
+            </SeedItem>
+            <SeedItem>
+              <SeedItemTitle>% At TGE</SeedItemTitle>
+              <SeedItemValue>{idoData?.seed?.tgePercent}</SeedItemValue>
+            </SeedItem>
+            <SeedItem>
+              <SeedItemTitle>Raise Network</SeedItemTitle>
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                <BlockchainLogo size="26px" blockchain={chainId ? NETWORK_LABELS[chainId] : 'Ethereum'} />
+                <SeedItemValue>{chainId ? NETWORK_NAMES[chainId] : 'Ethereum'}</SeedItemValue>
+              </div>
+            </SeedItem>
+          </SeedSection>
+        </SeedContent>
+      </BgWrapper>
     </>
   )
 }
